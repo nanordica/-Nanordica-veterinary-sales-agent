@@ -25,6 +25,38 @@ teksti.
 - **Kanal:** ettevõtte meilbox + mail-merge jälgimistööriist
 - **List:** külm prospekteerimine; kasutaja kinnitanud õigusliku aluse
 
+## Liides teistele agentidele
+
+Seda skilli kutsuvad ka teised agendid (kui on kirjutamise aeg). Orkestraator
+võib kutsuda otse nime järgi (`lv-vet-email-funnel`) või jätta mudeli enda
+otsustada `description` põhjal.
+
+### Sisend (mida kutsuv agent annab)
+
+| Väli | Kohustuslik | Näide |
+|------|-------------|-------|
+| Kontakti e-post | jah | `anna@kakuklinika.lv` |
+| Kaasatuse staatus | jah | vastas / klikkis / avas / kontakteerimata |
+| Mitu kirja juba saadetud | jah | `0` (esimene), `3` jne |
+| Eelmiste kirjade nurgad | kui >0 | "tutvustus, teadusartikkel" (et mitte korrata) |
+| Juba teadaolevad andmed | ei | nimi, kliinik, loomaliik (säästab rikastamist) |
+
+### Väljund (mida skill tagastab)
+
+- Pealkiri + eelvaate-tekst
+- Kirja tekst (läti, QA läbinud)
+- Kohatäidetega versioon mail-merge tööriista jaoks
+- UTM-märgistatud CTA-link
+- Soovitatud ooteaeg järgmise kirjani (jada-tabeli järgi)
+- QA staatus: `läbinud` või loend kahtlastest väidetest
+- **Stopp-signaal**, kui kontakt vastas / opt-out / bounce (jada peatub)
+
+### Raja-juhud kutsuvale agendile
+
+- Kontakti ei leia rikastamisel → väljasta "rikastamata" + käitumispõhine kiri.
+- Uut haaki ei leia → **ära väljasta kirja**, anna signaal "haaki pole".
+- Staatus = vastas/opt-out/bounce → **ära genereeri**, anna stopp-signaal.
+
 ## Töövoog
 
 Kui kasutaja palub koostada kirja või jada-sammu, järgi seda:
