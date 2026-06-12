@@ -18,7 +18,7 @@ pole vaja).
      Testib e-posti kaudu sidumist (päris ost → Won).
    - **deal B**: `email = karmen+testB@kood.tech`, staadium Contacted,
      `discount_code` saab väärtuse järgmises sammus. Testib
-     kupongikoodi kaudu sidumist (näidis → Näidis tellitud).
+     kupongikoodi kaudu sidumist (näidis → Naidis tellitud).
 2. Loo deal B-le näidisekupong wix-mcp kaudu (Claude Code'is):
    "loo wix-mcp-ga 100% kupong deal'ile <B id>, nimi 'integratsioonitest'".
    Kirjuta saadud kood deal B `discount_code` field'i.
@@ -36,7 +36,7 @@ Käivita sales-detector (Claude Code'is): "käivita sales-detector".
 ## Oodatav tulemus
 
 - [ ] deal A staadiumis **Won**, note'is tellimuse nr ja summa
-- [ ] deal B staadiumis **Näidis tellitud**, `sample_claimed_at`
+- [ ] deal B staadiumis **Naidis tellitud**, `sample_claimed_at`
       täidetud, note'is kupongikood
 - [ ] `cache/sales-detector-cursor.json` olemas, `last_seen_at` =
       uusima tellimuse aeg

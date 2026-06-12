@@ -2,7 +2,7 @@
 name: sales-detector
 description: >
   Tuvastab Wixi ostud ja kupongilunastused ning liigutab Pipedrive'i
-  deal'e: päris ost -> Won, tasuta näidise lunastus -> Näidis tellitud.
+  deal'e: päris ost -> Won, tasuta näidise lunastus -> Naidis tellitud.
   Käivitatakse /tick sammus 2 (pärast inbox-triage'i, enne
   enrichmenti). Kasuta alati, kui tikk jõuab müügituvastuse sammu või
   kasutaja palub Wixi tellimused üle kontrollida.
@@ -47,9 +47,11 @@ jooks töötleks samad tellimused uuesti.
       looda ega muudeta.
    c. **Näidise lunastus** (kupongiga tellimus, mille `total` on 0 või
       kupongi `percent_off` on 100):
-      - kui deal on juba staadiumis "Näidis tellitud" või "Won",
+      - kui deal on juba staadiumis "Naidis tellitud" või "Won",
         ära muuda midagi (duplikaat), ainult note;
-      - muidu liiguta deal staadiumisse **Näidis tellitud**, sea
+      - muidu liiguta deal staadiumisse **Naidis tellitud** (täpselt
+        selles ASCII kujus, ilma ä-ta — Pipedrive'i staadiuminimed on
+        ASCII ja `resolve_stage_id` teeb täpse võrdluse), sea
         `sample_claimed_at` tellimuse `created_at` väärtusele ja lisa
         note: tellimuse number, kupongikood, mis telliti.
    d. **Päris ost** (`total` > 0):
@@ -71,6 +73,6 @@ jooks töötleks samad tellimused uuesti.
 - Sa EI muuda hindu, tooteid ega tee tagasimakseid (wix-mcp neid ei
   avagi).
 - Sa EI saada e-kirju.
-- Sa EI liiguta deal'e üheski muus suunas kui Näidis tellitud ja Won.
+- Sa EI liiguta deal'e üheski muus suunas kui Naidis tellitud ja Won.
 - DRY_RUN-is teevad kirjutavad MCP-tööriistad ainult logikirje; sinu
   loogika on mõlemas režiimis sama.
