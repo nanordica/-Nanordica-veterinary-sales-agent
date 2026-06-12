@@ -29,7 +29,9 @@ financial_analyst, IBKR, files, notify) jäetakse välja.
 | Tööriistanimed | Prefiksitud: `pipedrive_*`, `mail_*`, `wix_*` | Selge päritolu ühel endpointil |
 | Krediidid | `.env` keskkonnamuutujad | Üks rentnik (üks Ravimus pipeline); isikliku per-request header-mehhanismi pole vaja |
 | Kood vs stub | Päris API-kliendid + `DRY_RUN` lüliti | Smoke-testitav niipea kui tokenid käes |
-| Jagatud loogika | Puhtad API-kliendid `mcp/lib/`-is | Disainidoc'i `lib/` nõue; discovery-skript taaskasutab sama klienti |
+| Jagatud loogika | Puhtad API-kliendid `mcp/lib/`-is | Disainidoc'i `lib/` nõue; setup- ja discovery-skript taaskasutavad sama klienti |
+| Oleku tõde | **Kogu olek Pipedrive'is** | Kaitserauad loevad Pipedrive'i deal'i field'e; eraldi kohalikku ledgerit pole |
+| Provisioneerimine | Setup-skript `lib/`-i kaudu | Pipeline + staadiumid + custom field'id on admin-operatsioon, mitte MCP-tööriist |
 
 **Kõrvalekalle disainidoc'ist:** "Tööriistakiht" kirjeldab servereid kui
 stdio + `.mcp.json`. Siin valiti HTTP üks-endpoint. Disainidoc'i vastav
@@ -50,11 +52,12 @@ mcp/
   server_registry.py      # create_server + register
   lib/
     __init__.py
-    pipedrive_client.py   # puhas Pipedrive klient (taaskasutab discovery.py)
+    pipedrive_client.py   # puhas Pipedrive klient (sh admin: pipeline/stage/field loomine)
     graph_client.py       # MS Graph app-only klient (saatmine + delta-lugemine)
     wix_client.py         # Wix klient (tellimused + kupongid)
     dryrun.py             # DRY_RUN abi + kavatsuse logija
-    mail_ledger.py        # SQLite saatmislogi + opt-out blokeerimisnimekiri
+  scripts/
+    pipedrive_setup.py    # idempotentne: loob pipeline + 8 staadiumi + custom field'id
   tools/
     __init__.py
     pipedrive_deals.py
@@ -62,7 +65,7 @@ mcp/
     pipedrive_fields.py
     mail.py
     wix.py
-  data/                   # gitignore'itud: mail_ledger.db, graph delta token
+  data/                   # gitignore'itud: graph delta-token cursor
 ```
 
 Kõik `tools/`-i lamefailid registreeruvad default serveril `/mcp`.
@@ -93,32 +96,60 @@ Lugemine + kitsad kirjutused. Krediit: `PIPEDRIVE_API_TOKEN` +
 
 **Teadlikult puudu:** kustutamine, masskirjutus, admin, toodete/hindade muutmine.
 
+#### Pipeline provisioneerimine (`scripts/pipedrive_setup.py`)
+
+Esmane samm: deterministlik **idempotentne** skript, mis loob projekti
+oma pipeline'i, kui seda veel pole. Kasutab `lib/pipedrive_client.py`
+admin-meetodeid (`get_pipelines` / `create_pipeline`, `get_stages` /
+`create_stage`, `get_deal_fields` / `create_deal_field`). Need
+admin-meetodid elavad `lib/`-is, **aga neid ei avata MCP-tööriistana** —
+MCP pind jääb kitsas. Skript:
+
+1. Otsib pipeline'i nimega `ravimus-latvia-vets`; puudumisel loob.
+2. Tagab 8 staadiumi õiges järjekorras (Discovered → Enriched →
+   Qualified → Contacted → Engaged → Näidis tellitud → Won → Lost).
+3. Tagab kõik custom field'id deal'il (disainidoc'i tabel: `registry_id`,
+   `email`, `clinic`, `specialization`, `network`, `decision_style`,
+   `score`, `ab_variant`, `personal_link`, `discount_code`,
+   `sample_claimed_at`, `emails_sent`, `last_contact_at`, `lost_reason`).
+4. Korduval käivitusel ei loo duplikaate — kontrollib olemasolu nime/key järgi.
+
+Käivitatakse üks kord enne discovery't; `DRY_RUN=1` korral logib
+kavandatud loomised neid tegemata.
+
 ### E-mail — MS Graph (`mail_*`)
 
 App-only (client-credentials) voog, saatja `ravimus@nanordica.com`.
 Krediit: `GRAPH_TENANT_ID`, `GRAPH_CLIENT_ID`, `GRAPH_CLIENT_SECRET`,
-`GRAPH_SENDER`. Kaitserauad jõustatakse **siin, koodis**, kohaliku
-saatmislogi (`lib/mail_ledger.py`) põhjal — sõltumatu agendi/Pipedrive'i
-korrektsusest.
+`GRAPH_SENDER`. Kaitserauad jõustatakse **siin, koodis**, lugedes seisu
+**Pipedrive'i deal'ilt** (kogu tõde on Pipedrive'is). `mail_send` impordib
+`lib/pipedrive_client.py` ja töötab `deal_id` põhjal.
 
 | Tööriist | Tüüp | Sisu |
 |---|---|---|
-| `mail_send(to, subject, body_html)` | write | Saadab; jõustab kõik kaitserauad (vt all) |
-| `mail_list_new_messages(folder?)` | read | Inbox-triage loeb uued kirjad delta-tokeniga |
-| `mail_add_optout(email, reason?)` | write | Lisab aadressi püsivasse blokeerimisnimekirja |
-| `mail_list_optouts()` | read | Blokeerimisnimekirja loend |
+| `mail_send(deal_id, to, subject, body_html)` | write | Saadab; jõustab kaitserauad deal'i field'idelt; uuendab deal'i pärast |
+| `mail_list_new_messages(folder?)` | read | Inbox-triage loeb uued kirjad Graphi delta-cursor'iga |
 | `mail_check_config()` | read | Diagnostika: kas Graph krediit + sender seatud |
 
-**`mail_send` kaitserauad (kõik koodis, enne API-kõnet):**
+**`mail_send` kaitserauad (kõik koodis, enne API-kõnet, Pipedrive'i deal'ilt):**
 1. `DRY_RUN=1` → logib kavandatud kirja, ei saada.
-2. Opt-out blokeerimisnimekirjas → keeldub.
-3. Sama saaja viimane kiri < 24 h → keeldub (≤ 1 kiri / saaja / 24 h).
-4. Saaja kirjade arv ≥ 5 → keeldub (≤ 5 kirja / saaja kokku).
+2. Loeb deal'i; kontrollib et deal'i `email` == `to` (vale deal'i kaitse).
+3. `lost_reason == opt-out` (deal Lost-staadiumis) → keeldub.
+4. `last_contact_at` < 24 h → keeldub (≤ 1 kiri / saaja / 24 h).
+5. `emails_sent` ≥ 5 → keeldub (≤ 5 kirja / saaja kokku).
 
-Õnnestunud saatmine kirjutab saatmislogisse (timestamp + loendur)
-**enne** edukat tagastust, et topeltsaatmist ei tekiks.
+Õnnestunud saatmine uuendab Pipedrive'i deal'i **enne** edukat tagastust:
+`last_contact_at` = nüüd ja `emails_sent` += 1 (atomiseerib saatmise +
+logimise MCP-kihis; `last_contact_at` enne note'i → topeltsaatmist ei
+teki), seejärel lisab note'i kirja sisuga.
 
-**Teadlikult puudu:** kustutamine, teiste kaustade lugemine, teiste postkastide nimel saatmine.
+Opt-out'i ei hallata mail-serveris — see on Pipedrive'i operatsioon
+(`pipedrive_move_deal_stage` Lost + `pipedrive_update_deal_fields`
+`lost_reason=opt-out`), mille teeb inbox-triage. Discovery dedup
+`registry_id` järgi tagab, et opt-out'itud vetti uuesti ei looda.
+
+**Teadlikult puudu:** kustutamine, teiste kaustade lugemine, teiste
+postkastide nimel saatmine, eraldi opt-out-nimekiri.
 
 ### Wix (`wix_*`)
 
@@ -142,26 +173,6 @@ tööriist (`mail_send`, `pipedrive_create_*`, `pipedrive_update_*`,
 õnnestumise **ilma API-d puudutamata**. Lugemised käivad alati päriselt.
 Üks keskkonnamuutuja viib kogu kihi live'i (disainidoc'i faas 1 nõue).
 
-## Saatmislogi skeem (`lib/mail_ledger.py`, SQLite)
-
-```sql
-CREATE TABLE sent (
-  recipient   TEXT NOT NULL,
-  sent_at     TEXT NOT NULL,   -- ISO-8601 UTC
-  subject     TEXT,
-  dry_run     INTEGER NOT NULL DEFAULT 0
-);
-CREATE TABLE optout (
-  email       TEXT PRIMARY KEY,
-  reason      TEXT,
-  added_at    TEXT NOT NULL
-);
-```
-
-`mail_send` küsib enne saatmist: `optout` sisaldab saajat? viimane
-`sent.sent_at` < 24 h? `COUNT(sent)` saaja kohta ≥ 5? Asukoht:
-`MAIL_LEDGER_DB` (vaikimisi `./data/mail_ledger.db`).
-
 ## `.env` muutujad
 
 `.env.example` sisaldab ainult placeholder'eid; päris väärtused
@@ -182,7 +193,7 @@ gitignore'itud `.env`-is.
 | `MCP_PORT` | platvorm | vaikimisi 8765 |
 | `MCP_AUTH_TOKEN` | platvorm | valikuline Bearer-auth |
 | `LOG_LEVEL` | platvorm | vaikimisi INFO |
-| `MAIL_LEDGER_DB` | mail | vaikimisi `./data/mail_ledger.db` |
+| `GRAPH_DELTA_PATH` | mail | delta-cursor cache, vaikimisi `./data/graph_delta.json` |
 
 ## Välised ligipääsunõuded
 
@@ -205,30 +216,37 @@ gitignore'itud `.env`-is.
 Iga süsteemi smoke-test ilma live-kõrvalmõjudeta:
 
 1. Stack püsti (`docker compose up`), `/mcp` `ping` → `pong`.
-2. **Lugemised päriselt** (kui tokenid käes): `pipedrive_check_config`
+2. **Pipeline setup**: `pipedrive_setup.py` `DRY_RUN=1` all logib kavandatud
+   pipeline/staadiumid/field'id; live-käivitus loob need; **teine** live-käivitus
+   ei loo duplikaate (idempotentsus).
+3. **Lugemised päriselt** (kui tokenid käes): `pipedrive_check_config`
    + `pipedrive_list_deals`; `mail_check_config`; `wix_check_config`.
-3. **Kirjutused `DRY_RUN=1` all**: `mail_send`, `pipedrive_create_person`,
+4. **Kirjutused `DRY_RUN=1` all**: `mail_send`, `pipedrive_create_person`,
    `wix_create_coupon` → kõik logivad kavatsuse, **midagi ei saadeta/looda**.
-4. Kaitserauad: `mail_send` keeldub (a) opt-out aadressile, (b) kui
-   sama saaja sai < 24 h tagasi kirja, (c) kui saaja loendur ≥ 5.
+5. Kaitserauad: `mail_send` keeldub (a) opt-out deal'ile (`lost_reason=opt-out`),
+   (b) kui deal'i `last_contact_at` < 24 h, (c) kui `emails_sent` ≥ 5,
+   (d) kui deal'i `email` ei klapi `to`-ga.
 
-"Valmis" = kõik kolm `*_check_config` rohelised, kõik kirjutused
-DRY_RUN-is logitud-aga-tegemata, ja neli kaitserauda jõustuvad.
+"Valmis" = setup idempotentne, kõik kolm `*_check_config` rohelised, kõik
+kirjutused DRY_RUN-is logitud-aga-tegemata, ja neli kaitserauda jõustuvad.
 
 ## Ehitusjärjekord
 
 1. **Platvormi tuum**: `mcp/` skelett `isiklik/MCP`-st (server.py,
    mcp_app.py, server_registry.py, Docker, requirements) — ainult
    `ping` + `server_info`, käivitub `/mcp`-l.
-2. **Pipedrive**: `lib/pipedrive_client.py` + `tools/pipedrive_*.py` +
-   `DRY_RUN` mähis; smoke-test read'id + dry-run write'id.
-3. **DRY_RUN tuum**: `lib/dryrun.py` (kasutab juba sammus 2).
-4. **Mail**: `lib/graph_client.py` (app-only token) + `lib/mail_ledger.py`
-   + `tools/mail.py` koos nelja kaitserauaga; smoke-test dry-run +
-   ledger-loogika.
-5. **Wix**: `lib/wix_client.py` + `tools/wix.py`; smoke-test read +
+2. **DRY_RUN tuum**: `lib/dryrun.py` — kasutavad kõik järgnevad write'id.
+3. **Pipedrive klient + tööriistad**: `lib/pipedrive_client.py` (sh
+   admin-meetodid) + `tools/pipedrive_*.py`; smoke-test read'id + dry-run write'id.
+4. **Pipeline setup**: `scripts/pipedrive_setup.py` — loob pipeline +
+   staadiumid + custom field'id idempotentselt; smoke-test (dry-run →
+   live → teine live ilma duplikaatideta).
+5. **Mail**: `lib/graph_client.py` (app-only token) + `tools/mail.py`
+   koos kaitserautadega (loevad Pipedrive'i deal'ilt); smoke-test dry-run
+   + kaitseraua-loogika.
+6. **Wix**: `lib/wix_client.py` + `tools/wix.py`; smoke-test read +
    dry-run coupon.
-6. **`.mcp.json` + README**: registreeri server, dokumenteeri tööriistad
+7. **`.mcp.json` + README**: registreeri server, dokumenteeri tööriistad
    ja `.env`.
 
 Iga samm on eraldi verifitseeritav; järgmist ei alustata enne, kui
