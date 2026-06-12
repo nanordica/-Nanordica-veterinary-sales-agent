@@ -11,8 +11,8 @@ profiiliks. Profiili kasutavad qualification (skoor) ja outreach-writer
 
 ## Sisend
 
-- **Tick'i režiim:** Discovered deal — `get_deal` või
-  `list_deals_in_stage("Discovered")` (pipedrive-mcp).
+- **Tick'i režiim:** Discovered deal — `pipedrive_get_deal(deal_id)` või
+  `pipedrive_list_deals(stage="Discovered")`.
 - **Käsitsi režiim:** kasutaja antud nimi + e-mail (+ muu teadaolev).
   Pipedrive'i ei puututa; väljund läheb faili `cache/profiles/<slug>.md`
   (slug: väiketähed, sidekriipsud). Failivorming: algusesse field'ide
@@ -66,14 +66,16 @@ profiiliks. Profiili kasutavad qualification (skoor) ja outreach-writer
 
 ## Mõõtmed
 
-### Pipedrive field'id (`update_deal_fields`)
+### Pipedrive deal'i andmed (`pipedrive_update_deal_data`)
 
-| Field | Mida kirjutada |
+Kõik deal'i metaandmed elavad ühes JSON state field'is (`_state`). Kirjuta neli võtit:
+
+| Võti | Mida kirjutada |
 |---|---|
 | `clinic` | nimi, linn — tüüp; **kiirabi/24h: jah / ei / teadmata** (qualification'i kõrgeim kaal!) |
 | `specialization` | loomaliigid + eriala; **otsi eraldi: kirurgia, haavaravi, operatsioonijärgne hooldus, dermatoloogia, traumad** (outreach'i avarea eelistus #1) |
-| `network` | seosed teiste vetidega: `fakt — URL [kindlus]`, eraldajaks `;` |
-| `decision_style` | 1–2 stiili (faktid-numbrid / praktilised tulemused / innovatsioon / kolleegide kogemus / loomade heaolu / äriareng) + tõend |
+| `network` | seosed teiste vetidega: `fakt - URL [kindlus]`, eraldajaks `;` |
+| `decision_style` | 1-2 stiili (faktid-numbrid / praktilised tulemused / innovatsioon / kolleegide kogemus / loomade heaolu / äriareng) + tõend |
 
 Otsustusstiili signaalikaart (alati järeldus + tõend):
 
@@ -82,7 +84,7 @@ Otsustusstiili signaalikaart (alati järeldus + tõend):
 - omanik, kliiniku laiendamine, aktiivne turundus → äriareng
 - kutseliidu ja koolituste aktiivsus → kolleegide kogemus
 
-### Note lisamõõtmed (`add_note_to_deal`), täpne mall
+### Note lisamõõtmed (`pipedrive_add_note`), täpne mall
 
 ```
 ## Enrichment — <nimi> — <YYYY-MM-DD>
@@ -115,11 +117,11 @@ Vihjed:
 
 ## Töövoog (tick'i režiim)
 
-1. `get_deal` → loe registriandmed.
+1. `pipedrive_get_deal(deal_id)` → loe `_state` registriandmed.
 2. Otsi allikaredeli järgi, eelarve piires.
-3. `update_deal_fields` — 4 field'i.
-4. `add_note_to_deal` — malli järgi.
-5. Alles kui 3–4 õnnestusid: `move_deal_to_stage(deal_id, "Enriched")`.
+3. `pipedrive_update_deal_data(deal_id, {"clinic": ..., "specialization": ..., "network": ..., "decision_style": ...})`.
+4. `pipedrive_add_note(deal_id, ...)` — malli järgi.
+5. Alles kui 3-4 õnnestusid: `pipedrive_move_deal_stage(deal_id, "Enriched")`.
 6. MCP kõne ebaõnnestus → ÄRA liiguta staadiumit, raporteeri viga;
    järgmine tikk proovib uuesti.
 
