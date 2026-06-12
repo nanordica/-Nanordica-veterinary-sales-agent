@@ -20,4 +20,5 @@ STATE_KEYS = [
     "decision_style", "score", "ab_variant", "personal_link",
     "discount_code", "sample_claimed_at", "emails_sent",
     "last_contact_at", "lost_reason",
+    "valid_until", "practice_scope", "source",
 ]
