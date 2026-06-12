@@ -13,23 +13,29 @@ harust mestitud.
 
 ## Tulemid
 
-- [ ] `mcp/wix-mcp/`: tellimuste loetelu, personaalse kupongi loomine
+- [x] `mcp/wix-mcp/`: tellimuste loetelu, personaalse kupongi loomine
       (sh 100% näidisekupong), kupongi kasutuse kontroll; hindade muutmist
       ja tagasimakseid ei avata
-      ([tööriistakiht](../../ravimus-lead-pipeline-design.md#tööriistakiht--kohalikud-mcp-serverid))
-- [ ] `.claude/agents/sales-detector.md`: pollib Wixi, seob ostja e-posti
+      ([tööriistakiht](../../ravimus-lead-pipeline-design.md#tööriistakiht--kohalikud-mcp-serverid)).
+      Smoke-test: `.venv/bin/python mcp/wix-mcp/smoke_test.py`. Live-kõned
+      vajavad veel Wixi võtmega ülekontrolli (võti Mardilt).
+- [x] `.claude/agents/sales-detector.md`: pollib Wixi, seob ostja e-posti
       või kupongikoodi deal'iga; päris ost → Won + tänukiri, näidise
       lunastus → Näidis tellitud + `sample_claimed_at`; seostumatu
       tellimus logitakse
-      ([sales-detector](../../ravimus-lead-pipeline-design.md#sales-detector))
-- [ ] Cron: tikk iga 30 min (`claude -p "/tick"`), discovery kord nädalas
+      ([sales-detector](../../ravimus-lead-pipeline-design.md#sales-detector)).
+      Deal'i-sidumise läbiproov ootab wp1 `pipedrive-mcp`-d.
+- [x] Cron: tikk iga 30 min (`claude -p "/tick"`), discovery kord nädalas —
+      `scripts/install-cron.sh` (testitud: paigaldus/eemaldus); päriselt
+      paigaldame, kui wp1 `/tick` on olemas, muidu jookseb tühja
 - [ ] Faas 1, DRY_RUN: täisjooks päris registri peal, kirju saatmata;
       kogu tiim vaatab logid üle (kirjade kvaliteet, sihtimine, redel),
-      sina koordineerid
+      sina koordineerid — sammud: [launch-checklist.md](launch-checklist.md)
       ([testimine](../../ravimus-lead-pipeline-design.md#testimine-ja-valmis-definitsioon))
 - [ ] Faas 2, sünteetiline lead: sina oled "vet" registri CSV-s ja läbid
       kogu tee Discovered → Won (saad esmakirja, vastad küsimusega, saad
-      pakkumise, ostad Wixis); deal liigub Won'i ilma inimsekkumiseta
+      pakkumise, ostad Wixis); deal liigub Won'i ilma inimsekkumiseta —
+      sammud: [launch-checklist.md](launch-checklist.md)
 
 ## Sõltuvused
 

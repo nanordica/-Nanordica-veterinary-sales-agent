@@ -1,5 +1,12 @@
 {
   "mcpServers": {
+    "wix-mcp": {
+      "type": "stdio",
+      "command": ".venv/bin/python",
+      "args": [
+        "mcp/wix-mcp/server.py"
+      ]
+    },
     "chrome-devtools": {
       "type": "stdio",
       "command": "npx",
