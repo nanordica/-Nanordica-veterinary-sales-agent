@@ -1,6 +1,6 @@
 # wp1: Pipedrive'i alus, discovery ja orkestraator
 
-**Omanik:** Meelis Kadaja (Chief Business Officer)
+**Omanik:** Mart Roosimaa (Science liaison)
 **Disaini sammud:** 1, 2, 7 ([ehitusjärjekord](../../ravimus-lead-pipeline-design.md#ehitusjärjekord))
 
 ## Missioon
@@ -8,8 +8,9 @@
 Ehita süsteemi selgroog: Pipedrive'i pipeline kogu olekuhoidjana,
 discovery-skriptid, mis toovad Läti vetiregistri deal'idena sisse, ja
 `/tick` orkestraator, mis iga 30 minuti tagant pipeline'i edasi liigutab.
-Müügiprotsessi loogika (staadiumid, voolupiirang, pingerida) on sinu
-valdkond; Claude Code kirjutab koodi sinu juhtimisel.
+Müügiprotsessi loogika (staadiumid, voolupiirang, pingerida) on
+disainidokumendis paika pandud; kui mõni äriloogika koht jääb lahtiseks,
+küsi Meeliselt (CBO), kelle valdkond see on.
 
 ## Tulemid
 

@@ -1,15 +1,16 @@
 # wp2: profiil ja skoor
 
-**Omanik:** Mart Roosimaa (Science liaison)
+**Omanik:** Meelis Kadaja (Chief Business Officer)
 **Disaini samm:** 5 ([ehitusjärjekord](../../ravimus-lead-pipeline-design.md#ehitusjärjekord))
 
 ## Missioon
 
 Ehita agendid, mis muudavad registrikirje müügivalmis profiiliks:
 enrichment otsib veti tausta kolmes mõõtmes, qualification annab skoori
-0–100. Sinu teadus- ja kliinikutaust on siin põhitööriist: publikatsioonide
-ja võrgustike lugemine, kliinilise konteksti hindamine ning
-meditsiiniväidete kontroll on sama töö, mida teed Nanordicas iga päev.
+0–100. Skoorimisrubriik on müügiotsus ja see on sinu kui CBO valdkond.
+Meditsiiniväidete kontrolli juures (tulemite viimane punkt) kaasa Mart
+(Science liaison): kliinilise konteksti ja tõenduspõhisuse hindamine on
+tema igapäevatöö Nanordicas.
 
 ## Tulemid
 
