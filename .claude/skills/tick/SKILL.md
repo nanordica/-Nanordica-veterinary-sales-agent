@@ -20,95 +20,125 @@ MCP-kihis — sina neid üle ei mängi ega "paranda".
 
 ## 0. Lukk (enne kõike muud)
 
+Luku võtmine on atomaarne (`set -C` = O_EXCL; kaks samaaegset tikki ei
+saa mõlemad lukku):
+
 ```sh
 mkdir -p cache logs
-if [ -f cache/tick.lock ] && [ -n "$(find cache/tick.lock -mmin -45 2>/dev/null)" ]; then
-  echo "tick.lock on värske: eelmine tikk jookseb veel, väljun"
-else
-  date -u +%FT%TZ > cache/tick.lock
+if ( set -C; date -u +%FT%TZ > cache/tick.lock ) 2>/dev/null; then
   echo "lukk võetud"
+elif [ -n "$(find cache/tick.lock -mmin +90 2>/dev/null)" ]; then
+  date -u +%FT%TZ > cache/tick.lock
+  echo "vana lukk (>90 min) üle võetud: eelmine tikk on katkenud"
+else
+  echo "SKIP: lukk on värske, eelmine tikk jookseb veel"
 fi
 ```
 
-Kui lukk oli värske, LÕPETA kohe (raporteeri "tikk jäi vahele, eelmine
-jookseb"). Üle 45 min vana lukk on eelmise katkenud tiki jäänuk:
-kirjuta üle ja jätka. Tiki LÕPUS (ka siis, kui mõni samm ebaõnnestus)
-eemalda lukk: `rm -f cache/tick.lock`.
+- `SKIP` → LÕPETA kohe: raporteeri "tikk jäi vahele" ja **ära puutu
+  lukku ega kirjuta kokkuvõtet** — lukk kuulub jooksvale tikile ja
+  sammud 1–6 (sh luku eemaldus) kehtivad ainult tikile, kes luku sai.
+- Luku saanud tikk: pärast IGA sammu (1–5) tee `touch cache/tick.lock`
+  (südamelöök) — nii ei loe järgmine cron pikka, aga elusat tikki
+  katkenuks. Lõpus (samm 6) eemalda lukk: `rm -f cache/tick.lock`.
 
 ## 1. Preflight
 
-1. Leia Pipedrive'i tööriistad (ToolSearch, nt "pipedrive deals").
-   Oodatud nimed (ravimus-server): `pipedrive_list_deals`,
-   `pipedrive_move_deal_stage`, `pipedrive_update_deal_data`,
-   `pipedrive_add_note`. Kui nimed erinevad, aga samaväärsed
-   tööriistad on olemas, kasuta neid.
-2. Kui Pipedrive'i tööriistu pole ÜLDSE: kirjuta kokkuvõte (samm 6)
+1. Leia Pipedrive'i tööriistad: ToolSearch
+   `select:pipedrive_list_deals,pipedrive_move_deal_stage,pipedrive_update_deal_data,pipedrive_add_note`
+   (ravimus-server). Kui neid pole, proovi üks märksõnaotsing
+   ("pipedrive"). Kui tööriistu ikka pole: kirjuta kokkuvõte (samm 6)
    märkega "ravimus MCP server pole saadaval; käivita: vt
-   mcp/README.md", eemalda lukk ja lõpeta. Ühtegi muud sammu ei tee.
-3. Staadiuminimed on `Discovered, Enriched, Qualified, Contacted,
-   Engaged, Naidis tellitud, Won, Lost` (NB: ASCII, ilma õ/ä-ta —
-   täpselt nii, nagu serveri `resolve_stage_id` ootab). Kui
+   mcp/README.md", eemalda lukk ja lõpeta. Asendustööriistu teistest
+   serveritest ÄRA kasuta.
+2. Staadiuminimed on `Discovered, Enriched, Qualified, Contacted,
+   Engaged, Naidis tellitud, Won, Lost` — täpselt selles ASCII kujus
+   (ilma õ/ä-ta), nagu serveri `resolve_stage_id` ootab
+   (`mcp/lib/constants.py` on nimede ainuallikas). Kui
    `pipedrive_list_deals` vajab stage_id-d, loe nimi→id kaart failist
-   `data/field_keys.json` (või `mcp/data/field_keys.json`); kui faili
-   pole, listi deal'id filtrita ja grupeeri `stage_id` järgi kaardita —
-   sel juhul märgi kokkuvõttesse, et `pipedrive_setup` on jooksmata.
-
-Loe pipeline'i seis üks kord siin (kõik deal'id, limit 100) ja kasuta
-sama hetktõmmist sammudes 4–5; ära listi igas sammus uuesti.
+   `data/field_keys.json` (või `mcp/data/field_keys.json`). Kui
+   kumbagi pole (nt server jookseb Dockeris või `pipedrive_setup` on
+   jooksmata): kirjuta kokkuvõte märkega "stage-kaart puudub, jooksuta
+   pipedrive_setup", eemalda lukk ja lõpeta. Kaardita EI tohi
+   staadiume ära arvata.
 
 ## 2. Sissetulev
 
-Käivita järjekorras kaks subagenti (Agent tool). Kui agenditüüpi pole
-registris või tema tööriistad puuduvad, jäta samm vahele ja kirjuta
-põhjus kokkuvõttesse — ÄRA tee tema tööd ise.
+Käivita järjekorras kaks subagenti (Agent tool), kummalegi lihtne
+korraldus — klassifitseerimisreeglid elavad agendi enda failis, ära
+neid siin ümber jutusta:
 
-1. **inbox-triage** — "Töötle uued saabunud kirjad ja klassifitseeri
-   vastused; liiguta staadiumid." (Vastused → Engaged, "ei"/opt-out/
-   bounce → Lost.)
-2. **sales-detector** — "Kontrolli Wixi tellimusi ja kuponge; päris
-   ost → Won, näidise lunastus → Naidis tellitud."
+1. **inbox-triage**: "Töötle uued saabunud kirjad."
+2. **sales-detector**: "Kontrolli Wixi tellimusi ja kuponge."
 
-## 3. Profiil ja skoor
+Kui agenditüüpi pole registris või tema tööriistad puuduvad, jäta samm
+vahele ja kirjuta põhjus kokkuvõttesse — ÄRA tee tema tööd ise.
 
-Hetktõmmise põhjal:
+## 3. Hetktõmmis ja profiilitöö
 
-- Iga **Discovered** deal'i kohta käivita **enrichment** subagent
-  (anna ette deal'i id ja olemasolev info). Mitu deal'i võib anda
-  ühele agendijooksule partiina, kuni 10 korraga.
-- Seejärel iga **Enriched** deal'i kohta **qualification** (samuti
-  kuni 10 partiis). Skoor alla läve → agent liigutab ise Lost'i.
+**Alles nüüd** (pärast sissetulevat, et tõmmis ei sisaldaks äsja
+vastanud/ostnud lead'e vananenud staadiumis) loe pipeline'i seis:
+kutsu `pipedrive_list_deals` IGA staadiumi kohta eraldi
+(stage_id kaardist, limit 100). Kui mõni staadium tagastab täpselt
+100 rida, on loend tõenäoliselt kärbitud — märgi see kokkuvõttesse
+JA käsitle selle staadiumi arve alampiirina (vt voolupiirang all).
 
-Kui Discovered/Enriched deal'e pole, märgi kokkuvõttesse "0" ja liigu
-edasi.
+Kuupäevavõrdlusteks kasuta deterministlikku abikäsku, mitte peast
+arvutamist (tagastab täispäevade arvu antud ISO-ajast praeguseni):
+
+```sh
+python3 -c "import sys;from datetime import datetime,timezone;print((datetime.now(timezone.utc)-datetime.fromisoformat(sys.argv[1].replace('Z','+00:00'))).days)" "<ISO-aeg>"
+```
+
+Profiilitöö (töömahu lagi: kummalegi agendile max 20 deal'i tiki
+kohta; ülejäänu ootab järgmist tikki — 48 tikki päevas tühjendab
+järjekorra niikuinii):
+
+- **Discovered** deal'id → **enrichment** subagent (anna deal'i id-d
+  ühe partiina).
+- Seejärel **Enriched** deal'id → **qualification** (samuti partiina).
 
 ## 4. Väljaminev post (voolupiirang SIIN, mitte agendis)
 
-Arvuta hetktõmmisest:
+Värskenda enne seda sammu Contacted/Engaged/Naidis tellitud/Won
+loendid uue `pipedrive_list_deals` kutsega (samm 3 võis staadiume
+muuta). Reeglid (kõik päevavõrdlused: "≥ N päeva" = abikäsu tulemus
+on N või rohkem):
 
-- `contacted_count` = deal'e staadiumis Contacted.
-- **Uued esmakirjad**: ainult kui `contacted_count < 20`. Võta
-  Qualified deal'id skoori järgi pingeritta (kõrgeim enne) ja anna
-  outreach-writer'ile MAKSIMAALSELT `20 - contacted_count` esimest.
-- **Follow-up'id**: Contacted deal'id, kus `_state.emails_sent` on
-  1–4 ja viimasest kirjast (`_state.last_contact_at`) on möödas
-  redelivahe: 1 kiri saadetud → 3 päeva, 2 → 5, 3 → 8, 4 → 13.
-- **Redel ammendatud**: Contacted, `emails_sent >= 5` JA viimasest
-  kirjast > 13 päeva → liiguta Lost (`lost_reason: "no-reply"`) +
-  note. Seda võid teha ise (pipedrive_move_deal_stage +
-  pipedrive_update_deal_data), see on mehaaniline reegel.
-- **Engaged**: iga Engaged deal, millel on triage'i märge vastamata
-  küsimusest → outreach-writer'ile sisuline vastus.
-- **Naidis tellitud**: kui `_state.sample_claimed_at` on ≥ 3 päeva
-  vana, päris ostu pole ja `_state.sample_reminder_sent` puudub →
-  outreach-writer'ile ÜKS meeldetuletus; pärast saatmist kirjuta
-  `sample_reminder_sent: <ISO-aeg>` deal'i olekusse. Kui meeldetuletus
-  on saadetud ja sellest on > 8 päeva vaikust → Lost (`lost_reason:
-  "no-reply"`).
+- `contacted_active` = Contacted deal'id, kus `_state.emails_sent < 5`
+  (ammendunud redeliga deal'id EI hõiva esmakirjade kvooti). Kui
+  Contacted loend oli kärbitud (100 rida), käsitle kvooti täis.
+- **Uued esmakirjad**: ainult kui `contacted_active < 20`. Qualified
+  pingerida skoori järgi, anna outreach-writer'ile max
+  `20 - contacted_active` esimest.
+- **Follow-up'id**: Contacted, `emails_sent` 1–4 ja viimasest kirjast
+  (`_state.last_contact_at`) on möödas redelivahe: 1 kiri → ≥3 päeva,
+  2 → ≥5, 3 → ≥8, 4 → ≥13. (Vahed tulevad disaini "Kirjade redel"
+  tabelist; kui tiim neid häälestab, muutub see rida JA
+  outreach-writer.md — hoia sünkroonis.)
+- **Redel ammendatud**: Contacted, `emails_sent >= 5` ja viimasest
+  kirjast ≥13 päeva (redeli pikim vahe = vastamisaken; disain ütleb
+  "5 kirja + vaikus → Lost", akna pikkus on meie valik) → liiguta
+  Lost: `pipedrive_move_deal_stage` + `pipedrive_update_deal_data`
+  (`lost_reason: "no-reply"`) + note. See on mehaaniline reegel, võid
+  ise teha.
+- **Engaged**: triage'i märkega vastamata küsimus → outreach-writer'ile
+  sisuline vastus.
+- **Naidis tellitud**: `_state.sample_claimed_at` ≥3 päeva,
+  `_state.sample_reminder_sent` puudub → üks meeldetuletus. Kui
+  `sample_reminder_sent` on olemas ja sellest ≥13 päeva vaikust
+  (sama vastamisaken) → Lost (`lost_reason: "no-reply"`).
+- **Won**: `_state.thanked_at` puudub → tänukiri.
 
 Anna kogu väljaminev **ühe partiina** outreach-writer subagendile:
-nimekiri (deal_id, tüüp: esmakiri/follow-up/vastus/meeldetuletus,
-kontekst). Outreach-writer kirjutab, laseb keelekontrollist läbi ja
-saadab ise; saatmispiirangud jõustab mail-kiht.
+nimekiri (deal_id, tüüp: esmakiri/follow-up/vastus/meeldetuletus/
+tänukiri, kontekst) ja NÕUA vastuseks iga kirje staatust
+(saadetud / mail-kiht keeldus / viga). Alles raporteeritud "saadetud"
+staatuse järel kirjuta olekusse `sample_reminder_sent` (meeldetuletus)
+või `thanked_at` (tänukiri) — keeldumise/vea korral võtit EI kirjuta,
+järgmine tikk proovib uuesti. (`sample_reminder_sent` ja `thanked_at`
+tuleb lisada `STATE_KEYS`-i, `mcp/lib/constants.py` — vt PR #11
+märkust Mardile.)
 
 ## 5. Veakäsitlus
 
@@ -116,9 +146,10 @@ saadab ise; saatmispiirangud jõustab mail-kiht.
   `logs/errors.md`-sse (lisa rida kujul `- <ISO-aeg> tick: <viga>`),
   järgmine tikk proovib uuesti. Ära jää ühe sammu taha kinni — jätka
   järgmise sammuga.
-- Staadiumimuutus ainult pärast õnnestunud tegevust, mitte ette.
+- Staadiumimuutus ja olekuvõtmete kirjutus ainult pärast õnnestunud
+  tegevust, mitte ette.
 
-## 6. Kokkuvõte ja lukk lahti (alati, ka vigade korral)
+## 6. Kokkuvõte ja lukk lahti (luku omanikule alati, ka vigade korral)
 
 Kirjuta `logs/tick-YYYYMMDD-HHMM.md` (UTC, nt `date -u +%Y%m%d-%H%M`):
 
@@ -127,8 +158,9 @@ Kirjuta `logs/tick-YYYYMMDD-HHMM.md` (UTC, nt `date -u +%Y%m%d-%H%M`):
 - inbox-triage: <n kirja / vahele jäetud: põhjus>
 - sales-detector: <n tellimust, n Won, n näidist / vahele jäetud>
 - enrichment: <n deal'i> · qualification: <n, neist Lost n>
-- outreach: esmakirju <n> (contacted=<n>/20), follow-up'e <n>,
-  vastuseid <n>, meeldetuletusi <n>, Lost <n>
+- outreach: esmakirju <n> (contacted_active=<n>/20), follow-up'e <n>,
+  vastuseid <n>, meeldetuletusi <n>, tänukirju <n>, Lost <n>
+- kärbitud loendid: <staadiumid, kus tuli 100 rida, või "pole">
 - vead: <loetelu või "pole">
 ```
 
