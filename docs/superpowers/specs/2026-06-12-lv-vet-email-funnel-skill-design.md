@@ -33,7 +33,7 @@ töövoo, personaliseeritud kirjad ja jada-loogika.
 | Olemasolevad andmed | **E-posti aadressid + kaasatuse andmed** (avab / klikib / mitteaktiivne) |
 | Juurde otsitavad andmed | Nimi, kliinik, loomaliik, regioon, värske teadusartikkel — rikastatakse päringuga |
 | Listi tüüp | **Külm prospekteerimine.** Kasutaja kinnitab: aadressid saadud turvaliselt, õiguslik alus olemas |
-| Saatmise kanal | **Ettevõtte meilbox** (üks-ühele stiil, mitte massi-ESP) |
+| Saatmise kanal | **Ettevõtte meilbox + mail-merge jälgimistööriist** (nt Mailmeteor / GMass / YAMM) |
 
 ### Külma prospekteerimise raamistik (meilboxist)
 
@@ -48,10 +48,11 @@ kinnitanud, et aadressid on saadud turvaliselt ja õiguslik alus on olemas
    verifitseeri aadressid enne saatmist (bounce'id rikuvad maine), eemalda
    kohe bounce'id ja opt-out'id. Kui maht kasvab suureks, kaalu eraldi
    saatmisdomeeni.
-3. **Open rate'i mõõtmise lõks.** Pärismeilbox **ei näita open rate'i** ilma
-   eraldi tööriistata (mail-merge / jälgimispiksel). Vastuse-määr ja klikk
-   (UTM kaudu) on meilboxist tõesemad mõõdikud. 25–35% open rate'i sihiks
-   seadmiseks on vaja jälgimisega mail-merge tööriista; muidu jälgi vastust.
+3. **Open rate'i mõõdab mail-merge tööriist.** Pärismeilbox üksi ei näita open
+   rate'i. Lahendus: meilboxi peal jälgimisega mail-merge tööriist (Mailmeteor,
+   GMass, YAMM vms). See saadab jada, paneb personaliseerimise kokku ja mõõdab
+   open rate'i + klikki. Nii saab 25–35% sihti jälgida. NB: open rate on MPP
+   tõttu ikka moonutatud — vastus ja klikk jäävad tõesemaks mõõdikuks.
 4. **Maksimaalne ambitsioon = parimad praktikad.** Tugev personaliseerimine,
    värske info igas kirjas, hea pealkiri, progressiivne jada (vt allpool).
 
@@ -150,9 +151,9 @@ Kohandatud meilboxist saatmiseks.
 - **Listi hügieen:** verifitseeri aadressid enne saatmist (bounce'id tapavad
   maine), eemalda kohe bounce'id ja opt-out'id.
 - **Sisu:** lühike, tekstipõhine, väldi rämpssõnu ja liigseid linke/pilte.
-- **Mõõtmine:** pärismeilbox ei näita open rate'i ilma jälgimistööriistata.
-  Kui open rate on vaja mõõta, lisa jälgimisega mail-merge tööriist; muidu
-  jälgi vastust ja klikki (UTM).
+- **Mõõtmine:** kasuta meilboxi peal jälgimisega mail-merge tööriista
+  (Mailmeteor / GMass / YAMM), et näha open rate'i ja klikke. Sama tööriist
+  saadab jada ja täidab merge-väljad. UTM jääb veebipoolse konversiooni jaoks.
 
 ### references/cold-outreach.md
 Külma prospekteerimise eriloogika meilboxist (vt ka ülal "Külma
@@ -160,7 +161,9 @@ prospekteerimise raamistik"):
 
 - **Õiguslik alus:** kasutaja kinnitanud. Iga kiri sisaldab opt-out'i ja
   selget saatja-identiteeti.
-- **Taristu:** ettevõtte meilbox, väike päevamaht, aadresside verifitseerimine.
+- **Taristu:** ettevõtte meilbox + mail-merge jälgimistööriist (Mailmeteor /
+  GMass / YAMM) jada saatmiseks, personaliseerimiseks ja open/klikk-mõõtmiseks.
+  Väike päevamaht, aadresside verifitseerimine.
 - **Jada jätkub kuni signaalini.** Lõpeta alles: vastus (ka "ei"), opt-out,
   bounce või blokk. Iga kiri toob **uut infot** — ära korda eelmist.
 - **Värske haak igas kirjas:** uus teadusartikkel (enrichmenti kaudu), uus
@@ -215,12 +218,12 @@ Meilboxist saatmise tegelikkus:
 - **UTM-linkide** märgistamine (`utm_source`, `utm_medium=email`,
   `utm_campaign`, `utm_content` A/B variandi jaoks), et veebianalüütikas näeks,
   *milline kiri* müügi tõi ja *mis etapil* lehtrist välja kukutakse.
-- **Vastuse-määr** on meilboxi-jada peamine kaasatuse-mõõdik (avamist sa ei näe).
+- **Mail-merge tööriist** (Mailmeteor / GMass / YAMM) mõõdab open rate'i ja
+  klikki; vastuse-määr on lisaks tugev kaasatuse-mõõdik.
 - Veebianalüütika (klikk → tootelehe vaade → ost) leiab funneli pudelikaela.
-- **⚠️ Open rate'i hoiatused:** (1) meilbox ei mõõda avamist ilma
-  jälgimistööriistata; (2) ka tööriistaga moonutab Apple Mail (eellaadib
-  pikslid, ~pool "avamisi" pole inimene). Seega: 25–35% open rate on suunis,
-  aga **otsus tehakse vastuse, kliki ja ostu põhjal**.
+- **⚠️ MPP hoiatus:** Apple Mail eellaadib pikslid, ~pool "avamisi" pole
+  inimene. 25–35% open rate on suunis, aga **otsus tehakse vastuse, kliki ja
+  ostu põhjal**.
 
 ### references/ab-testing.md
 - Mida testida: pealkiri, eelvaate-tekst, CTA, saatmisaeg, pakkumine.
@@ -296,9 +299,9 @@ praktika järgi):
    `nanordica.com` mainet kahjustada, kui maht kasvab või tulevad kaebused.
    Maandus: väike maht, soojendus, verifitseeritud list, kohene bounce/opt-out
    eemaldamine. Suure mahu korral kaalu eraldi saatmisdomeeni.
-4. **🟠 Open rate'i mõõtmine.** Meilbox ei näita avamist ilma
-   jälgimistööriistata. 25–35% sihiks vajad mail-merge jälgimist; muidu on
-   peamine mõõdik vastus ja klikk. MPP moonutab avamist niikuinii.
+4. **🟡 Open rate'i mõõtmine — lahendatud tööriistaga.** Open rate'i mõõdab
+   meilboxi peal mail-merge jälgimistööriist (Mailmeteor / GMass / YAMM). MPP
+   moonutab avamist ikka, seega vastus ja klikk jäävad tõesemaks mõõdikuks.
 5. **Meditsiiniseadme reklaam** — väited peavad vastama Läti reklaaminõuetele.
 6. **Rikastamise täpsus** — e-postist arsti leidmine ei õnnestu alati. Skill ei
    tohi andmeid ega teadusviiteid välja mõelda; leidmata kontakt läheb
