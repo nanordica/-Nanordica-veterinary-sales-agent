@@ -12,9 +12,11 @@ def plan_setup(existing_pipelines: list, existing_stages: list,
     match = next((p for p in existing_pipelines if p.get("name") == PIPELINE_NAME), None)
     pipeline_id = match["id"] if match else None
 
+    # Only stages belonging to OUR pipeline count; if ours doesn't exist yet,
+    # create all (ignore same-named stages from other pipelines).
     have_stage_names = {
         s["name"] for s in existing_stages
-        if pipeline_id is None or s.get("pipeline_id") == pipeline_id
+        if pipeline_id is not None and s.get("pipeline_id") == pipeline_id
     }
     create_stages = [
         {"name": name, "order_nr": i + 1}
