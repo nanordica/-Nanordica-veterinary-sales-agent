@@ -82,6 +82,7 @@ azure-*.json
 cache/*
 !cache/README.md
 !cache/.gitkeep
+mcp/cache/
 
 # ============================================================
 # OS files
