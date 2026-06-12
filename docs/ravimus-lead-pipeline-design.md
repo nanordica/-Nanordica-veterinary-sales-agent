@@ -1,36 +1,58 @@
 # Ravimus lead-pipeline — variant A disain
 
-*Seis: 2026-06-12. Põhineb failil
-[ravimus-lead-pipeline-ideas.md](ravimus-lead-pipeline-ideas.md) —
-valitud sai variant A: üks orkestraator-tikk + subagendid, Pipedrive
-ainsa tõeallikana.*
+*Seis: 2026-06-12, v2 — täiendatud [issue #1](https://github.com/Elnora-hackathon/team-17/issues/1)
+tagasiside põhjal. Eelkäija: [ravimus-lead-pipeline-ideas.md](ravimus-lead-pipeline-ideas.md).*
 
 ## Ülevaade
 
-Cron käivitab iga 30 minuti järel headless Claude Code sessiooni
-("pipeline tick"). Tikk loeb Pipedrive'ist kogu pipeline'i seisu,
-otsustab iga lead'i kohta järgmise sammu ja delegeerib töö
-subagentidele. Kogu olek elab Pipedrive'is: deal'i staadium + custom
-field'id. Tikk ise on olekuta — katkenud tikk ei riku midagi, järgmine
-jätkab samast kohast.
+Süsteemil on kaks rütmi:
 
-```
-cron (30 min)
-   │
-   ▼
-pipeline tick (orkestraator)
-   │
-   ├─ 1. inbox-triage ──── MS Graph: loe vastused ─→ staadiumimuutused
-   ├─ 2. sales-detector ── Wix Orders API ─────────→ Won + tänukiri
-   ├─ 3. discovery ─────── registri CSV ──────────→ uued deal'id (kui partii < siht)
-   ├─ 4. enrichment ────── veebiotsing ───────────→ Discovered → Enriched
-   ├─ 5. qualification ─── hindamine ─────────────→ Enriched → Qualified/Lost
-   └─ 6. outreach-writer ─ MS Graph: saada ───────→ esmakontakt / follow-up / vastus / pakkumine
-```
+1. **Kord nädalas** jookseb deterministlik discovery-skript (mitte
+   LLM-agent): laeb Läti vetiregistri, loob Pipedrive'i deal'i **igale
+   vetile, kellel on registris e-mail**. Kogu register korraga —
+   voolupiirang on outreach'is, mitte discovery's.
+2. **Iga 30 min** käivitab cron headless Claude Code sessiooni
+   ("pipeline tick"). Tikk loeb Pipedrive'ist pipeline'i seisu,
+   otsustab iga lead'i järgmise sammu ja delegeerib subagentidele.
 
-Järjekord on oluline: kõigepealt sissetulev info (vastused, ostud),
-siis alles väljaminev — nii ei saada tikk kirja lead'ile, kes juba
-vastas või ostis.
+Kogu olek elab Pipedrive'is: deal'i staadium + custom field'id. Tikk on
+olekuta — katkenud tikk ei riku midagi, järgmine jätkab samast kohast.
+Tiki sees töödeldakse kõigepealt *sissetulev* (vastused, ostud), siis
+*väljaminev* — nii ei kirjuta süsteem kunagi lead'ile, kes juba vastas
+või ostis.
+
+## Protsessijoonis
+
+```mermaid
+flowchart TD
+    REG["Läti vetiregister (avalik)"] -->|"kord nädalas:<br/>registry.py laadib ja parsib"| FILTER{"e-mail olemas<br/>ja uus registry_id?"}
+    FILTER -->|ei| SKIP["deal'i ei looda"]
+    FILTER -->|jah| D["Discovered"]
+
+    D -->|"enrichment:<br/>loomad / võrgustik / otsustusstiil"| E["Enriched"]
+    E -->|"qualification: skoor 0–100,<br/>kiirabikliinik = kõrgeim kaal"| Q{"skoor üle läve?"}
+    Q -->|"jah → pingerida skoori järgi"| QF["Qualified"]
+    Q -->|ei| L["Lost"]
+
+    QF -->|"esmakiri: A/B variant,<br/>personaalne Wixi link;<br/>ainult kui Contacted &lt; 20"| C["Contacted"]
+    C -->|"vaikus: follow-up redel,<br/>vahed 3→5→8→13 päeva,<br/>iga kiri uue sisuga"| C
+    C -->|"5 kirja saadetud,<br/>endiselt vaikus"| L
+    C -->|"vastus (hiljem ka<br/>klikk / avamine)"| EN["Engaged"]
+
+    EN -->|"'ei' / opt-out / bounce"| L
+    EN -->|"sisuline vastus +<br/>pakkumine personaalse koodiga"| O["Offer"]
+    O -->|"Wixi tellimus või<br/>personaalse kupongi kasutus"| W["Won"]
+    O -->|"meeldetuletus,<br/>siis vaikus"| L
+    W -->|tänukiri| DONE["valmis"]
+
+    subgraph tick["Pipeline tick — iga 30 min, järjekord on oluline"]
+        T1["1) inbox-triage: loe vastused (MS Graph)"]
+        T2["2) sales-detector: Wixi tellimused + kupongid"]
+        T3["3) enrichment → qualification"]
+        T4["4) outreach-writer + keelekontroll → saatmine"]
+        T1 --> T2 --> T3 --> T4
+    end
+```
 
 ## Pipedrive'i struktuur
 
@@ -38,185 +60,253 @@ vastas või ostis.
 
 | # | Staadium | Tähendus | Kes liigutab sisse |
 |---|---|---|---|
-| 1 | Discovered | Registrist leitud, deal loodud | discovery |
-| 2 | Enriched | E-post + kliiniku andmed olemas | enrichment |
-| 3 | Qualified | Sobib sihtgruppi, valmis kontaktiks | qualification |
-| 4 | Contacted | Esmakiri saadetud | outreach-writer |
+| 1 | Discovered | Registrist leitud (e-mail olemas), deal loodud | discovery-skript |
+| 2 | Enriched | Taustaprofiil koos | enrichment |
+| 3 | Qualified | Skoor üle läve, pingereas | qualification |
+| 4 | Contacted | Esmakiri saadetud, vastust pole | outreach-writer |
 | 5 | Engaged | Vastas / näitas huvi | inbox-triage |
-| 6 | Offer | Ostulink + sooduskood saadetud | outreach-writer |
+| 6 | Offer | Personaalne pakkumine saadetud | outreach-writer |
 | 7 | Won | Wixi ost tuvastatud | sales-detector |
-| 8 | Lost | Opt-out, bounce, ei sobi või follow-up'id ammendatud | mitu agenti |
+| 8 | Lost | Opt-out, bounce, "ei", madal skoor või redel ammendatud | mitu agenti |
 
 ### Custom field'id deal'il
 
-- `registry_id` — vetiregistri unikaalne ID (duplikaatide vältimiseks)
-- `email` — leitud/kinnitatud e-post
-- `clinic` — kliiniku nimi ja asukoht
-- `last_contact_at` — viimase saadetud kirja aeg
-- `follow_up_count` — saadetud follow-up'ide arv
-- `lost_reason` — miks Lost (opt-out / bounce / unqualified / no-reply)
+| Field | Sisu |
+|---|---|
+| `registry_id` | vetiregistri unikaalne ID (dedup) |
+| `email` | registri e-post |
+| `clinic` | kliiniku nimi, asukoht, tüüp (kiirabikliinik!) |
+| `specialization` | milliste loomadega tegeleb / eriala |
+| `network` | seosed teiste registri vetidega (koostöö, ülikool, ühisartiklid, sama asutus) |
+| `decision_style` | faktid / praktilised tulemused / innovatsioon / kolleegide kogemus / loomade heaolu / äriareng |
+| `score` | kvalifitseerimisskoor 0–100 |
+| `ab_variant` | esmakirja A/B haru |
+| `personal_link` | personaalne Wixi link (esmakirjast alates) |
+| `discount_code` | personaalne sooduskood |
+| `emails_sent` | saadetud kirjade arv (max 5) |
+| `last_contact_at` | viimase kirja aeg |
+| `lost_reason` | opt-out / bounce / said-no / unqualified / no-reply |
 
 Kogu kirjavahetus (saadetud ja saadud) logitakse deal'i note'idena —
 auditeeritavus ja järgmise kirja kontekst.
 
+## Discovery — deterministlik skript, mitte agent
+
+`scripts/registry.py` + `scripts/discovery.py`, ajastatud **kord
+nädalas** (register muutub harva):
+
+1. Laeb ja parsib Läti vetiregistri → `cache/registry.csv`.
+2. Filtreerib: ainult kirjed, kus **e-mail on olemas**.
+3. Dedup `registry_id` järgi (sh varasemad Lost-deal'id — opt-out'i
+   teinud vetti uuesti ei looda).
+4. Loob person + deal staadiumis Discovered — **kõik korraga**, mitte
+   partiidena.
+
+LLM-i siin pole — see samm on puhas andmetöötlus ja peab olema 100%
+korratav.
+
 ## Subagendid
 
-Iga subagent on `.claude/agents/` definitsioon. Agendid teevad
-arutluse; API-kõned teevad deterministlikud Python-skriptid (vt
-allpool), mida agendid Bashi kaudu käivitavad.
-
-### discovery
-Loeb `cache/registry.csv` (Läti vetiregister, laetud
-`scripts/registry.py`-ga). Valib N uut vetti, keda Pipedrive'is veel
-pole (`registry_id` järgi), ja loob person + deal staadiumis
-Discovered. Käivitub ainult siis, kui aktiivseid deal'e on alla
-partii sihi (vaikimisi 15).
+Agendid (`.claude/agents/`) teevad arutluse; kõik API-kõned käivad
+läbi kohalike MCP serverite (vt "Tööriistakiht").
 
 ### enrichment
-Iga Discovered deal'i kohta: veebiotsing (kliiniku veebileht, e-post,
-eriala, asukoht). Kirjutab custom field'id, liigutab → Enriched. Kui
-e-posti ei leia, märgib deal'ile katsete arvu; 2 ebaõnnestunud tikki →
-Lost (`lost_reason: no-email`).
+Iga Discovered deal'i kohta veebiotsing kolmes mõõtmes:
+
+1. **Spetsialiseerumine** — milliste loomadega arst tegeleb, eriala,
+   kliiniku tüüp (kiirabikliinik on eraldi olulise kaaluga signaal).
+2. **Suhtevõrgustik** — millised teised registri vetid on temaga
+   seotud: koostöö, ühine ülikool, ühisartiklid, töö samas asutuses
+   samal ajal. Salvestatakse koos allikaviitega.
+3. **Otsustusstiil** — mille põhjal arst tõenäoliselt otsustab:
+   faktid/numbrid, praktilised tulemused, innovatsioon, kolleegide
+   kogemus, loomade heaolu, äriareng. Kasutatakse kirja stiili
+   kujundamisel.
+
+Kirjutab field'id, liigutab → Enriched. Kui profiili ei õnnestu koostada,
+liigub deal edasi minimaalse profiiliga (e-mail on juba registrist olemas).
 
 ### qualification
-Hindab Enriched deal'i sobivust: väikeloomapraksis (haavaside on
-jaemüügitoode), aktiivne tegevusluba, e-post olemas. Tulemus →
-Qualified või Lost (`lost_reason: unqualified`) koos põhjendusega
-note'is.
+Annab **skoori 0–100** (mitte binaarset otsust) ja kirjutab põhjenduse
+note'i. Skoorimisrubriik:
+
+- **kiirabikliinikus töötamine — kõrgeim kaal** (varasem kogemus:
+  parimad kliendid);
+- haavaravi/kirurgia profiil ja haavasidemete kasutus;
+- väikeloomapraksis (jaemüügitoode);
+- aktiivne tegevusluba, toimiv e-post.
+
+Skoor alla läve (vaikimisi 30) → Lost (`unqualified`). Üle läve →
+Qualified. Outreach võtab lead'e **pingerea tipust** — kõrgeima
+skooriga enne.
 
 ### outreach-writer
-Staadiumiteadlik kirjutaja, töötab läti keeles. Neli režiimi:
+Staadiumiteadlik kirjutaja, töötab läti keeles. Põhimõtted:
 
-1. **Esmakontakt** (Qualified → Contacted): lühike tutvustus —
-   Ravimus haavaside, väärtuspakkumine vetile, viide Wixi tootelehele.
-2. **Follow-up** (Contacted, vastust pole ≥ 3 päeva,
-   `follow_up_count` < 3): meeldetuletus uue nurga alt (kasutuslugu,
-   omadus, küsimus).
-3. **Vastus** (Engaged, triage tuvastas küsimuse/vastuväite): sisuline
-   vastus deal'i note'ide konteksti põhjal.
-4. **Pakkumine** (Engaged → Offer): personaalne ostulink +
-   sooduskood, selge üleskutse osta Wixist.
+- **Personaliseeritud**: sisu ja toon vastavalt spetsialiseerumisele,
+  otsustusstiilile ja võrgustikule. Võrgustiku fakte (nt ühisartikkel
+  kolleegiga) tohib nimepidi mainida, aga ainult **kontrollitavaid,
+  tõeseid fakte** — mitte väiteid teiste ostude/arvamuste kohta.
+- **Faktid ainult lubatud allikatest**: Wixi tooteleht + tiimi
+  hallatav tooteinfo-fail (`docs/ravimus-product-facts.md`: omadused,
+  hind, sertifikaadid, teadusviited, müügiargumendid). Agent ei
+  mõtle tootefakte ise välja.
+- **Iga kiri sisaldab uut infot** — uus nurk, uus pakkumine, uus
+  teadusviide. Sama pakkumist ei korrata.
+- **Personaalne Wixi link juba esmakirjas**; personaalne sooduskood
+  vastavalt redelile.
+- Iga kiri sisaldab lätikeelset loobumisrida ("atrakstīties").
 
-Iga kiri: saadetakse `scripts/graph_mail.py` kaudu, logitakse note'ina,
-uuendatakse `last_contact_at` ja `follow_up_count`. Iga kiri sisaldab
-lätikeelset loobumisrida ("atrakstīties").
+**Kirjade redel** (max 5 kirja, pikenevad vahed 3 → 5 → 8 → 13 päeva):
+
+| Kiri | Sisu |
+|---|---|
+| 1. esmakiri | A/B testitav variant (vt allpool), personaalne link |
+| 2.–3. follow-up | pakkumised, mida esmakiri ei sisaldanud: −10% kood; tasuta näidis (Wixi 100% kupong) |
+| 4.–5. follow-up | uus sisu: teadusartikkel tema use-case'i kohta, kasutuslugu, küsimus |
+| 5 kirja saadetud, vaikus | → Lost (`no-reply`) |
+
+**A/B test esmakirjal**: variant on deal'i field (`ab_variant`),
+määratakse vaheldumisi. Mallide täpne sisu on konfigureeritav ja
+otsustatakse enne live'i (nt A: sooduskood, B: tasuta näidis).
+Redel kohandub harule — sama pakkumist ei korrata.
+
+Pärast koostamist käib iga kiri läbi **keelekontrolli-subagendist**
+(läti keele toon, viisakusvormid, arusaadavus), alles siis saadetakse.
 
 ### inbox-triage
 Loeb Graphi kaudu uued kirjad alates eelmisest tikist (delta-token
-salvestatud `cache/`). Seob saatja e-posti deal'iga. Klassifitseerib:
+`cache/`-is). Seob saatja deal'iga. Klassifitseerib:
 
 - huvi / küsimus / vastuväide → Engaged + ülesanne outreach-writer'ile
-- ei-huvita / opt-out → Lost (`lost_reason: opt-out`)
-- bounce → Lost (`lost_reason: bounce`)
-- out-of-office → ignoreeri (follow-up'i taimer jookseb edasi)
+- selge "ei" → Lost (`said-no`) — ei on ka vastus, redel peatub
+- opt-out → Lost (`opt-out`), aadress püsivasse blokeerimisnimekirja
+- bounce → Lost (`bounce`)
+- out-of-office → ignoreeri (redeli taimer jookseb edasi)
 
-Tundmatult aadressilt kiri → note üldisesse logisse, inimesele
-vaatamiseks.
+Tundmatult aadressilt kiri → note üldlogisse, inimesele vaatamiseks.
 
 ### sales-detector
-Pollib Wix Orders API-t uute tellimuste osas. Seob ostja e-posti
-deal'iga → Won. Outreach-writer saadab tänukirja. Tellimus, mis ei
-seostu ühegi deal'iga, logitakse (orgaaniline müük).
+Pollib Wixi: uued tellimused + personaalsete kupongide kasutus. Seob
+ostja e-posti või kupongikoodi deal'iga → Won, outreach-writer saadab
+tänukirja. Tasuta näidise tellimus (100% kupong) loetakse samuti
+ostusündmuseks, aga deal jääb Offer-staadiumisse kuni päris ostuni —
+näidis on samm, mitte lõpp. Seostumatu tellimus logitakse (orgaaniline
+müük).
 
-## Integratsiooniskriptid
+## Tööriistakiht — kohalikud MCP serverid
 
-Kaust `scripts/`, Python, CLI-subkäskudega, secrets `.env`-ist.
-Deterministlikud — kogu API-loogika on siin, mitte agentide peades.
+Agendid **ei kutsu API-sid otse** ega tooreid skripte — iga väline
+süsteem on kohaliku MCP serveri taga (`mcp/`-kaustas, stdio,
+registreeritud `.mcp.json`-is). MCP server avab **ainult kitsad,
+lubatud operatsioonid** ja jõustab kaitserauad deterministlikult —
+live-süsteemi ohutus ei sõltu agendi heast käitumisest.
 
-| Skript | Vastutus |
-|---|---|
-| `scripts/pipedrive.py` | deal'ide/persons/note'ide CRUD, staadiumimuutused, custom field'id |
-| `scripts/graph_mail.py` | MS Graph: kirja saatmine, uute kirjade lugemine delta-tokeniga |
-| `scripts/wix_orders.py` | viimaste tellimuste loetelu |
-| `scripts/registry.py` | Läti vetiregistri allalaadimine ja parsimine → `cache/registry.csv` |
+| Server | Lubatud tööriistad | Teadlikult puudu |
+|---|---|---|
+| `pipedrive-mcp` | deal'ide lugemine, staadiumimuutus, field'ide uuendus, note lisamine | kustutamine, masskirjutus, admin |
+| `mail-mcp` (MS Graph) | `send_mail` (jõustab: ≤1 kiri lead'ile 24 h, max 5 kirja, opt-out blokeerimisnimekiri, DRY_RUN), `list_new_messages` | kustutamine, teiste kaustade lugemine |
+| `wix-mcp` | tellimuste loetelu, personaalse kupongi loomine (sh 100% näidisekupong), kupongi kasutuse kontroll | toodete/hindade muutmine, tagasimaksed |
 
-Kõik skriptid toetavad `DRY_RUN=1` režiimi: trükivad, mida teeksid,
-ilma saatmata/kirjutamata — testimiseks ja demo harjutamiseks.
+Jagatud API-loogika elab `lib/`-is; discovery-skript kasutab sama
+teeki otse (ta on ise deterministlik kood).
+
+**DRY_RUN on MCP-kihi lüliti**: `DRY_RUN=1` korral iga kirjutav
+tööriist logib kavandatud tegevuse, aga ei tee seda. Kogu pipeline on
+otsast lõpuni testitav ilma ühegi päris kirja/muudatuseta. Live'i
+minek = ühe lüliti muutmine pärast dry-run'i ülevaatust.
 
 ## Orkestraator (tick)
 
-Projekti skill / slash-käsk `/tick`, mida cron käivitab headless'ina
-(`claude -p "/tick"`). Algoritm:
+Projekti skill `/tick`, cron käivitab headless'ina (`claude -p
+"/tick"`). Algoritm:
 
 1. `inbox-triage` — töötle saabunud kirjad.
-2. `sales-detector` — kontrolli Wixi tellimusi.
-3. Loe Pipedrive'i seis. Kui aktiivseid deal'e < 15 → `discovery`.
-4. Discovered deal'id → `enrichment`.
-5. Enriched deal'id → `qualification`.
-6. Väljaminev post ühe partiina → `outreach-writer`:
-   - Qualified → esmakontakt
-   - Contacted, vastuseta ≥ 3 päeva, follow_up_count < 3 → follow-up
-   - Contacted, follow_up_count = 3 ja ≥ 3 päeva vaikust → Lost
-   - Engaged (triage'i ülesanne ootel) → vastus ja/või pakkumine
-   - Offer, ostu pole ≥ 3 päeva → üks meeldetuletus; veel 3 päeva
-     vaikust → Lost (`lost_reason: no-reply`)
-7. Kirjuta kokkuvõte `logs/tick-YYYYMMDD-HHMM.md` (mida tehti, mida
-   saadeti, vead).
+2. `sales-detector` — kontrolli Wixi tellimusi ja kuponge.
+3. Discovered deal'id → `enrichment` → `qualification`.
+4. Väljaminev post ühe partiina → `outreach-writer`:
+   - **Voolupiirang**: uusi esmakirju saadetakse ainult siis, kui
+     Contacted-staadiumis on alla 20 deal'i; võetakse pingerea tipust.
+   - Contacted, redeli järgmise kirja aeg käes → follow-up.
+   - Contacted, 5 kirja täis ja vaikus → Lost.
+   - Engaged (triage'i ülesanne ootel) → vastus ja/või pakkumine → Offer.
+   - Offer, ostu pole ≥ 3 päeva → üks meeldetuletus; veel vaikust → Lost.
+5. Kirjuta kokkuvõte `logs/tick-YYYYMMDD-HHMM.md`.
 
-### Kaitserauad (guardrails)
+### Kaitserauad (jõustatud MCP-kihis, mitte agendi lubadustes)
 
-- **≤ 10 kirja tiki kohta** — meiliserveri maine kaitseks.
-- **≤ 1 kiri lead'ile 24 h jooksul** — `last_contact_at` kontroll.
-- **≤ 3 follow-up'i**, siis Lost — me ei pommita.
-- **Opt-out on lõplik**: Lost (`opt-out`) deal'ile ei kirjutata enam
-  kunagi, ka mitte uue discovery-ringi kaudu (registry_id blokeerib).
-- **Keelekontroll**: enne saatmist vaatab eraldi kontrolli-subagent
-  lätikeelse kirja üle (toon, viisakusvormid, arusaadavus); kahtluse
-  korral lihtsustab sõnastust.
+- **≤ 1 kiri lead'ile 24 h jooksul.**
+- **≤ 5 kirja lead'i kohta kokku**, pikenevate vahedega (3/5/8/13 päeva).
+- **Esmakirjade voolupiirang**: Contacted < 20.
+- **Opt-out on lõplik** — blokeerimisnimekiri, mida ka uus
+  discovery-ring ei tühista.
+- **Keelekontroll** enne iga saatmist.
+- **DRY_RUN enne live'i on kohustuslik** (vt testimine).
 
 ## Veakäsitlus
 
-- **Skripti viga** (API maas, token aegunud): agent raporteerib, deal
-  jääb puutumata, järgmine tikk proovib uuesti. Staadiumimuutus tehakse
-  alles pärast õnnestunud API-kõnet.
-- **Saatmine õnnestus, logimine ebaõnnestus**: viga kirjutatakse
-  `logs/errors.md`-sse; `last_contact_at` uuendatakse enne note'i, et
-  topeltsaatmist ei juhtuks.
-- **Duplikaadid**: discovery dedup'ib `registry_id` järgi; sama
+- **MCP/API viga** (teenus maas, token aegunud): agent raporteerib,
+  deal jääb puutumata, järgmine tikk proovib uuesti. Staadiumimuutus
+  alles pärast õnnestunud kõnet.
+- **Saatmine õnnestus, logimine ebaõnnestus**: `last_contact_at`
+  uuendatakse enne note'i — topeltsaatmist ei teki; viga
+  `logs/errors.md`-sse.
+- **Duplikaadid**: dedup `registry_id` järgi discovery's; sama
   e-postiga teist deal'i ei looda.
 - **Üheaegsed tikid**: lukufail `cache/tick.lock` — kui eelmine tikk
-  veel jookseb, uus väljub kohe.
+  jookseb, uus väljub kohe.
 
 ## Testimine ja "valmis" definitsioon
 
-**Valmis-kontroll:** üks sünteetiline lead (tiimiliige "vetina" oma
-e-postiga, lisatud registry CSV-sse) läbib täisautonoomselt kogu tee
-Discovered → Won: saab lätikeelse esmakirja, vastab küsimusega, saab
-sisulise vastuse ja pakkumise, sooritab Wixis ostu ja deal liigub
-Won'i ilma ühegi inimsekkumiseta.
+**Faas 1 — DRY_RUN (kohustuslik):** kogu pipeline jookseb päris
+registri ja päris Pipedrive'i peal, aga `DRY_RUN=1` — kirju ei
+saadeta, Wixi ei puututa; kõik kavandatud tegevused logitakse. Tiim
+vaatab logid üle (kirjade kvaliteet, läti keel, sihtimine, redeli
+loogika).
 
-Lisaks:
+**Faas 2 — sünteetiline lead:** tiimiliige "vetina" oma e-postiga
+registri CSV-s läbib täisautonoomselt (DRY_RUN väljas, ainult tema
+aadress lubatud) kogu tee Discovered → Won: saab lätikeelse esmakirja
+personaalse lingiga, vastab küsimusega, saab sisulise vastuse ja
+pakkumise personaalse koodiga, sooritab Wixis ostu — deal liigub
+Won'i ilma inimsekkumiseta. **See on projekti valmis-kontroll.**
 
-- iga skripti smoke-test (test-deal'i loomine/lugemine, testkiri
-  iseendale, Wixi tellimuste loetelu);
-- `DRY_RUN=1` täistikk päris Pipedrive'i seisu peal — väljund üle
-  vaadatav enne esimest päris jooksu;
-- alles seejärel 5–20 päris vetti pipeline'i.
+**Faas 3 — live:** kogu register sisse, voolupiirangud hoiavad tempot.
+
+Lisaks: iga MCP serveri smoke-test (test-deal, testkiri iseendale,
+Wixi tellimuste loetelu) enne faasi 1.
 
 ## Ehitusjärjekord
 
-1. **Skelett**: `.env` võtmed, `scripts/pipedrive.py` + smoke-test;
-   pipeline ja staadiumid Pipedrive'is üles.
-2. **Discovery**: `scripts/registry.py` + discovery-agent → deal'id
-   tekivad Pipedrive'i.
-3. **Saatmine**: `scripts/graph_mail.py` + outreach-writer → esimene
-   lätikeelne kiri testaadressile.
+1. **Pipedrive'i alus**: pipeline + staadiumid + custom field'id;
+   `lib/` + `pipedrive-mcp` + smoke-test.
+2. **Discovery**: `registry.py` + `discovery.py` → kõik e-mailiga
+   vetid deal'idena Pipedrive'is.
+3. **Tooteinfo + saatmine**: tiim koostab
+   `docs/ravimus-product-facts.md`; `mail-mcp` (Graph) +
+   outreach-writer → esimene lätikeelne kiri DRY_RUN-is.
 4. **Vastuvõtt**: inbox-triage + Graphi delta-lugemine.
-5. **Kvalifitseerimine**: enrichment + qualification.
-6. **Müügituvastus**: `scripts/wix_orders.py` + sales-detector.
-7. **Orkestraator**: `/tick` skill + kaitserauad + lukufail.
-8. **Ajastus ja lõpptest**: cron/Task Scheduler + sünteetilise lead'i
-   täisring.
+5. **Profiil ja skoor**: enrichment (3 mõõdet) + qualification
+   (skoorimisrubriik, kiirabikliiniku kaal).
+6. **Müügituvastus**: `wix-mcp` (tellimused + personaalsed kupongid,
+   sh 100% näidisekupong) + sales-detector.
+7. **Orkestraator**: `/tick` + voolupiirang + lukufail + keelekontroll.
+8. **Ajastus ja lõpptest**: cron (tikk 30 min, discovery kord
+   nädalas) + faas 1 (DRY_RUN) + faas 2 (sünteetiline lead) → live.
 
 Iga samm on eraldi verifitseeritav — järgmist ei alustata enne, kui
 eelmise kontroll läbib.
 
-## Lahtised eeldused
+## Lahtised punktid (kokkuleppel hilisemaks)
 
-- MS Graphi tokenid (Mail.Send, Mail.Read) tulevad kasutajalt; kuni
-  siis arendame `DRY_RUN`-iga.
-- Wix API võti ja poe ID tulevad kasutajalt.
-- Läti vetiregistri täpne URL/formaat selgub discovery-sammus; kui
-  avalik register on ainult HTML, parsime selle.
-- Sooduskoodide loomine Wixis: kas käsitsi ette (lihtsam, soovitus)
-  või API kaudu dünaamiliselt.
+- **Engaged-tuvastus klikist/avamisest** (issue #1, otsus 2): praegu
+  Engaged = e-kirja vastus. Hiljem lisandub personaalse lingi klikk ja
+  e-maili avamine — eelistatult Wixi/Pipedrive'i sisseehitatud
+  võimalustega, mitte oma jälgimisteenusega.
+- **A/B mallide täpne sisu** otsustatakse enne live'i; raamistik
+  (`ab_variant` field + harupõhine redel) on disainis olemas.
+- **Kirjavahede peenhäälestus** (otsus 3): alus 3/5/8/13 päeva, vaadatakse
+  üle, kui suur plaan töötab.
+- **MS Graphi tokenid** (Mail.Send, Mail.Read) ja **Wixi API võti +
+  poe ID** tulevad kasutajalt; kuni siis arendame DRY_RUN-iga.
+- **Läti vetiregistri täpne URL/formaat** selgub discovery-sammus.
