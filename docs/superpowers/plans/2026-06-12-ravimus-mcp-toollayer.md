@@ -1349,6 +1349,9 @@ def mail_send(deal_id: int, to: str, subject: str, body_html: str) -> dict:
     data = raw.get("data")
     if not isinstance(data, dict):
         return {"error": f"deal {deal_id} not found"}
+    if deal_state.state_key() is None:
+        # Cannot record the send -> refuse rather than risk a re-send.
+        return {"error": "state field key unknown; run pipedrive_setup first"}
     state = deal_state.read_state(data)
 
     now = datetime.now(timezone.utc)
