@@ -41,7 +41,10 @@ lükkama. Ilma autentimiseta open rate ≈ 0.
 ## Mõõtmine
 
 - Pärismeilbox **ei näita open rate'i** ilma jälgimistööriistata.
-- Lahendus: meilboxi peal **mail-merge jälgimistööriist** (Mailmeteor / GMass
-  / YAMM). See saadab jada, täidab merge-väljad ja mõõdab open rate'i + klikki.
+- Lahendus: meilboxi peal **mail-merge / cold-outreach jälgimistööriist**, mis
+  saadab jada, täidab merge-väljad ja mõõdab open rate'i + klikki. Vali
+  postkasti järgi:
+  - **Gmail / Google Workspace:** Mailmeteor, GMass, YAMM
+  - **Outlook / Microsoft 365:** Woodpecker, lemlist, Mailshake, QuickMail, Reply.io
 - UTM jääb veebipoolse konversiooni jaoks (vt `funnel-framework.md`).
 - NB: open rate on Apple MPP tõttu moonutatud. Vastus ja klikk on tõesemad.
