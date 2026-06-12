@@ -30,6 +30,8 @@ def mail_send(deal_id: int, to: str, subject: str, body_html: str) -> dict:
     if not isinstance(data, dict):
         return {"error": f"deal {deal_id} not found"}
     state = deal_state.read_state(data)
+    if deal_state.state_key() is None:
+        return {"error": "state field key unknown; run pipedrive_setup first"}
 
     now = datetime.now(timezone.utc)
     refusal = evaluate_send_guardrails(state, to, now)
