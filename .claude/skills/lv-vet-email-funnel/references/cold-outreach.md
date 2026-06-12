@@ -15,7 +15,10 @@ Külma jada eriloogika. Vt ka `deliverability.md` (taristu) ja
 - Lühike, tekstipõhine, tugevalt personaliseeritud.
 - **Avarida = personaalne tähelepanek** kontakti kohta (kliinik / regioon /
   eriala), mitte toode.
-- **Üks CTA** kirja kohta — see on alati toote/väärtuse CTA, mitte loobumine.
+- **Üks CTA** kirja kohta — alati toote/väärtuse CTA, mitte loobumine.
+- **CTA on kindel ja käskiv, mitte küsiv.** Kasuta selget tegevust:
+  *"Vaata lähemalt siit"* / lv *"Apskatiet tuvāk šeit"*. **Mitte** tentatiivset
+  küsimust ("Kas soovite vaadata?") — see konverteerib halvemini.
 
 ### Opt-out — diskreetne, mitte üleskutse
 
@@ -24,9 +27,9 @@ nähtavat üleskutset**, eriti esimestes kirjades — see kutsub varakult lahkum
 
 - **Asukoht:** alati **kirja kõige lõpus**, allkirja järel, **CTA-st eraldi**.
   Mitte kunagi CTA kõrval ega kirja kehas.
-- **Toon: sõbralik ja inimlik**, mitte ametlik "loobu siit". Näide (lv):
-  *"Ja nevēlaties no manis vairāk saņemt vēstules, vienkārši pasakiet — es sapratīšu."*
-  (eesti k mõte: "kui sa ei soovi minult enam kirju saada, ütle lihtsalt — ma saan aru.")
+- **Toon: sõbralik, selge ja loogiline**, koos vastamise-mehhanismiga. Näide (lv):
+  *"Ja nevēlaties no manis vairāk saņemt vēstules, dodiet ziņu, atbildot uz šo e-pastu."*
+  (eesti k: "Kui te ei soovi minult rohkem kirju saada, andke sellest teada, vastates sellele kirjale.")
 - **Esimesed kirjad (1–3):** hoia eriti vaikne, üks sõbralik rida lõpus.
 - **Hilisemad / "breakup"-kiri:** sama sõbralik rida; breakup võib olla pisut
   selgem, aga ikka soe.

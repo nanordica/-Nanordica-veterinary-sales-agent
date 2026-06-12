@@ -10,7 +10,8 @@ Kõik allolev läti tekst on **mustand — peab läbima automaatse QA värava**
 ## Iga kirja reeglid
 
 - **Avarida = personaalne tähelepanek** (kliinik / regioon / eriala), mitte toode.
-- **Üks CTA** kirja kohta.
+- **Üks CTA** kirja kohta — **kindel ja käskiv** ("Vaata lähemalt siit" /
+  "Apskatiet tuvāk šeit"), mitte küsiv ("kas soovite?").
 - Saatja päris inimese nimi.
 - **Iga kiri toob uut infot** — ära korda eelmist. Kui uut haaki pole, ära saada.
 - **Loobumine = sõbralik rida kirja kõige lõpus**, allkirja järel, CTA-st
@@ -65,16 +66,17 @@ Pealkirja näited (lv, mustand):
 > dzija gandrīz divreiz ātrāk nekā ar sudraba pārsējiem, un pārsēja maiņa ir
 > atraumatiska — mazāk stresa nemierīgam kaķim.
 >
-> Vai būtu interese apskatīt? [CTA → tooteleht + UTM]
+> Apskatiet RavimusVET tuvāk šeit → [tooteleht + UTM]
 >
 > Ar cieņu,
 > Karmen, Nanordica
 >
 > _Jūsu kontaktu atradām publiskajā veterinārārstu reģistrā._
-> _Ja nevēlaties no manis vairāk saņemt vēstules, vienkārši pasakiet — es sapratīšu._
+> _Ja nevēlaties no manis vairāk saņemt vēstules, dodiet ziņu, atbildot uz šo e-pastu._
 
-Loobumine on **sõbralik rida kirja kõige lõpus**, allkirja järel, CTA-st
-eraldi — mitte nähtav üleskutse kirja kehas (`cold-outreach.md`).
+CTA on **kindel ja käskiv** ("Apskatiet ... šeit"), mitte küsiv. Loobumine on
+**selge, sõbralik rida kirja kõige lõpus**, allkirja järel, CTA-st eraldi
+(`cold-outreach.md`).
 
 CTA-link tuleb märgistada UTM-iga (`funnel-framework.md`).
 
