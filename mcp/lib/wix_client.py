@@ -4,6 +4,7 @@ Coupons are all site-level resources, so only wix-site-id is sent; including
 wix-account-id alongside it triggers a METASITE_AND_ACCOUNT_MISMATCH error."""
 import os
 import json
+import time
 import urllib.request
 import urllib.error
 
@@ -46,9 +47,11 @@ def list_orders(since: str | None = None, limit: int = 50) -> dict:
 
 def create_coupon(name: str, code: str, percent_off: int = 100,
                   usage_limit: int = 1) -> dict:
-    """Create a coupon. Default = 100% off, single-use (free sample coupon)."""
+    """Create a coupon. Default = 100% off, single-use (free sample coupon).
+    Wix requires `startTime` as epoch milliseconds (a number), not an ISO string."""
     coupon = {"name": name, "code": code, "percentOffRate": percent_off,
               "usageLimit": usage_limit, "active": True,
+              "startTime": int(time.time() * 1000),
               "scope": {"namespace": "stores"}}
     return _call("POST", "/stores/v2/coupons", {"specification": coupon})
 
