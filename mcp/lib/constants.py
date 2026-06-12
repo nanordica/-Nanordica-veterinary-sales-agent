@@ -21,4 +21,5 @@ STATE_KEYS = [
     "discount_code", "sample_claimed_at", "emails_sent",
     "last_contact_at", "lost_reason",
     "valid_until", "practice_scope", "source",
+    "sample_reminder_sent", "thanked_at",
 ]
