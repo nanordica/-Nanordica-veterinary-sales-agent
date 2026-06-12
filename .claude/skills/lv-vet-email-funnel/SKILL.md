@@ -1,9 +1,9 @@
 ---
 name: lv-vet-email-funnel
-description: Use when composing cold email outreach for Ravimus / RavimusVET to Latvian veterinarians — wound-dressing sales sequences, per-contact personalization by animal species, deliverability from a company mailbox, funnel and A/B tracking. Produces Latvian-language emails that drive to the product page. Pairs with the email-marketing-bible skill for general email-marketing depth.
+description: Use when composing cold email outreach for Ravimus / RavimusVET to Latvian veterinarians: wound-dressing sales sequences, per-contact personalization by animal species, deliverability from a company mailbox, funnel and A/B tracking. Produces Latvian-language emails that drive to the product page. Pairs with the email-marketing-bible skill for general email-marketing depth.
 ---
 
-# RavimusVET — külm e-maili funnel Läti veterinaaridele
+# RavimusVET külm e-maili funnel Läti veterinaaridele
 
 See skill aitab koostada külma e-maili kampaaniaid, mis suunavad Läti
 loomaarstid RavimusVET haavasidet veebilehelt ostma. Saatmine käib kasutaja
@@ -17,7 +17,7 @@ teksti.
 ## Konekst (alati arvesta)
 
 - **Bränd:** Ravimus (tootja Nanordica Medical)
-- **Toode:** RavimusVET — steriilne haavaside (vt `references/product-ravimus-vet.md`)
+- **Toode:** RavimusVET, steriilne haavaside (vt `references/product-ravimus-vet.md`)
 - **Sihtgrupp:** Läti veterinaarkliinikud ja loomaarstid
 - **Keel:** läti. Tiimis pole natiivkõnelejat → **automaatne QA**, vt `references/latvian-qa.md`
 - **CTA sihtleht:** https://www.nanordica.com/ravimus (ingliskeelne)
@@ -59,8 +59,8 @@ Kui kasutaja palub koostada kirja või jada-sammu, järgi seda:
 - **Meditsiiniseadme väited peavad olema tõendatud** (vt product-fail).
 - **Iga läti kiri läbib automaatse QA** (`latvian-qa.md`) enne valmis-märkimist:
   korrektuur + tagasitõlge + väite-kontroll. Natiivkõnelejat tiimis pole.
-- **Kogu genereeritud kirjakoopia järgib `stop-slop` skilli:** ei mõttekriipse
-  (—), ei täitesõnu, aktiivne tegumood, konkreetne sõnastus. stop-slop kehtib
+- **Kogu genereeritud kirjakoopia järgib `stop-slop` skilli:** ei mõttekriipse,
+  ei täitesõnu, aktiivne tegumood, konkreetne sõnastus. stop-slop kehtib
   alati ja käib selle skilliga koos.
 
 ## Viitefailid

@@ -1,4 +1,4 @@
-# Kohaletoimetatavus — open rate'i tegelik alus
+# Kohaletoimetatavus: open rate'i tegelik alus
 
 Kui kiri ei jõua postkasti, on sisu ükskõik. Need praktikad on kohandatud
 **ettevõtte meilboxist** saatmiseks, mitte massi-ESP jaoks.

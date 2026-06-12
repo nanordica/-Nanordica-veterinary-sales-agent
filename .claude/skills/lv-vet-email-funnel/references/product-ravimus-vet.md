@@ -1,4 +1,4 @@
-# RavimusVET — toote faktid ja müügiargumendid
+# RavimusVET: toote faktid ja müügiargumendid
 
 Allikas: https://www.nanordica.com/ravimus (ingliskeelne tooteleht).
 Kasuta neid fakte kirjades. **Ära lisa väiteid, mida siin pole.**
@@ -37,11 +37,11 @@ RavimusVET on steriilne haavaside veterinaarseks kasutuseks. Koosneb:
 ## Kasutus müügiargumendina
 
 - **Atraumaatiline sidemevahetus** on tugev haak rahutute loomade puhul
-  (kass, koer) — vähem stressi loomale ja personalile.
+  (kass, koer), seega vähem stressi loomale ja personalile.
 - **Kiirem paranemine** on tugev haak krooniliste haavandite puhul
   (suurloomad: hobune, veis).
-- **Kliiniline tõend** (RCT) annab meditsiiniseadmele usaldusväärsuse —
-  viita sellele, aga ära liialda (vt `latvia-market.md`).
+- **Kliiniline tõend** (RCT) annab meditsiiniseadmele usaldusväärsuse.
+  Viita sellele, aga ära liialda (vt `latvia-market.md`).
 
 ## Piirangud
 

@@ -15,15 +15,15 @@ Külma jada eriloogika. Vt ka `deliverability.md` (taristu) ja
 - Lühike, tekstipõhine, tugevalt personaliseeritud.
 - **Avarida = personaalne tähelepanek** kontakti kohta (kliinik / regioon /
   eriala), mitte toode.
-- **Üks CTA** kirja kohta — alati toote/väärtuse CTA, mitte loobumine.
+- **Üks CTA** kirja kohta, alati toote/väärtuse CTA, mitte loobumine.
 - **CTA on kindel ja käskiv, mitte küsiv.** Kasuta selget tegevust:
   *"Vaata lähemalt siit"* / lv *"Apskatiet tuvāk šeit"*. **Mitte** tentatiivset
-  küsimust ("Kas soovite vaadata?") — see konverteerib halvemini.
+  küsimust ("Kas soovite vaadata?"), sest see konverteerib halvemini.
 
-### Opt-out — diskreetne, mitte üleskutse
+### Opt-out: diskreetne, mitte üleskutse
 
 Seaduslik nõue: igas kirjas peab olema loobumisvõimalus. Aga **ära tee sellest
-nähtavat üleskutset**, eriti esimestes kirjades — see kutsub varakult lahkuma.
+nähtavat üleskutset**, eriti esimestes kirjades, sest see kutsub varakult lahkuma.
 
 - **Asukoht:** alati **kirja kõige lõpus**, allkirja järel, **CTA-st eraldi**.
   Mitte kunagi CTA kõrval ega kirja kehas.
@@ -40,10 +40,10 @@ nähtavat üleskutset**, eriti esimestes kirjades — see kutsub varakult lahkum
   - vastus (ka "ei"),
   - opt-out,
   - bounce või blokk.
-- **Iga kiri toob uut infot** — ära korda eelmist.
+- **Iga kiri toob uut infot.** Ära korda eelmist.
 - **Värske haak igas kirjas:** uus teadusartikkel (enrichmenti kaudu), uus
   pakkumine, sooduskood, uus kasutusnäide. **Kui uut haaki pole, ära saada.**
-- **Progressiivne ooteaeg** (vahe kasvab kirjade arvuga) — tabel
+- **Progressiivne ooteaeg** (vahe kasvab kirjade arvuga); tabel
   `email-templates-lv.md`-s.
 
 ## Vastuse käsitlus

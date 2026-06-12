@@ -22,7 +22,7 @@ https://www.nanordica.com/ravimus
   &utm_content=<kirja-nurk-või-AB-variant>
 ```
 
-- `utm_content` eristab jada-sammu ja A/B varianti — nii saab võrrelda,
+- `utm_content` eristab jada-sammu ja A/B varianti, nii saab võrrelda,
   milline nurk päriselt müüb.
 
 ## Mida mõõta

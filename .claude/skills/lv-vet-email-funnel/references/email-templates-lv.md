@@ -1,10 +1,10 @@
 # Läti kirja-mallid ja jada-loogika
 
 **Avatud külm jada**, läti keeles, tekstipõhine, CTA viib tootelehele.
-Jada **ei lõpe fikseeritud arvu juures** — jätka kuni vastus (ka "ei"),
+Jada **ei lõpe fikseeritud arvu juures**. Jätka kuni vastus (ka "ei"),
 opt-out või bounce.
 
-Kõik allolev läti tekst on **mustand — peab läbima automaatse QA värava**
+Kõik allolev läti tekst on **mustand, mis peab läbima automaatse QA värava**
 (`latvian-qa.md`) enne valmis-märkimist. Natiivkõnelejat tiimis pole.
 
 ## Iga kirja reeglid
@@ -12,23 +12,23 @@ Kõik allolev läti tekst on **mustand — peab läbima automaatse QA värava**
 - **Avarida = kõige konkreetsem tõde** kontaktist (eelistatult tootega seotud
   teenus: kirurgia, haavaravi, operatsioonijärgne hooldus), mitte üldine
   liigi-mainimine ega toode. Pingerida: vt `personalization.md`.
-- **Üks CTA** kirja kohta — **kindel ja käskiv** ("Vaata lähemalt siit" /
+- **Üks CTA** kirja kohta, **kindel ja käskiv** ("Vaata lähemalt siit" /
   "Apskatiet tuvāk šeit"), mitte küsiv ("kas soovite?").
 - Saatja päris inimese nimi.
-- **Iga kiri toob uut infot** — ära korda eelmist. Kui uut haaki pole, ära saada.
+- **Iga kiri toob uut infot.** Ära korda eelmist. Kui uut haaki pole, ära saada.
 - **Loobumine = sõbralik rida kirja kõige lõpus**, allkirja järel, CTA-st
   eraldi. Mitte üleskutse, mitte CTA kõrval (vt `cold-outreach.md`).
 - Personaliseeri **konkreetse loomaliigi** järgi (`personalization.md`).
 
 ## Kirja-nurkade pank (uus haak igas kirjas)
 
-1. **Esmane pöördumine** — üks konkreetne kasu kontakti loomaliigile
+1. **Esmane pöördumine**: üks konkreetne kasu kontakti loomaliigile
 2. **Värske teadusartikkel** (enrichmenti kaudu), mis toetab kasutusjuhtu
-3. **Juhtumi-näide** — atraumaatiline sidemevahetus loomaliigi kontekstis
-4. **Pakkumine** — näidis / proovikomplekt
-5. **Sooduskood** — ajaliselt piiratud
-6. **Uus nurk** — kuluvõrdlus hõbesidemega, suuruste valik vm
-7. **7+** — iga järgnev kiri uus haak; kui haaki pole, ära saada
+3. **Juhtumi-näide**: atraumaatiline sidemevahetus loomaliigi kontekstis
+4. **Pakkumine**: näidis / proovikomplekt
+5. **Sooduskood**: ajaliselt piiratud
+6. **Uus nurk**: kuluvõrdlus hõbesidemega, suuruste valik vm
+7. **7+**: iga järgnev kiri uus haak; kui haaki pole, ära saada
 
 ## Progressiivne ooteaeg
 
@@ -55,7 +55,7 @@ Pealkirja näited (lv, mustand):
 - `Jautājums par brūču pārsiešanu jūsu klīnikā`
 - `Atraumatiska pārsēja maiņa nemierīgiem dzīvniekiem`
 
-## Näidiskiri 1 — esmane pöördumine, kassiarst (lv mustand)
+## Näidiskiri 1: esmane pöördumine, kassiarst (lv mustand)
 
 > **Pealkiri:** {{eesnimi}}, atraumatiska pārsiešana kaķiem?
 >

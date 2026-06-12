@@ -8,13 +8,13 @@ enne, kui kõik sammud on tehtud.**
 
 Automaatne kontroll **ei asenda täielikult natiivkõnelejat**, eriti
 meditsiiniseadme väidete nüansis. Eesmärk: püüda enamik grammatika- ja
-sisuvigu. Jääkrisk jääb — vt `latvia-market.md` (meditsiiniseadme reklaam).
+sisuvigu. Jääkrisk jääb, vt `latvia-market.md` (meditsiiniseadme reklaam).
 
 ## Värava sammud
 
 ### 1. Korrektuuri-pass
 Loe enda läti tekst üle **range korrektorina**, kontrolli:
-- käänded ja pöörded (läti käändesüsteem on rikkalik — see on suurim veaallikas),
+- käänded ja pöörded (läti käändesüsteem on rikkalik, see on suurim veaallikas),
 - grammatika ja kooskõla,
 - loomulik sõnajärg (mitte eesti/inglise kalka),
 - meditsiiniterminite õigsus,
@@ -35,8 +35,8 @@ Paranda leitud vead ja loe uuesti.
 
 ### 4. Valikuline väline tööriist (kõva värav)
 Kui kasutaja soovib kõvemat kontrolli:
-- **LanguageTool** (`lv`) — grammatika/spelling API,
-- **hunspell** sõnastikuga `lv_LV` — spelling.
+- **LanguageTool** (`lv`): grammatika/spelling API,
+- **hunspell** sõnastikuga `lv_LV`: spelling.
 
 Need on valikulised; põhiväravaks on sammud 1–3.
 

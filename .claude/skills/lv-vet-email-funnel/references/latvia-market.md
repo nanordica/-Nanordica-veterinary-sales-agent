@@ -1,24 +1,24 @@
-# Läti turg — keel, õigus, reklaaminõuded
+# Läti turg: keel, õigus, reklaaminõuded
 
 ## Keel ja toon
 
 - Kirjad **läti keeles**.
-- **Mitte masintõlge eesti keelest** — see kõlab võõralt ja eksitab B2B
+- **Mitte masintõlge eesti keelest.** See kõlab võõralt ja eksitab B2B
   meditsiinikontekstis.
 - **Kvaliteedikontroll on automaatne** (tiimis pole natiivkõnelejat). Iga kiri
   läbib `latvian-qa.md` värava enne valmis-märkimist.
 - Toon: professionaalne, kolleegilt-kolleegile, mitte agressiivne müük.
-  Loomaarst on ekspert — räägi temaga kui võrdsega.
+  Loomaarst on ekspert, räägi temaga kui võrdsega.
 - Venekeelne segment Lätis on suur. Kui kontakti keele-eelistus on teada ja
   vene, kaalu venekeelset varianti (eraldi otsus, läbib sama automaatse QA).
 
 ## GDPR + ePrivacy (külm B2B)
 
 Kasutaja on kinnitanud õigusliku aluse. Skill tagab igas kirjas:
-- **loobumisvõimalus** — seaduslikult kohustuslik, aga **sõbralik rida kirja
+- **loobumisvõimalus**: seaduslikult kohustuslik, aga **sõbralik rida kirja
   kõige lõpus**, CTA-st eraldi, mitte nähtav üleskutse (vt `cold-outreach.md`),
 - **selge saatja-identiteet** (kes, mis ettevõte),
-- **andmeallika avalikustamine** — lühike rida, kust kontakt saadi (nt avalik
+- **andmeallika avalikustamine**: lühike rida, kust kontakt saadi (nt avalik
   veterinaarregister), kui kontakt seda küsib või proaktiivselt.
 
 Vastutus õigusliku aluse eest jääb kasutajale. Ma pole jurist.

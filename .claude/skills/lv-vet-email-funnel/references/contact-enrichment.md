@@ -21,7 +21,7 @@ kitsamat ja tootega seotud detaili (vt allpool, personalization.md).
 ## Allikad
 
 - **E-posti domeen** → kliiniku tuvastus (nt `@kliinikunimi.lv`).
-- **Läti veterinaarregister** — Pārtikas un veterinārais dienests (PVD).
+- **Läti veterinaarregister**: Pārtikas un veterinārais dienests (PVD).
 - **Latvijas Veterinārārstu biedrība** (kutseliit).
 - **Kliiniku veebileht** (eriala, loomaliigid, meeskond).
 - **Google / LinkedIn** avalik profiil.
@@ -34,7 +34,7 @@ teadusartikkel**, mis toetab RavimusVET-i tema kasutusjuhul:
 - kassi-/koeraarstile → väikeloomade haavaravi, atraumaatiline sidemevahetus,
 - veisearstile → suurloomade haavainfektsiooni / antimikroobse ravi uuring.
 
-Lingi artikkel kirja kui uus väärtus. **Ainult päris, kontrollitud allikad —
+Lingi artikkel kirja kui uus väärtus. **Ainult päris, kontrollitud allikad,
 mitte väljamõeldud viited.** Kui sobivat artiklit ei leia, kasuta mõnda muud
 haaki (pakkumine, kasutusnäide).
 
