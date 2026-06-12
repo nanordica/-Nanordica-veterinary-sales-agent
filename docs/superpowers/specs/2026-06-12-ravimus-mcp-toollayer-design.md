@@ -153,7 +153,10 @@ postkastide nimel saatmine, eraldi opt-out-nimekiri.
 
 ### Wix (`wix_*`)
 
-Krediit: `WIX_API_KEY`, `WIX_SITE_ID`, `WIX_ACCOUNT_ID`.
+Krediit: `WIX_API_KEY`, `WIX_SITE_ID`, `WIX_ACCOUNT_ID` (kõik olemas;
+sait "Nanordica Medical" → nanordica.com). Auth-header'id `lib/wix_client.py`-s:
+`Authorization: <WIX_API_KEY>` (**toores, ilma `Bearer`-ita**),
+`wix-account-id: <WIX_ACCOUNT_ID>`, `wix-site-id: <WIX_SITE_ID>`.
 
 | Tööriist | Tüüp | Sisu |
 |---|---|---|
@@ -186,9 +189,9 @@ gitignore'itud `.env`-is.
 | `GRAPH_CLIENT_ID` | MS Graph | olemas (API.zip) |
 | `GRAPH_CLIENT_SECRET` | MS Graph | olemas (API.zip) — ainult `.env` |
 | `GRAPH_SENDER` | MS Graph | `ravimus@nanordica.com` |
-| `WIX_API_KEY` | Wix | luuakse Wixi dashboardis |
-| `WIX_SITE_ID` | Wix | Wixi saidi seaded |
-| `WIX_ACCOUNT_ID` | Wix | Wixi konto seaded |
+| `WIX_API_KEY` | Wix | olemas (ainult `.env`) |
+| `WIX_SITE_ID` | Wix | olemas (`465df77a-...`) |
+| `WIX_ACCOUNT_ID` | Wix | olemas (`47e317b2-...`) |
 | `DRY_RUN` | platvorm | `1` arenduses |
 | `MCP_PORT` | platvorm | vaikimisi 8765 |
 | `MCP_AUTH_TOKEN` | platvorm | valikuline Bearer-auth |
@@ -254,8 +257,6 @@ eelmise smoke-test läbib.
 
 ## Lahtised punktid
 
-- **Wixi tokenid** (API-võti, Site/Account ID) tulevad kasutajalt;
-  kuni siis arendame `DRY_RUN`-i ja read-config'iga.
 - **MS Graphi admin consent + Application Access Policy** kinnitab
   rentniku admin.
 - **Discovery-skript** (`scripts/discovery.py`) taaskasutab
