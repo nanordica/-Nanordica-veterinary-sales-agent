@@ -55,15 +55,14 @@ Reeglid:
 
 ## Töövoog
 
-1. `get_deal` → field'id + enrichment-note.
+1. `pipedrive_get_deal(deal_id)` → loe `_state` (field'id) + enrichment-note.
 2. Arvuta skoor rida-realt; iga rea taga peab olema enrichment'i fakt,
    mida saab kontrollida. Kahtluse korral anna väiksem punkt — sama
    sisend peab andma sama skoori.
-3. `update_deal_fields`: `{"score": N}`; Lost'i korral lisa
-   `{"lost_reason": "unqualified"}`.
-4. `add_note_to_deal` — mall allpool.
-5. Alles pärast õnnestunud kirjutusi: `move_deal_to_stage` →
-   `"Qualified"` või `"Lost"`.
+3. `pipedrive_update_deal_data(deal_id, {"score": N})`; Lost'i korral lisa
+   `{"lost_reason": "unqualified"}` samasse kõnesse.
+4. `pipedrive_add_note(deal_id, ...)` — mall allpool.
+5. Alles pärast õnnestunud kirjutusi: `pipedrive_move_deal_stage(deal_id, "Qualified")` või `pipedrive_move_deal_stage(deal_id, "Lost")`.
 6. MCP kõne ebaõnnestus → ÄRA liiguta staadiumit, raporteeri viga;
    järgmine tikk proovib uuesti.
 

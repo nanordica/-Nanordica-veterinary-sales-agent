@@ -1,13 +1,5 @@
 {
   "mcpServers": {
-    "mail-mcp": {
-      "type": "stdio",
-      "command": "python3.12",
-      "args": ["mcp/mail-mcp/server.py"],
-      "env": {
-        "DRY_RUN": "1"
-      }
-    },
     "chrome-devtools": {
       "type": "stdio",
       "command": "npx",
@@ -27,6 +19,10 @@
     "estonian": {
       "type": "http",
       "url": "https://estonian-mcp.fly.dev/mcp"
+    },
+    "ravimus": {
+      "type": "http",
+      "url": "http://localhost:8765/mcp"
     }
   }
 }
