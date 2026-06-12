@@ -1,5 +1,5 @@
 from lib import setup_plan
-from lib.constants import STAGES, CUSTOM_FIELDS
+from lib.constants import PIPELINE_NAME, STAGES, CUSTOM_FIELDS
 
 
 def test_plan_creates_everything_when_empty():
@@ -11,7 +11,7 @@ def test_plan_creates_everything_when_empty():
 
 
 def test_plan_idempotent_when_all_present():
-    pipelines = [{"id": 5, "name": "ravimus-latvia-vets"}]
+    pipelines = [{"id": 5, "name": PIPELINE_NAME}]
     stages = [{"name": n, "id": i + 1, "pipeline_id": 5} for i, n in enumerate(STAGES)]
     fields = [{"name": n, "key": f"k_{n}"} for n, _ in CUSTOM_FIELDS]
     plan = setup_plan.plan_setup(pipelines, stages, fields)
@@ -22,7 +22,7 @@ def test_plan_idempotent_when_all_present():
 
 
 def test_plan_adds_only_missing_stage():
-    pipelines = [{"id": 5, "name": "ravimus-latvia-vets"}]
+    pipelines = [{"id": 5, "name": PIPELINE_NAME}]
     stages = [{"name": n, "id": i + 1, "pipeline_id": 5}
               for i, n in enumerate(STAGES) if n != "Lost"]
     fields = [{"name": n, "key": f"k_{n}"} for n, _ in CUSTOM_FIELDS]
