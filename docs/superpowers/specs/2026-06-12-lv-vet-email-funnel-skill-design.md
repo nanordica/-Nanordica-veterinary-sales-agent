@@ -14,9 +14,9 @@ ostma. Skill peab toetama funneli jälgimist (mis hetkel müük toimub), A/B
 testimist (milline kiri töötab kõige paremini) ja **personaliseerimist** nii
 segmendi kui ka iga kontakti tasandil.
 
-**Tarne tüüp:** teadmiste-skill. E-kirjade saatmist skill ei tee — saatmine ja
-päris andmete kogumine jääb kasutaja ESP-sse. Skill annab teadmised, töövoo ja
-mallid.
+**Tarne tüüp:** teadmiste-skill. E-kirjade saatmist skill ise ei tee. Kasutaja
+saadab kirjad **ettevõtte meilboxist** üks-ühele. Skill annab teadmised,
+töövoo, personaliseeritud kirjad ja jada-loogika.
 
 ---
 
@@ -28,29 +28,32 @@ mallid.
 | Toode | **RavimusVET** — steriilne haavaside |
 | Sihtgrupp | Läti veterinaarkliinikud ja loomaarstid |
 | Keel | **Läti keel** |
-| Funneli eesmärk | Otsene ost veebilehel |
+| Funneli eesmärk | Ost veebilehel (külmas jadas: enne vastus/klikk, siis ost) |
 | CTA sihtleht | `https://www.nanordica.com/ravimus` (ingliskeelne leht) |
 | Olemasolevad andmed | **E-posti aadressid + kaasatuse andmed** (avab / klikib / mitteaktiivne) |
-| Juurde otsitavad andmed | Nimi, kliinik, loomatüüp, regioon — rikastatakse päringuga |
-| Listi tüüp | **Külm prospekteerimine** (kontaktid pole nõusolekut andnud) |
+| Juurde otsitavad andmed | Nimi, kliinik, loomaliik, regioon, värske teadusartikkel — rikastatakse päringuga |
+| Listi tüüp | **Külm prospekteerimine.** Kasutaja kinnitab: aadressid saadud turvaliselt, õiguslik alus olemas |
+| Saatmise kanal | **Ettevõtte meilbox** (üks-ühele stiil, mitte massi-ESP) |
 
-### ⚠️ Külma listi tegelikkus (loe enne)
+### Külma prospekteerimise raamistik (meilboxist)
 
-List on külm. See muudab kolme asja, mille kohta pean ausalt rääkima:
+List on külm ja kirjad lähevad ettevõtte meilboxist üks-ühele. Kasutaja on
+kinnitanud, et aadressid on saadud turvaliselt ja õiguslik alus on olemas
+(õigustatud huvi, opt-out, teavitus). Sellest lähtub strateegia:
 
-1. **Õiguslik.** EL-is reguleerib külmi turunduskirju ePrivacy-direktiiv +
-   GDPR. B2B-le on Lätis õigustatud huvi vahel lubatud, aga see eeldab seost,
-   selget opt-out'i igas kirjas ja andmetöötluse teavitust. Meditsiiniseadme
-   külm turundus loomaarstidele vajab õiguslikku alust. **Ma pole jurist** —
-   see on risk, mille pead enne saatmist kinnitama, mitte tehniline detail.
-2. **Tööriist.** Massi-ESP-d (Mailchimp jt) **keelavad** külma e-posti ja
-   sulgevad konto. Külm vajab eraldi cold-outreach taristut: eraldi
-   saatmisdomeen (kaitseb `nanordica.com` mainet), aeglane soojendus, väike
-   päevamaht, aadresside verifitseerimine (bounce'id tapavad maine).
-3. **Open rate.** 25–35% on külmal listil **ambitsioonikas**, mitte
-   konservatiivne. Saavutatav ainult siis, kui list on verifitseeritud,
-   personaliseerimine tugev, taristu korras ja pealkiri hea. Külm kukub
-   kergesti rämpsu, kus open rate on ~0.
+1. **Meilbox sobib külma jaoks hästi.** Üks-ühele, tekstipõhine, personaalne
+   kiri pärisinimese aadressilt jõuab postkasti paremini kui massi-ESP saadetis.
+   Hind: madal maht ja käsitsi/poolautomaatne saatmine.
+2. **Kaitse ettevõtte domeeni mainet.** Hoia päevamaht väike, kasva järk-järgult,
+   verifitseeri aadressid enne saatmist (bounce'id rikuvad maine), eemalda
+   kohe bounce'id ja opt-out'id. Kui maht kasvab suureks, kaalu eraldi
+   saatmisdomeeni.
+3. **Open rate'i mõõtmise lõks.** Pärismeilbox **ei näita open rate'i** ilma
+   eraldi tööriistata (mail-merge / jälgimispiksel). Vastuse-määr ja klikk
+   (UTM kaudu) on meilboxist tõesemad mõõdikud. 25–35% open rate'i sihiks
+   seadmiseks on vaja jälgimisega mail-merge tööriista; muidu jälgi vastust.
+4. **Maksimaalne ambitsioon = parimad praktikad.** Tugev personaliseerimine,
+   värske info igas kirjas, hea pealkiri, progressiivne jada (vt allpool).
 
 ### Toote müügiargumendid (veebilehelt)
 
@@ -121,41 +124,52 @@ e-maili kampaaniat Läti vetidele). Sisaldab lühikonteksti, viited
 `references/` failidele ja töövoo sammud:
 
 ```
-0. Taristu-kontroll: domeen autenditud + soojendatud, list verifitseeritud,
-   õiguslik alus olemas (deliverability.md, cold-outreach.md)
-1. Sisend: kontakti e-post(id) + kaasatuse andmed
-2. Rikasta: leia nimi, kliinik, loomatüüp (contact-enrichment.md)
-3. Segment: käitumise järgi (kaasatud / vaibunud / kontakteerimata)
-4. Personaliseeri: segment + kontakti andmed → kohandatud kiri
-5. Jada/mall: vali õige samm külmas jadas (email-templates-lv.md)
-6. Pealkiri: koosta + eelvaate-tekst (email-templates-lv.md)
-7. UTM: märgista lingid (funnel-framework.md)
-8. A/B: planeeri test (ab-testing.md)
+0. Taristu-kontroll: meilbox autenditud (SPF/DKIM/DMARC), maht väike,
+   list verifitseeritud (deliverability.md, cold-outreach.md)
+1. Sisend: kontakti e-post + kaasatuse andmed + mitu kirja juba saadetud
+2. Rikasta: leia nimi, kliinik, loomaliik + värske teadusartikkel
+   (contact-enrichment.md)
+3. Segment: käitumise järgi (vastas / klikkis / avas / kontakteerimata)
+4. Personaliseeri: segment + kontakti andmed + loomaliik → kohandatud kiri
+5. Jada-samm: vali järgmine samm + ooteaeg saadetud kirjade arvu järgi
+   (email-templates-lv.md). Jätka kuni vastus / opt-out / bounce.
+6. Värske haak: iga kiri toob uut infot (artikkel / pakkumine / sooduskood)
+7. Pealkiri: koosta + eelvaate-tekst (email-templates-lv.md)
+8. UTM: märgista lingid (funnel-framework.md)
+9. A/B: planeeri test (ab-testing.md)
 ```
 
 ### references/deliverability.md
 Open rate'i tegelik alus. Kui kiri ei jõua postkasti, on kõik muu kasutu.
+Kohandatud meilboxist saatmiseks.
 
-- **Autentimine:** SPF, DKIM (2048-bit), DMARC (`none` → `quarantine` →
-  `reject`), one-click unsubscribe. 2024–2025 lükkavad Gmail/Yahoo/Microsoft
-  autentimata masspostituse tagasi.
-- **Domeeni soojendus:** maht järk-järgult üles, mitte 0-st tuhandeni.
+- **Autentimine:** veendu, et ettevõtte domeenil on SPF, DKIM (2048-bit) ja
+  DMARC korras. Ilma selleta lükkavad Gmail/Yahoo/Microsoft kirja tagasi.
+- **Maht ja soojendus:** meilboxist väike päevamaht, kasva järk-järgult.
+  Liiga palju korraga = rämps + domeeni maine kahjustus.
 - **Listi hügieen:** verifitseeri aadressid enne saatmist (bounce'id tapavad
-  maine), eemalda korduvad mitte-avajad (sunset-poliitika).
-- **Sisu:** väldi rämpssõnu ja liigseid linke/pilte, hoia tekst-pildi tasakaal.
+  maine), eemalda kohe bounce'id ja opt-out'id.
+- **Sisu:** lühike, tekstipõhine, väldi rämpssõnu ja liigseid linke/pilte.
+- **Mõõtmine:** pärismeilbox ei näita open rate'i ilma jälgimistööriistata.
+  Kui open rate on vaja mõõta, lisa jälgimisega mail-merge tööriist; muidu
+  jälgi vastust ja klikki (UTM).
 
 ### references/cold-outreach.md
-Külma prospekteerimise eriloogika (vt ka ülal "Külma listi tegelikkus"):
+Külma prospekteerimise eriloogika meilboxist (vt ka ülal "Külma
+prospekteerimise raamistik"):
 
-- **Õiguslik alus:** ePrivacy + GDPR, B2B õigustatud huvi, opt-out igas
-  kirjas, andmetöötluse teavitus. Märgitud riskina, mitte juriidilise nõuna.
-- **Taristu:** eraldi saatmisdomeen (kaitseb `nanordica.com` mainet), aeglane
-  soojendus, väike päevamaht, aadresside verifitseerimine. Massi-ESP ei sobi.
-- **Jada (mitte üksik kiri):** külm ost ei tule esimesest kirjast. 4–5 sammu:
-  esmane pöördumine → väärtus/tõend → juhtumi-näide → pakkumine → "breakup".
-  Vahe-eesmärk on klikk/vastus, alles siis ost.
-- **Stiil:** lühike, tekstipõhine, tugevalt personaliseeritud (külm nõuab
-  rohkem personaliseerimist kui opt-in).
+- **Õiguslik alus:** kasutaja kinnitanud. Iga kiri sisaldab opt-out'i ja
+  selget saatja-identiteeti.
+- **Taristu:** ettevõtte meilbox, väike päevamaht, aadresside verifitseerimine.
+- **Jada jätkub kuni signaalini.** Lõpeta alles: vastus (ka "ei"), opt-out,
+  bounce või blokk. Iga kiri toob **uut infot** — ära korda eelmist.
+- **Värske haak igas kirjas:** uus teadusartikkel (enrichmenti kaudu), uus
+  pakkumine, sooduskood, uus kasutusnäide. Kui uut haaki pole, ära saada.
+- **Progressiivne ooteaeg** (parima praktika järgi vahe kasvab, vt tabel
+  `email-templates-lv.md`-s): mida rohkem kirju juba läinud, seda pikem paus.
+- **Stiil:** lühike, tekstipõhine, tugevalt personaliseeritud.
+- **Lõpetamine:** "ei" → austa, eemalda jadast; opt-out / bounce → eemalda
+  kohe ka listist.
 
 ### references/contact-enrichment.md
 Töövoog, kuidas paljast e-posti aadressist arst/kliinik üles leida, sest
@@ -164,8 +178,13 @@ muud andmed kui e-post ja kaasatus on vaja juurde otsida:
 - **E-posti domeen** → kliiniku tuvastus (nt `@kliinikunimi.lv`).
 - **Avalikud allikad**: Läti veterinaarregister (Pārtikas un veterinārais
   dienests), Latvijas Veterinārārstu biedrība, kliiniku veebileht, Google.
-- **Mida koguda** (andmemudel): eesnimi, kliiniku nimi, loomatüüp
-  (väikeloom / suurloom / segapraksis), regioon, roll.
+- **Mida koguda** (andmemudel): eesnimi, kliiniku nimi, **konkreetne loomaliik
+  / spetsialiseerumine** (nt kassid, koerad, hobused, veised, eksootilised),
+  regioon, roll.
+- **Värske sisu rikastamine (igale kirjale uus haak):** otsi kontaktile sobiv
+  hiljutine teadusartikkel, mis toetab RavimusVET-i tema kasutusjuhul (nt
+  hobuste krooniliste haavandite ravi). Lingi see kirja kui uus väärtus. Ainult
+  päris, kontrollitud allikad — mitte väljamõeldud viited.
 - **Fallback**: kui kontakti ei leia, kasuta ainult käitumispõhist segmenti
   ja üldist vetisõnumit — ära genereeri välja mõeldud (hallutsineeritud)
   andmeid. Märgi kontakt "rikastamata".
@@ -178,29 +197,30 @@ Kahe tasandi personaliseerimine:
   jada (cold-outreach.md); avas/klikkis → soe järelpöördumine ja pakkumine;
   klikkis aga ei ostnud → konkreetne tootepakkumine + tõend.
 - **Tasand 2 — kontakt (rikastatud):** pöördumine nime järgi, kliiniku
-  mainimine, ja **loomatüübi-põhised tingimusplokid** — väikeloomaarstile
-  rahutu kassi/koera sidemevahetuse näide, suurloomaarstile hobuse/veise
-  kroonilise haavandi näide.
-- **Renderdus:** ESP merge-väljad (`{{eesnimi}}`, `{{kliinik}}`) +
-  tingimuslik sisu. Skill annab teksti variandid; ESP paneb kokku.
+  mainimine ja **konkreetse loomaliigi näide** selle kontakti
+  spetsialiseerumise järgi — kassiarstile kassi näide, hobusearstile hobuse
+  kroonilise haavandi näide, veisearstile veise oma. Mitte üldine "väikeloom".
+- **Renderdus:** kuna saadetakse meilboxist, kirjutab skill iga kontakti jaoks
+  **valmis personaliseeritud teksti** (mitte ainult merge-mall). Kui kasutaja
+  kasutab mail-merge tööriista, antakse ka kohatäidetega versioon.
 
 ### references/funnel-framework.md
 Funneli etapid ja mida igal etapil mõõta:
 
 ```
-Saadetud → Kohale toimetatud → Avatud → Klikitud → Tootelehe vaade → Ost
+Saadetud → Kohale toimetatud → (Avatud) → Vastus / Klikk → Tootelehe vaade → Ost
 ```
 
-Kuna tööriista-integratsiooni pole, õpetab:
+Meilboxist saatmise tegelikkus:
 - **UTM-linkide** märgistamine (`utm_source`, `utm_medium=email`,
   `utm_campaign`, `utm_content` A/B variandi jaoks), et veebianalüütikas näeks,
   *milline kiri* müügi tõi ja *mis etapil* lehtrist välja kukutakse.
-- ESP raporti lugemine (open rate, CTR) + veebianalüütika (tootelehe →
-  ost konversioon) kokku panemine, et leida funneli pudelikael.
-- **⚠️ MPP hoiatus:** Apple Mail eellaadib pikslid, nii et ~pool avamistest
-  pole päris inimene. Open rate on moonutatud. Tõene mõõdik on **klikk ja
-  ost**, mitte avamine. Sea see ka eesmärgiks: 25–35% open rate on suunis,
-  aga otsus tehakse kliki ja konversiooni põhjal.
+- **Vastuse-määr** on meilboxi-jada peamine kaasatuse-mõõdik (avamist sa ei näe).
+- Veebianalüütika (klikk → tootelehe vaade → ost) leiab funneli pudelikaela.
+- **⚠️ Open rate'i hoiatused:** (1) meilbox ei mõõda avamist ilma
+  jälgimistööriistata; (2) ka tööriistaga moonutab Apple Mail (eellaadib
+  pikslid, ~pool "avamisi" pole inimene). Seega: 25–35% open rate on suunis,
+  aga **otsus tehakse vastuse, kliki ja ostu põhjal**.
 
 ### references/ab-testing.md
 - Mida testida: pealkiri, eelvaate-tekst, CTA, saatmisaeg, pakkumine.
@@ -218,19 +238,36 @@ Kuna tööriista-integratsiooni pole, õpetab:
   olemas, viidata sellele korrektselt).
 
 ### references/email-templates-lv.md
-**Külm jada** (4–5 sammu), läti keeles, tekstipõhine, CTA viib tootelehele.
-Iga samm sisaldab **merge-välju** (`{{eesnimi}}`, `{{kliinik}}`) ja
-**loomatüübi tingimusplokke** (väikeloom / suurloom), et sama mall
-personaliseeruks iga kontaktile (vt `personalization.md`):
-1. Esmane pöördumine (lühike, personaalne, üks konkreetne kasu)
-2. Väärtus + tõend (kliiniline uuring, ~2× kiirem paranemine)
-3. Juhtumi-näide (atraumaatiline sidemevahetus loomatüübi järgi)
-4. Pakkumine (näidis / proovikomplekt / sooduspakkumine)
-5. "Breakup" (viimane kiri, madala surve väljumistee)
+**Avatud külm jada**, läti keeles, tekstipõhine, CTA viib tootelehele.
+Jada **ei lõpe fikseeritud arvu juures** — jätka kuni vastus (ka "ei"),
+opt-out või bounce. **Iga kiri toob uut infot** (artikkel, pakkumine,
+sooduskood, uus nurk); ära korda eelmist. Iga kiri personaliseeritakse
+kontakti **konkreetse loomaliigi** järgi (vt `personalization.md`).
 
-Lisaks **pealkirja + eelvaate-teksti praktikad** (open rate'i sisuhoob):
+Kirja-nurkade pank (kasuta järjest, uus haak igas kirjas):
+1. Esmane pöördumine — üks konkreetne kasu kontakti loomaliigile
+2. Värske teadusartikkel (enrichmenti kaudu leitud), mis toetab kasutusjuhtu
+3. Juhtumi-näide / atraumaatiline sidemevahetus loomaliigi kontekstis
+4. Pakkumine: näidis / proovikomplekt
+5. Sooduskood (ajaliselt piiratud)
+6. Uus nurk: kuluvõrdlus hõbesidemega, suuruste valik vm
+7+ Iga järgnev kiri uus haak; kui uut haaki pole, ära saada
+
+**Progressiivne ooteaeg** (vahe kasvab saadetud kirjade arvuga, parima
+praktika järgi):
+
+| Saadetud kirju | Paus enne järgmist |
+|----------------|--------------------|
+| 1 → 2          | 3 päeva            |
+| 2 → 3          | 4 päeva            |
+| 3 → 4          | 7 päeva            |
+| 4 → 5          | 10 päeva           |
+| 5 → 6          | 14 päeva           |
+| 6+             | 21–30 päeva        |
+
+**Pealkirja + eelvaate-teksti praktikad** (open rate'i sisuhoob):
 - Pealkiri lühike (~30–50 tähemärki), konkreetne kasu või uudishimu,
-  personaliseeritud (`{{kliinik}}`), väldi rämpssõnu ja CAPS-i.
+  personaliseeritud (kliinik / loomaliik), väldi rämpssõnu ja CAPS-i.
 - Eelvaate-tekst täiendab pealkirja, ei korda seda.
 - Pealkiri on A/B esmane testimuutuja (vt `ab-testing.md`).
 
@@ -252,18 +289,20 @@ Lisaks **pealkirja + eelvaate-teksti praktikad** (open rate'i sisuhoob):
    (`https://www.nanordica.com/ravimus`). Läti arst saab inglise keeles lehe,
    mitte emakeelse. Ingliskeelne leht töötab, aga lätikeelne maandumisleht
    tõstaks konversiooni. Soovitus järgmiseks sammuks, mitte praegune blokeerija.
-2. **🔴 Külm e-post + õiguslik alus.** ePrivacy + GDPR. Külm turundus
-   loomaarstidele vajab õigustatud huvi alust, opt-out'i ja teavitust. Ma pole
-   jurist. Kinnita see enne saatmist. Suurim risk kogu projektis.
-3. **🔴 Massi-ESP keelab külma.** Mailchimp jt sulgevad konto külma listi
-   peale. Vajad eraldi cold-outreach taristut + eraldi saatmisdomeeni, et mitte
-   põletada `nanordica.com` maine.
-4. **Meditsiiniseadme reklaam** — väited peavad vastama Läti reklaaminõuetele.
-5. **Rikastamise täpsus ja privaatsus** — e-postist arsti leidmine ei õnnestu
-   alati. Skill ei tohi andmeid välja mõelda; leidmata kontakt läheb
-   käitumispõhisesse segmenti. Ainult avalik info.
-6. **Open rate ootus** — 25–35% on külmal listil ambitsioonikas ja MPP tõttu
-   moonutatud. Jälgi klikki ja ostu kui tõest mõõdikut.
+2. **🟡 Õiguslik alus — kasutaja kinnitanud.** Kasutaja kinnitas, et aadressid
+   on saadud turvaliselt ja õiguslik alus on olemas. Skill tagab opt-out'i ja
+   selge saatja-identiteedi igas kirjas. Vastutus jääb kasutajale.
+3. **🟠 Domeeni maine (meilbox).** Külma saatmine ettevõtte meilboxist võib
+   `nanordica.com` mainet kahjustada, kui maht kasvab või tulevad kaebused.
+   Maandus: väike maht, soojendus, verifitseeritud list, kohene bounce/opt-out
+   eemaldamine. Suure mahu korral kaalu eraldi saatmisdomeeni.
+4. **🟠 Open rate'i mõõtmine.** Meilbox ei näita avamist ilma
+   jälgimistööriistata. 25–35% sihiks vajad mail-merge jälgimist; muidu on
+   peamine mõõdik vastus ja klikk. MPP moonutab avamist niikuinii.
+5. **Meditsiiniseadme reklaam** — väited peavad vastama Läti reklaaminõuetele.
+6. **Rikastamise täpsus** — e-postist arsti leidmine ei õnnestu alati. Skill ei
+   tohi andmeid ega teadusviiteid välja mõelda; leidmata kontakt läheb
+   käitumispõhisesse segmenti. Ainult avalik, kontrollitud info.
 
 ---
 
@@ -276,6 +315,11 @@ Lisaks **pealkirja + eelvaate-teksti praktikad** (open rate'i sisuhoob):
   opt-out, CTA tootelehele + UTM-märgistus ja A/B soovitus pealkirjale.
 - Personaliseerimise test: annan ühe kontakti e-posti + kaasatuse staatuse,
   Claude rikastab (või märgib "rikastamata"), valib segmendi ja annab selle
-  kontakti jaoks kohandatud kirja loomatüübi-põhise plokiga.
-- Deliverability test: skill esitab enne saatmist taristu-kontrollnimekirja
-  (SPF/DKIM/DMARC, soojendus, verifitseeritud list, õiguslik alus).
+  kontakti jaoks kohandatud kirja **konkreetse loomaliigi** näitega.
+- Jada-test: annan "see on 4. kiri sellele kontaktile, eelmised teemad olid X,
+  Y, Z" ja saan uue nurgaga kirja (mitte kordus) + õige ooteaja (7 päeva).
+- Värske haak: jada-kiri sisaldab uut elementi (päris teadusartikkel /
+  sooduskood / pakkumine), mitte korratud sisu.
+- Deliverability test: skill esitab meilboxi-kontrollnimekirja
+  (SPF/DKIM/DMARC, väike maht, verifitseeritud list) ja selgitab open rate'i
+  mõõtmise piirangut.
