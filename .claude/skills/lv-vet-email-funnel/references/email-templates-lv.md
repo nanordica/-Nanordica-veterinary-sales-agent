@@ -13,7 +13,8 @@ Kõik allolev läti tekst on **mustand — peab läbima automaatse QA värava**
 - **Üks CTA** kirja kohta.
 - Saatja päris inimese nimi.
 - **Iga kiri toob uut infot** — ära korda eelmist. Kui uut haaki pole, ära saada.
-- Opt-out lõpus.
+- **Loobumine = sõbralik rida kirja kõige lõpus**, allkirja järel, CTA-st
+  eraldi. Mitte üleskutse, mitte CTA kõrval (vt `cold-outreach.md`).
 - Personaliseeri **konkreetse loomaliigi** järgi (`personalization.md`).
 
 ## Kirja-nurkade pank (uus haak igas kirjas)
@@ -66,11 +67,14 @@ Pealkirja näited (lv, mustand):
 >
 > Vai būtu interese apskatīt? [CTA → tooteleht + UTM]
 >
-> Ja nevēlaties saņemt vēstules, atbildiet "nē" — vairāk netraucēšu.
->
 > Ar cieņu,
 > Karmen, Nanordica
-> _(Jūsu kontaktu atradām publiskajā veterinārārstu reģistrā.)_
+>
+> _Jūsu kontaktu atradām publiskajā veterinārārstu reģistrā._
+> _Ja nevēlaties no manis vairāk saņemt vēstules, vienkārši pasakiet — es sapratīšu._
+
+Loobumine on **sõbralik rida kirja kõige lõpus**, allkirja järel, CTA-st
+eraldi — mitte nähtav üleskutse kirja kehas (`cold-outreach.md`).
 
 CTA-link tuleb märgistada UTM-iga (`funnel-framework.md`).
 

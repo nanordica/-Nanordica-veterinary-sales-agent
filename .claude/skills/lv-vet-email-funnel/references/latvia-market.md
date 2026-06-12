@@ -15,7 +15,8 @@
 ## GDPR + ePrivacy (külm B2B)
 
 Kasutaja on kinnitanud õigusliku aluse. Skill tagab igas kirjas:
-- **selge opt-out** (lihtne loobuda),
+- **loobumisvõimalus** — seaduslikult kohustuslik, aga **sõbralik rida kirja
+  kõige lõpus**, CTA-st eraldi, mitte nähtav üleskutse (vt `cold-outreach.md`),
 - **selge saatja-identiteet** (kes, mis ettevõte),
 - **andmeallika avalikustamine** — lühike rida, kust kontakt saadi (nt avalik
   veterinaarregister), kui kontakt seda küsib või proaktiivselt.

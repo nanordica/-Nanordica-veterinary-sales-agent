@@ -163,8 +163,9 @@ Kohandatud meilboxist saatmiseks.
 Külma prospekteerimise eriloogika meilboxist (vt ka ülal "Külma
 prospekteerimise raamistik"):
 
-- **Õiguslik alus:** kasutaja kinnitanud. Iga kiri sisaldab opt-out'i ja
-  selget saatja-identiteeti.
+- **Õiguslik alus:** kasutaja kinnitanud. Iga kiri sisaldab **sõbralikku
+  loobumist kirja kõige lõpus** (allkirja järel, CTA-st eraldi, mitte
+  üleskutse) ja selget saatja-identiteeti.
 - **Taristu:** ettevõtte meilbox + mail-merge jälgimistööriist (Mailmeteor /
   GMass / YAMM) jada saatmiseks, personaliseerimiseks ja open/klikk-mõõtmiseks.
   Väike päevamaht, aadresside verifitseerimine.
