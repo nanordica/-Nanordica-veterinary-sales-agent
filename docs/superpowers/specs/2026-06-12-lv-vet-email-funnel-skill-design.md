@@ -2,7 +2,7 @@
 
 **Kuupäev:** 2026-06-12
 **Autor:** Karmen + Claude
-**Staatus:** ülevaatamisel
+**Staatus:** kinnitatud — ehitamisel
 
 ---
 
@@ -146,8 +146,11 @@ Kohandatud meilboxist saatmiseks.
 
 - **Autentimine:** veendu, et ettevõtte domeenil on SPF, DKIM (2048-bit) ja
   DMARC korras. Ilma selleta lükkavad Gmail/Yahoo/Microsoft kirja tagasi.
-- **Maht ja soojendus:** meilboxist väike päevamaht, kasva järk-järgult.
-  Liiga palju korraga = rämps + domeeni maine kahjustus.
+- **Saatja:** päris inimese nimi (nt "Karmen, Nanordica"), mitte `info@` ega
+  `no-reply`. Nimeline saatja on külmas e-postis suur open-rate hoob.
+- **Maht ja soojendus:** alusta ~10–20 kirja/päevas, kasva aeglaselt, hoia
+  ~40–50/päevas lael ühe meilboxi kohta. Bounce alla 2–3%, spam-kaebused
+  alla 0,1%. Üle selle = rämps + domeeni maine kahjustus.
 - **Listi hügieen:** verifitseeri aadressid enne saatmist (bounce'id tapavad
   maine), eemalda kohe bounce'id ja opt-out'id.
 - **Sisu:** lühike, tekstipõhine, väldi rämpssõnu ja liigseid linke/pilte.
@@ -170,7 +173,12 @@ prospekteerimise raamistik"):
   pakkumine, sooduskood, uus kasutusnäide. Kui uut haaki pole, ära saada.
 - **Progressiivne ooteaeg** (parima praktika järgi vahe kasvab, vt tabel
   `email-templates-lv.md`-s): mida rohkem kirju juba läinud, seda pikem paus.
-- **Stiil:** lühike, tekstipõhine, tugevalt personaliseeritud.
+- **Stiil:** lühike, tekstipõhine, tugevalt personaliseeritud. Avarida =
+  personaalne tähelepanek kontakti kohta (kliinik / regioon / eriala), mitte
+  toode. **Üks CTA kirja kohta.**
+- **Vastus → inimene.** Kui keegi vastab, jada peatub ja inimene võtab vestluse
+  üle (müük lõpetatakse käsitsi). See on skilli skoobist väljas, aga jada
+  loogika peab vastuse korral selgelt peatuma.
 - **Lõpetamine:** "ei" → austa, eemalda jadast; opt-out / bounce → eemalda
   kohe ka listist.
 
@@ -220,6 +228,7 @@ Meilboxist saatmise tegelikkus:
   *milline kiri* müügi tõi ja *mis etapil* lehtrist välja kukutakse.
 - **Mail-merge tööriist** (Mailmeteor / GMass / YAMM) mõõdab open rate'i ja
   klikki; vastuse-määr on lisaks tugev kaasatuse-mõõdik.
+- **Vastus → inimene:** vastuse korral jada peatub ja inimene jätkab müüki.
 - Veebianalüütika (klikk → tootelehe vaade → ost) leiab funneli pudelikaela.
 - **⚠️ MPP hoiatus:** Apple Mail eellaadib pikslid, ~pool "avamisi" pole
   inimene. 25–35% open rate on suunis, aga **otsus tehakse vastuse, kliki ja
@@ -228,14 +237,24 @@ Meilboxist saatmise tegelikkus:
 ### references/ab-testing.md
 - Mida testida: pealkiri, eelvaate-tekst, CTA, saatmisaeg, pakkumine.
 - **Üks muutuja korraga.**
-- Kuidas lugeda tulemust: piisav valim, ei kuuluta poolikut testi võitjaks.
+- **Väikese listi tegelikkus:** meilboxi-list on väike, statistiline olulisus
+  on raskesti saavutatav. Testi **suuri erinevusi** (terve nurk või
+  pealkirja-tüüp), mitte mikro-muudatusi. Loe tulemust suunisena, mitte
+  tõestusena; ära kuuluta poolikut testi võitjaks.
+- **Saatmisaja lähtehüpotees:** vetid on päeval hõivatud. Alusta T–N hommikul
+  (enne kliinikupäeva) ja testi sealt edasi.
 - Kuidas `utm_content`-iga A/B variante veebis lõpuni jälgida (mitte ainult
   avamise/kliki tasandil, vaid kuni ostuni).
+- **Mis kiri töötab kõige paremini:** võrdle nurkade kaupa vastuse-määra +
+  kliki + konversiooni, et leida võitev nurk (mitte ainult open rate).
 
 ### references/latvia-market.md
 - Läti keele toon ja lokaliseerimine (mitte masintõlge eesti keelest).
+  **Emakeelne ülevaatus enne saatmist** — masintõlke-läti riskib vigadega
+  B2B meditsiinikontekstis.
 - GDPR + ePrivacy (külm B2B): õigustatud huvi, opt-out igas kirjas,
-  andmetöötluse teavitus. Vt ka `cold-outreach.md`.
+  andmetöötluse teavitus, **andmeallika avalikustamine** (kust kontakt saadi).
+  Vt ka `cold-outreach.md`.
 - **Meditsiiniseadme reklaami nõuded** — RavimusVET on meditsiiniseade;
   väited paranemiskiiruse kohta peavad olema tõendatud (kliiniline uuring on
   olemas, viidata sellele korrektselt).
@@ -246,6 +265,9 @@ Jada **ei lõpe fikseeritud arvu juures** — jätka kuni vastus (ka "ei"),
 opt-out või bounce. **Iga kiri toob uut infot** (artikkel, pakkumine,
 sooduskood, uus nurk); ära korda eelmist. Iga kiri personaliseeritakse
 kontakti **konkreetse loomaliigi** järgi (vt `personalization.md`).
+
+Iga kirja reeglid: **avarida = personaalne tähelepanek** (kliinik / regioon /
+eriala), **üks CTA**, saatja päris inimese nimi, opt-out lõpus.
 
 Kirja-nurkade pank (kasuta järjest, uus haak igas kirjas):
 1. Esmane pöördumine — üks konkreetne kasu kontakti loomaliigile
