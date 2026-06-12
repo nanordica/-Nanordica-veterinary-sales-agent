@@ -17,10 +17,18 @@ def pipedrive_get_deal(deal_id: int) -> dict:
 
 
 @mcp.tool
-def pipedrive_list_deals(stage_id: int | None = None,
+def pipedrive_list_deals(stage: str | None = None,
+                         stage_id: int | None = None,
                          status: str | None = None,
                          limit: int = 100) -> dict:
-    """List deals (optionally by stage_id/status). Each row gets `_state`."""
+    """List deals, optionally filtered by stage and status. Each row gets `_state`.
+    `stage` is a friendly stage name (e.g. 'Discovered'), resolved via the field
+    map; it takes precedence over `stage_id`. `status` is open/won/lost."""
+    if stage is not None:
+        resolved = resolve_stage_id(stage)
+        if resolved is None:
+            return {"error": f"unknown stage '{stage}'; run pipedrive_setup first"}
+        stage_id = resolved
     res = pc.get("deals", {"stage_id": stage_id, "status": status, "limit": limit})
     rows = res.get("data")
     if isinstance(rows, list):
