@@ -33,7 +33,7 @@ töövoo, personaliseeritud kirjad ja jada-loogika.
 | Olemasolevad andmed | **E-posti aadressid + kaasatuse andmed** (avab / klikib / mitteaktiivne) |
 | Juurde otsitavad andmed | Nimi, kliinik, loomaliik, regioon, värske teadusartikkel — rikastatakse päringuga |
 | Listi tüüp | **Külm prospekteerimine.** Kasutaja kinnitab: aadressid saadud turvaliselt, õiguslik alus olemas |
-| Saatmise kanal | **Ettevõtte meilbox + mail-merge jälgimistööriist** (nt Mailmeteor / GMass / YAMM) |
+| Saatmise kanal | **Ettevõtte Outlook / Microsoft 365 meilbox + mail-merge tööriist** (lemlist / Woodpecker / Mailshake / QuickMail) |
 
 ### Külma prospekteerimise raamistik (meilboxist)
 

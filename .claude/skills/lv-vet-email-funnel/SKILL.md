@@ -22,7 +22,7 @@ teksti.
 - **Keel:** läti. Tiimis pole natiivkõnelejat → **automaatne QA**, vt `references/latvian-qa.md`
 - **CTA sihtleht:** https://www.nanordica.com/ravimus (ingliskeelne)
 - **Eesmärk:** ost veebilehel; külmas jadas enne vastus/klikk, siis ost
-- **Kanal:** ettevõtte meilbox + mail-merge jälgimistööriist
+- **Kanal:** ettevõtte **Outlook / Microsoft 365** meilbox + mail-merge tööriist (lemlist / Woodpecker vms)
 - **List:** külm prospekteerimine; kasutaja kinnitanud õigusliku aluse
 
 ## Liides teistele agentidele

@@ -7,7 +7,8 @@ Külma jada eriloogika. Vt ka `deliverability.md` (taristu) ja
 
 - List on külm. Kasutaja on kinnitanud, et aadressid on saadud turvaliselt ja
   õiguslik alus on olemas (õigustatud huvi).
-- Kirjad lähevad ettevõtte meilboxist üks-ühele, mail-merge tööriistaga.
+- Kirjad lähevad ettevõtte **Outlook / Microsoft 365** meilboxist üks-ühele,
+  mail-merge tööriistaga (lemlist / Woodpecker / Mailshake / QuickMail).
 
 ## Saatja ja stiil
 

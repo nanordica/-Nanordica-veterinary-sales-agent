@@ -13,6 +13,10 @@ Veendu, et ettevõtte domeenil on korras:
 2024–2025 hakkasid Gmail, Yahoo ja Microsoft autentimata kirju tagasi
 lükkama. Ilma autentimiseta open rate ≈ 0.
 
+**Microsoft 365 (peamine kanal):** DKIM **ei ole** kohandatud domeenil
+vaikimisi sees. Luba see Microsoft 365 Defenderi / admin-keskuses ja lisa
+DNS-i nõutud CNAME-kirjed. SPF ja DMARC sea DNS-is.
+
 ## Saatja
 
 - Saada **päris inimese nimega** (nt "Karmen, Nanordica"), mitte `info@` ega
@@ -44,7 +48,8 @@ lükkama. Ilma autentimiseta open rate ≈ 0.
 - Lahendus: meilboxi peal **mail-merge / cold-outreach jälgimistööriist**, mis
   saadab jada, täidab merge-väljad ja mõõdab open rate'i + klikki. Vali
   postkasti järgi:
-  - **Gmail / Google Workspace:** Mailmeteor, GMass, YAMM
-  - **Outlook / Microsoft 365:** Woodpecker, lemlist, Mailshake, QuickMail, Reply.io
+  - **Outlook / Microsoft 365 (peamine kanal):** lemlist, Woodpecker,
+    Mailshake, QuickMail, Reply.io
+  - Gmail / Google Workspace: Mailmeteor, GMass, YAMM
 - UTM jääb veebipoolse konversiooni jaoks (vt `funnel-framework.md`).
 - NB: open rate on Apple MPP tõttu moonutatud. Vastus ja klikk on tõesemad.

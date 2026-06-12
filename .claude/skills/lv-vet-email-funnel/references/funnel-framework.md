@@ -27,8 +27,8 @@ https://www.nanordica.com/ravimus
 
 ## Mida mõõta
 
-- **Mail-merge tööriist** → open rate + klikk (Gmail: Mailmeteor / GMass / YAMM;
-  Outlook / Microsoft 365: Woodpecker / lemlist / Mailshake / QuickMail).
+- **Mail-merge tööriist** → open rate + klikk (Outlook / Microsoft 365, peamine
+  kanal: lemlist / Woodpecker / Mailshake / QuickMail; Gmail: Mailmeteor / GMass / YAMM).
 - **Vastuse-määr** → tugev kaasatuse-mõõdik meilboxi-jadas.
 - **Veebianalüütika** (klikk → tootelehe vaade → ost) → leiab funneli
   pudelikaela.
