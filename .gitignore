@@ -15,6 +15,7 @@
 **/*secret*.json
 **/api-key*
 **/apikey*
+**/isiklik*
 
 # Private keys and certificates
 *.pem
