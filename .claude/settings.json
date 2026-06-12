@@ -3,9 +3,6 @@
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
     "CLAUDE_CODE_NO_FLICKER": "1"
   },
-  "autoUpdatesChannel": "latest",
-  "remoteControlAtStartup": true,
-  "enableAllProjectMcpServers": true,
   "permissions": {
     "allow": [
       "Read",
@@ -33,19 +30,15 @@
       "Bash(git reset --hard*)",
       "Bash(git clean -f*)",
       "Bash(git clean -fd*)",
-
       "Bash(rm -rf *)",
       "Bash(rm -fr *)",
       "Bash(rm -rf /*)",
       "Bash(rm -rf ~/*)",
       "Bash(rm -rf $HOME*)",
-
       "Bash(sudo *)",
-
       "Bash(shutdown*)",
       "Bash(reboot*)",
       "Bash(halt*)",
-
       "Bash(rm -r /*)",
       "Bash(rm -r ~/*)",
       "Bash(rm -r $HOME*)",
@@ -53,11 +46,9 @@
       "Bash(mkfs*)",
       "Bash(find * -delete*)",
       "Bash(find * -exec rm *)",
-
       "Bash(gh repo delete*)",
       "Bash(npm publish*)",
       "Bash(gcloud projects delete*)",
-
       "Bash(vercel remove *)",
       "Bash(vercel rm *)",
       "Bash(vercel project rm *)",
@@ -109,12 +100,14 @@
       "Bash(vercel teams invite *)"
     ]
   },
+  "enableAllProjectMcpServers": true,
   "hooks": {},
   "enabledPlugins": {
     "commit-commands@claude-code-plugins": true,
     "context7@claude-plugins-official": true,
     "claude-md-management@claude-plugins-official": true,
-    "vercel@elnora-starter-plugins": true
+    "vercel@elnora-starter-plugins": true,
+    "superpowers@claude-plugins-official": true
   },
   "extraKnownMarketplaces": {
     "elnora-starter-plugins": {
@@ -186,5 +179,7 @@
       },
       "autoUpdate": true
     }
-  }
+  },
+  "autoUpdatesChannel": "latest",
+  "remoteControlAtStartup": true
 }
