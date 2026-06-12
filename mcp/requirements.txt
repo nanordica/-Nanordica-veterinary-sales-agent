@@ -1,0 +1,4 @@
+fastmcp<3
+uvicorn
+starlette
+pytest
