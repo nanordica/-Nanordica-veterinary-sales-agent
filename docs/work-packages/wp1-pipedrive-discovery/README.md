@@ -24,9 +24,10 @@ küsi Meeliselt (CBO), kelle valdkond see on.
       note lisamine; kustutamist ja masskirjutust ei avata
       ([tööriistakiht](../../ravimus-lead-pipeline-design.md#tööriistakiht--kohalikud-mcp-serverid))
 - [ ] Smoke-test: test-deal'i loomine ja liigutamine läbi MCP
-- [ ] `scripts/registry.py` + `scripts/discovery.py`: registri laadimine,
-      e-mailiga kirjete filter, dedup `registry_id` järgi, deal'id
-      staadiumis Discovered
+- [x] `mcp/scripts/registry.py` + `mcp/scripts/discovery.py`: registri
+      laadimine (LVB + PVD), e-mailiga kirjete filter, dedup
+      `registry_id` järgi, deal'id staadiumis Discovered — live-jooks
+      2026-06-12: 664 deal'i, kordusjooks 0 uut
       ([discovery](../../ravimus-lead-pipeline-design.md#discovery--deterministlik-skript-mitte-agent))
 - [ ] `/tick` skill: töötlusjärjekord (triage → sales → enrichment →
       outreach), voolupiirang Contacted < 20, lukufail

@@ -1,84 +1,38 @@
-# Töökäsk Mardile: wix-mcp live-kontroll
+# Töökäsk Mardile: ravimus serveri wix-tööriistade live-kontroll
 
-**Kellelt:** Karmen (wp4) · **Aeg:** ~10 min · **Haru:**
-`feature/wp4-sales-detection-launch` (PR #6)
+**Kellelt:** Karmen (wp4) · **Aeg:** ~10 min · **Kus:** sinu masin
+(võtmed on sinul) · **Raport:** issue #7
 
-## Miks sina
+## Miks
 
-`wix-mcp` server on valmis ja mock-režiimis testitud, aga päris Wixi
-API kõnesid pole kordagi jooksutatud, sest võti on ainult sinu
-arvutis. Võti EI lähe giti: paned selle oma lokaalsesse `.env`-i, mis
-on gitignore'itud, ja server loeb seda sealt.
-
-## Eeldused
-
-- Wixi API võti (scope: eCommerce read + Coupons manage) ja poe site ID
-- `python3` (≥ 3.10) ja `git`/`gh` masinas olemas
-
-NB: kontrolliskript käivitab wix-mcp serveri `DRY_RUN=0`-ga, sest
-live-kontrolli mõte ongi päris API-d puudutada. Sinu `.env`-i
-`DRY_RUN=1` jääb kehtima kõigele muule; ilma `--write` lipuga ei tee
-skript ühtegi kirjutust.
+Sales-detector (PR #6) ja outreach-writer toetuvad ravimus serveri
+tööriistadele `wix_list_orders`, `wix_create_coupon`,
+`wix_check_coupon_usage` (`mcp/tools/wix.py` + `mcp/lib/wix_client.py`).
+Neid pole päris Wixi API võtmega veel jooksutatud. Võti EI lähe giti:
+see elab sinu lokaalses `.env`-is.
 
 ## Sammud
 
-```sh
-cd <team-17 repo>
-git fetch origin
-git checkout feature/wp4-sales-detection-launch && git pull
-
-python3 -m venv .venv
-.venv/bin/pip install -r mcp/wix-mcp/requirements.txt
-
-cp -n .env.template .env   # kui .env juba on, jäta vahele
-```
-
-Ava `.env` ja täida (jäta `DRY_RUN=1` nagu on):
-
-```
-WIX_API_KEY=<sinu võti>
-WIX_SITE_ID=<poe site ID>
-```
-
-**Kontroll 1, ainult lugemine** (ei muuda poes midagi):
-
-```sh
-.venv/bin/python mcp/wix-mcp/live_check.py
-```
-
-Oodatav lõpp: `1/1 list_orders OK (live): N tellimust` ja
-`LIVE-KONTROLL OK`.
-
-**Kontroll 2, kirjutus** (loob poodi ÜHE test-kupongi: 1%, ühekordne,
-nimi "wp4 live-kontroll TEST", aegub ise 1 päevaga; võid pärast Wixi
-dashboardist kustutada):
-
-```sh
-.venv/bin/python mcp/wix-mcp/live_check.py --write
-```
-
-Oodatav lõpp: kolm `OK (live)` rida ja `LIVE-KONTROLL OK`.
+1. Täida oma `.env` (vt `mcp/.env.example`): `WIX_API_KEY`,
+   `WIX_ACCOUNT_ID`, `WIX_SITE_ID`. Jäta `DRY_RUN=1`.
+2. Käivita ravimus server (`mcp/README.md` järgi) ja Claude Code repo
+   juurest.
+3. Kontrollid, järjest:
+   - `wix_check_config` → kõik kolm `true` (API-d ei puuduta).
+   - `wix_list_orders(limit=5)` → tagastab tellimused (ainult
+     lugemine; tühi pood = tühi loend, see on ka OK).
+   - `wix_create_coupon(name="wp4 live-kontroll TEST", code="RVET-LIVECHECK-1", percent_off=1)`
+     `DRY_RUN=1`-ga → peab tagastama `dry_log` kirje, MITTE päris
+     kupongi looma.
+   - Päris kirjutuse kontroll (ainult kui julged): sea hetkeks
+     `DRY_RUN=0`, loo sama 1% TEST-kupong päriselt, kontrolli
+     `wix_check_coupon_usage("RVET-LIVECHECK-1")` → leitav,
+     lunastamata. Keera `DRY_RUN=1` tagasi. Kupongi võid Wixi
+     dashboardist kustutada.
 
 ## Raporteeri
 
-Kleebi mõlema jooksu väljund PR #6 kommentaari:
-
-```sh
-gh pr comment 6 --body "live-kontroll: <kleebi väljund>"
-```
-
-(või GitHubi veebis). Võtit väljund ei sisalda, kleepida on ohutu.
-
-## Kui kukub läbi
-
-Kleebi KOGU veaväljund ikkagi PR #6 kommentaari. Tõenäoline põhjus:
-Wixi vastuse täpne kuju erineb sellest, mida Karmen ilma võtmeta
-kirjutas (endpoint'id `ecom/v1/orders/search`, `stores/v2/coupons`,
-`stores/v2/coupons/query` failis `mcp/wix-mcp/server.py`). Kaks
-võimalust:
-
-1. jäta väljund PR-i ja Karmen parandab; või
-2. lase oma Claude'il `server.py` ära parandada ja pushi samale
-   harule — mock-režiimi regressiooni kontrollib
-   `.venv/bin/python mcp/wix-mcp/smoke_test.py` (peab lõppema
-   `SMOKE-TEST OK`).
+Kleebi iga kontrolli väljund issue #7 kommentaari (võtit väljundis
+pole, kleepida on ohutu) ja sulge issue, kui kõik läbis. Kui midagi
+kukub, kleebi täisväljund — Wixi vastuse kuju vajab siis
+`mcp/lib/wix_client.py`-s parandust.

@@ -12,10 +12,9 @@ Karmen koordineerib. Alus:
       deal'ide peal
 - [ ] wp3: `mail-mcp` DRY_RUN-is, outreach-writer + keelekontroll
       annavad lätikeelse kirja
-- [ ] wp4: `wix-mcp` smoke-test läbib
-      (`.venv/bin/python mcp/wix-mcp/smoke_test.py`)
-- [ ] Mart: `wix-mcp` live-kontroll läbitud oma masinas, väljund PR #6
-      kommentaaris ([töökäsk](tookask-mart-wix-live-check.md))
+- [ ] Mart: ravimus serveri wix-tööriistade live-kontroll läbitud oma
+      masinas, väljund issue #7 all
+      ([töökäsk](tookask-mart-wix-live-check.md))
 - [ ] `/tick` skill olemas (wp1) ja cron paigaldatud
       (`scripts/install-cron.sh`)
 - [ ] `.env`-is `DRY_RUN=1`

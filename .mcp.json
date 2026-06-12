@@ -1,12 +1,5 @@
 {
   "mcpServers": {
-    "wix-mcp": {
-      "type": "stdio",
-      "command": ".venv/bin/python",
-      "args": [
-        "mcp/wix-mcp/server.py"
-      ]
-    },
     "chrome-devtools": {
       "type": "stdio",
       "command": "npx",
@@ -26,6 +19,10 @@
     "estonian": {
       "type": "http",
       "url": "https://estonian-mcp.fly.dev/mcp"
+    },
+    "ravimus": {
+      "type": "http",
+      "url": "http://localhost:8765/mcp"
     }
   }
 }

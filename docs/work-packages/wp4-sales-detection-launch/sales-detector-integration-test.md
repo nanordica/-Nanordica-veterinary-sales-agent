@@ -1,49 +1,43 @@
 # Sales-detectori integratsioonitest (wp4 "Valmis, kui" punkt 2)
 
-Eeldab wp1 `pipedrive-mcp`-d (Mart). Kõik muu on valmis: jooksuta
-sammud järjest, kogu test käib mock-Wixi peal (`DRY_RUN=1`, võtit
-pole vaja).
+Eeldab ravimus serverit, milles on Pipedrive'i token JA Wixi võtmed —
+ehk Mardi masinat (Karmeni masinas võtmeid pole). Kõik kirjutused
+käivad `DRY_RUN=1`-ga, st server ainult logib need (`dry_log`); päris
+Pipedrive'i/Wixi midagi ei muudeta.
 
 ## Ettevalmistus
 
-0. Nulli mock-olek KÕIGEPEALT — reset kustutab ka kupongid, seega
-   see peab toimuma enne kupongi loomist:
-
-```sh
-.venv/bin/python mcp/wix-mcp/seed_mock.py reset
-```
-
-1. Loo Pipedrive'i KAKS test-deal'i (pipedrive-mcp või käsitsi):
-   - **deal A**: `email = karmen+testA@kood.tech`, staadium Contacted.
-     Testib e-posti kaudu sidumist (päris ost → Won).
-   - **deal B**: `email = karmen+testB@kood.tech`, staadium Contacted,
-     `discount_code` saab väärtuse järgmises sammus. Testib
-     kupongikoodi kaudu sidumist (näidis → Naidis tellitud).
-2. Loo deal B-le näidisekupong wix-mcp kaudu (Claude Code'is):
-   "loo wix-mcp-ga 100% kupong deal'ile <B id>, nimi 'integratsioonitest'".
-   Kirjuta saadud kood deal B `discount_code` field'i.
-3. Külva mock-tellimused (asenda kood sammus 2 saadud koodiga):
-
-```sh
-.venv/bin/python mcp/wix-mcp/seed_mock.py purchase karmen+testA@kood.tech
-.venv/bin/python mcp/wix-mcp/seed_mock.py sample karmen+testB@kood.tech RVET-<B>-XXXX
-```
+1. Ravimus server jookseb, `pipedrive_setup` on jooksutatud
+   (stage-kaart olemas), `DRY_RUN=1`.
+2. Vaata `wix_list_orders(limit=5)` väljundist üks PÄRIS tellimus ja
+   selle ostja e-post. Kui poes pole ühtegi tellimust, tee Wixis üks
+   väike testost (või lükka see test faasi 2, kus Karmen ostab
+   "vetina" nagunii).
+3. Loo Pipedrive'i UI-s test-deal staadiumis Contacted, mille
+   `_state.email` (JSON-olekuväljas) on sama ostja e-post, pealkiri
+   "SYNTH integratsioonitest". (DRY_RUN=1 korral MCP kaudu deal'i
+   luua ei saa — loomine logitaks ainult.)
 
 ## Jooks
 
-Käivita sales-detector (Claude Code'is): "käivita sales-detector".
+Käivita Claude Code'is: "käivita sales-detector".
 
 ## Oodatav tulemus
 
-- [ ] deal A staadiumis **Won**, note'is tellimuse nr ja summa
-- [ ] deal B staadiumis **Naidis tellitud**, `sample_claimed_at`
-      täidetud, note'is kupongikood
+- [ ] sales-detector leiab tellimuse ja seob selle test-deal'iga
+      e-posti järgi
+- [ ] `dry_log` kirjed: `pipedrive_move_deal_stage(<deal>, "Won")` +
+      note tellimuse numbri ja summaga (DRY_RUN tõttu päris muutust
+      ei toimu — see ongi oodatud)
 - [ ] `cache/sales-detector-cursor.json` olemas, `last_seen_at` =
       uusima tellimuse aeg
-- [ ] korduskäivitus EI muuda midagi (kursor + duplikaadikontroll)
-- [ ] seostumatu test: `seed_mock.py purchase tundmatu@example.lv` +
-      uus jooks → rida failis `logs/unmatched-orders.md`, deal'e ei
-      muudetud
+- [ ] korduskäivitus EI plaani sama liigutust uuesti (kursor)
+- [ ] seostumatu tellimus (mõni poe tellimus, millel deal'i pole) →
+      rida failis `logs/unmatched-orders.md`, deal'e ei plaanita
+      muuta
 
-Pärast testi: `seed_mock.py reset` ja kustuta test-deal'id, et faasi 1
-DRY_RUN-jooks oleks puhas.
+Kupongiraja (näidise lunastus → Naidis tellitud) täismahus kontroll
+jääb faasi 2: Karmen lunastab sünteetilise lead'ina päris 100%
+kupongi ja deal peab liikuma ilma inimsekkumiseta.
+
+Pärast testi kustuta test-deal.

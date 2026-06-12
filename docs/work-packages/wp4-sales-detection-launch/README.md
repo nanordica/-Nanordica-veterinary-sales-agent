@@ -5,28 +5,31 @@
 
 ## Missioon
 
-Sulge lehtri lõpp ja vii süsteem käiku: wix-mcp näeb tellimusi ja loob
-personaalseid kuponge, sales-detector seob ostud deal'idega, cron paneb
+Sulge lehtri lõpp ja vii süsteem käiku: ravimus serveri wix-tööriistad
+näevad tellimusi ja loovad personaalseid kuponge (kiht ise on Mardi
+oma), sales-detector seob ostud deal'idega, cron paneb
 rütmi paika ning sina koordineerid mõlemat testifaasi. Tootepool on sinu
 valdkond, `lv-vet-email-funnel` skill koos tootefaktidega on juba sinu
 harust mestitud.
 
 ## Tulemid
 
-- [x] `mcp/wix-mcp/`: tellimuste loetelu, personaalse kupongi loomine
+- [x] Wix-tööriistad: tellimuste loetelu, personaalse kupongi loomine
       (sh 100% näidisekupong), kupongi kasutuse kontroll; hindade muutmist
       ja tagasimakseid ei avata
       ([tööriistakiht](../../ravimus-lead-pipeline-design.md#tööriistakiht--kohalikud-mcp-serverid)).
-      Smoke-test: `.venv/bin/python mcp/wix-mcp/smoke_test.py`. Live-kõnede
-      kontroll on antud Mardile, kelle masinas võti on:
+      Elavad ravimus serveris (`mcp/tools/wix.py`, ühine kiht Mardiga;
+      eraldi wix-mcp sai dubleerimise vältimiseks maha võetud). Live-kõnede
+      kontroll on Mardil, kelle masinas võtmed on:
       [tookask-mart-wix-live-check.md](tookask-mart-wix-live-check.md).
 - [x] `.claude/agents/sales-detector.md`: pollib Wixi, seob ostja e-posti
       või kupongikoodi deal'iga; päris ost → Won + tänukiri, näidise
-      lunastus → Näidis tellitud + `sample_claimed_at`; seostumatu
+      lunastus → Naidis tellitud + `sample_claimed_at`; seostumatu
       tellimus logitakse
       ([sales-detector](../../ravimus-lead-pipeline-design.md#sales-detector)).
-      Deal'i-sidumise läbiproov ootab wp1 `pipedrive-mcp`-d; sammud on
-      valmis: [sales-detector-integration-test.md](sales-detector-integration-test.md).
+      Ühendatud ravimus serveri tööriistadele; deal'i-sidumise läbiproov
+      käib võtmetega masinas (Mart), sammud on valmis:
+      [sales-detector-integration-test.md](sales-detector-integration-test.md).
 - [x] Cron: tikk iga 30 min (`claude -p "/tick"`), discovery kord nädalas —
       `scripts/install-cron.sh` (testitud: paigaldus/eemaldus). Võib
       paigaldada kohe: mõlemal kirjel on guard, tikk käivitub alles
@@ -42,15 +45,16 @@ harust mestitud.
 
 ## Sõltuvused
 
-wix-mcp ja sales-detectori mustand ei vaja midagi peale Wixi API võtme
-(Mardilt; kuni pole, DRY_RUN). Sales-detectori deal'i-sidumine vajab wp1
-`pipedrive-mcp`-d. Faas 1 vajab kõiki nelja paketti, seega planeeri see
+Sales-detector vajab ravimus serverit (wp1, main'is olemas) ning päris
+jooksuks Wixi + Pipedrive'i võtmeid, mis on ainult Mardi masinas — kuni
+siis DRY_RUN. Faas 1 vajab kõiki nelja paketti, seega planeeri see
 viimasesse pooltundi ja hoia tiimi ajakaval.
 
 ## Valmis, kui
 
-1. wix-mcp loetleb tellimused ja loob 100% näidisekupongi test-deal'ile.
+1. Ravimus serveri wix-tööriistad läbivad live-kontrolli (töökäsk,
+   issue #7): tellimuste loetelu + 100% näidisekupongi loomine.
 2. Sales-detector liigutab kupongi lunastanud test-deal'i staadiumisse
-   Näidis tellitud ja päris ostu Won'i.
+   Naidis tellitud ja päris ostu Won'i.
 3. Cron-kirjed on paigas ja faas 2 läbib otsast lõpuni: see on kogu
    projekti valmis-kontroll.
