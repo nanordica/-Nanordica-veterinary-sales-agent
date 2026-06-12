@@ -15,8 +15,8 @@ kaitserauad deterministlikult koodis. Live-süsteemi ohutus ei sõltu
 agendi heast käitumisest.
 
 Ehitatakse `isiklik/MCP` FastMCP-platvormi alusel, kuid kärbituna: alles
-jäävad ainult platvormi tuum (`server.py` auto-loader, `mcp_app.py`,
-`server_registry.py`, Docker) ja kolme süsteemi tööriistad. Kogu
+jäävad ainult platvormi tuum (`server.py` auto-loader, `mcp_app.py`
+ainus FastMCP instants, Docker) ja kolme süsteemi tööriistad. Kogu
 isiklik-spetsiifika (NM ~40 tööriista, meditsiin, zotero,
 financial_analyst, IBKR, files, notify) jäetakse välja.
 
@@ -47,12 +47,15 @@ mcp/
   docker-compose.yaml
   .env.example            # ainult placeholder'id
   .gitignore              # .env, data/
-  server.py               # mitmikserver-loader (kärbitud isiklik'ust)
-  mcp_app.py              # default server + ping / server_info
-  server_registry.py      # create_server + register
+  server.py               # tööriista-loader + ping/server_info (üks /mcp endpoint)
+  mcp_app.py              # ainus FastMCP instants
+  conftest.py             # pytest: mcp/ sys.path-i
   lib/
     __init__.py
     pipedrive_client.py   # puhas Pipedrive klient (sh admin: pipeline/stage/field loomine)
+    deal_state.py         # üks JSON state-väli: read_state / encode
+    field_map.py          # friendly nimi ↔ Pipedrive key + stage_id-d
+    constants.py          # PIPELINE_NAME, STAGES, STATE_FIELD_NAME
     graph_client.py       # MS Graph app-only klient (saatmine + delta-lugemine)
     wix_client.py         # Wix klient (tellimused + kupongid)
     dryrun.py             # DRY_RUN abi + kavatsuse logija
@@ -81,20 +84,37 @@ Lugemine + kitsad kirjutused. Krediit: `PIPEDRIVE_API_TOKEN` +
 
 | Tööriist | Tüüp | Sisu |
 |---|---|---|
-| `pipedrive_get_deal(deal_id)` | read | Üks deal koos custom field'idega |
-| `pipedrive_list_deals(stage_id?, status?)` | read | Kompaktne deal'ide loend (tikk loeb pipeline'i seisu) |
+| `pipedrive_get_deal(deal_id)` | read | Üks deal; vastusele lisatakse parsitud `_state` (JSON-väljast) |
+| `pipedrive_list_deals(stage_id?, status?)` | read | Deal'ide loend, igal real parsitud `_state` (tikk loeb pipeline'i seisu) |
 | `pipedrive_search_persons(term, field?)` | read | Seo sissetulev e-mail / tellimus deal'iga |
-| `pipedrive_get_deal_fields()` | read | Deal'i field'ide definitsioonid + enum option ID-d |
-| `pipedrive_get_person_fields()` | read | Person'i field'ide definitsioonid + enum option ID-d |
-| `pipedrive_create_person(name, email, custom_fields?)` | write | Discovery / uus kontakt |
-| `pipedrive_update_person(person_id, fields)` | write | Enrichment täiendab kontakti |
-| `pipedrive_create_deal(person_id, title, stage_id, custom_fields?)` | write | Uus deal |
-| `pipedrive_update_deal_fields(deal_id, fields)` | write | score, ab_variant, emails_sent, last_contact_at jne |
-| `pipedrive_move_deal_stage(deal_id, stage_id)` | write | Staadiumimuutus (eraldi tööriist → selgem kaitseraud) |
+| `pipedrive_get_deal_fields()` | read | Deal'i field'ide definitsioonid (sh state-välja key) |
+| `pipedrive_get_person_fields()` | read | Person'i field'ide definitsioonid |
+| `pipedrive_create_person(name, email)` | write | Discovery / uus kontakt (nimi + e-post) |
+| `pipedrive_update_person(person_id, fields)` | write | Natiivsed person-väljad (nt nimi, telefon) |
+| `pipedrive_create_deal(person_id, title, stage, data?)` | write | Uus deal; `data` → JSON state-väli |
+| `pipedrive_update_deal_data(deal_id, data)` | write | Loe-muuda-kirjuta: liidab `data` JSON state'i (score, ab_variant, emails_sent, last_contact_at jne) |
+| `pipedrive_move_deal_stage(deal_id, stage)` | write | Staadiumimuutus nime järgi (eraldi tööriist → selgem kaitseraud) |
 | `pipedrive_add_note(deal_id, content)` | write | Logi kirjavahetus deal'i note'ina |
 | `pipedrive_check_config()` | read | Diagnostika: kas token/domain seatud |
 
 **Teadlikult puudu:** kustutamine, masskirjutus, admin, toodete/hindade muutmine.
+
+#### Andmemudel — üks JSON state-väli
+
+Kogu deal'i metaandmed elavad **ühes** kontoüleses custom field'is
+`ravimus_hackathon_data` (Pipedrive `text`-tüüp), JSON-objektina. See
+hoiab kõik 13 andmepunkti (`registry_id`, `email`, `clinic`,
+`specialization`, `network`, `decision_style`, `score`, `ab_variant`,
+`personal_link`, `discount_code`, `sample_claimed_at`, `emails_sent`,
+`last_contact_at`, `lost_reason`) ühe deal-lugemisega kättesaadavana.
+Põhjus: minimaalne CRM-i jälg (1 väli, mitte 14), triviaalselt
+tagasipööratav, hiljem saab JSON-i tükid püsivateks field'ideks tõsta.
+Staadium jääb natiivseks pipeline-staadiumiks (pole custom field).
+Kirjavahetus läheb note'idesse (inimloetav audit), mitte JSON-i.
+
+`lib/deal_state.py`: `read_state(deal)` parsib JSON-i dict'iks;
+kirjutusteed (`create_deal` / `update_deal_data`) (loevad ja) liidavad
+JSON-i. Guardrail'id ja `mail_send` loevad seisu parsitud state-dict'ist.
 
 #### Pipeline provisioneerimine (`scripts/pipedrive_setup.py`)
 
@@ -105,13 +125,11 @@ admin-meetodeid (`get_pipelines` / `create_pipeline`, `get_stages` /
 admin-meetodid elavad `lib/`-is, **aga neid ei avata MCP-tööriistana** —
 MCP pind jääb kitsas. Skript:
 
-1. Otsib pipeline'i nimega `ravimus-latvia-vets`; puudumisel loob.
+1. Otsib pipeline'i nimega `ravimus-hackathon`; puudumisel loob.
 2. Tagab 8 staadiumi õiges järjekorras (Discovered → Enriched →
-   Qualified → Contacted → Engaged → Näidis tellitud → Won → Lost).
-3. Tagab kõik custom field'id deal'il (disainidoc'i tabel: `registry_id`,
-   `email`, `clinic`, `specialization`, `network`, `decision_style`,
-   `score`, `ab_variant`, `personal_link`, `discount_code`,
-   `sample_claimed_at`, `emails_sent`, `last_contact_at`, `lost_reason`).
+   Qualified → Contacted → Engaged → Naidis tellitud → Won → Lost).
+3. Tagab **ühe** custom field'i `ravimus_hackathon_data` (`text`),
+   mis hoiab kogu deal'i state'i JSON-ina (vt "Andmemudel").
 4. Korduval käivitusel ei loo duplikaate — kontrollib olemasolu nime/key järgi.
 
 Käivitatakse üks kord enne discovery't; `DRY_RUN=1` korral logib
@@ -236,7 +254,7 @@ kirjutused DRY_RUN-is logitud-aga-tegemata, ja neli kaitserauda jõustuvad.
 ## Ehitusjärjekord
 
 1. **Platvormi tuum**: `mcp/` skelett `isiklik/MCP`-st (server.py,
-   mcp_app.py, server_registry.py, Docker, requirements) — ainult
+   mcp_app.py ainus FastMCP instants, Docker, requirements) — ainult
    `ping` + `server_info`, käivitub `/mcp`-l.
 2. **DRY_RUN tuum**: `lib/dryrun.py` — kasutavad kõik järgnevad write'id.
 3. **Pipedrive klient + tööriistad**: `lib/pipedrive_client.py` (sh
