@@ -112,7 +112,7 @@ See `.env.example` for all required keys. Secrets (`*_TOKEN`, `*_SECRET`,
 | Variable | Used by |
 |---|---|
 | `PIPEDRIVE_API_TOKEN` | all `pipedrive_*` tools |
-| `PIPEDRIVE_DOMAIN` | all `pipedrive_*` tools (e.g. `yourcompany`) |
+| `PIPEDRIVE_DOMAIN` | all `pipedrive_*` tools (e.g. `nanordica.pipedrive.com`) |
 | `GRAPH_TENANT_ID` | `mail_*` tools |
 | `GRAPH_CLIENT_ID` | `mail_*` tools |
 | `GRAPH_CLIENT_SECRET` | `mail_*` tools |

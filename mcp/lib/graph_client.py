@@ -78,10 +78,11 @@ def list_new_messages(folder: str = "inbox") -> dict:
     headers = _auth_headers()
     if headers is None:
         return get_token()
+    initial = f"{_GRAPH}/users/{urllib.parse.quote(sender)}/mailFolders/{folder}/messages/delta"
     if delta_path.exists():
-        url = json.loads(delta_path.read_text()).get("deltaLink")
+        url = json.loads(delta_path.read_text()).get("deltaLink") or initial
     else:
-        url = f"{_GRAPH}/users/{urllib.parse.quote(sender)}/mailFolders/{folder}/messages/delta"
+        url = initial
     messages = []
     try:
         while url:

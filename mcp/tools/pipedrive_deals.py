@@ -37,6 +37,8 @@ def pipedrive_create_deal(person_id: int, title: str, stage: str,
     stage_id = resolve_stage_id(stage)
     if stage_id is None:
         return {"error": f"unknown stage '{stage}'; run pipedrive_setup first"}
+    if deal_state.state_key() is None:
+        return {"error": "state field key unknown; run pipedrive_setup first"}
     body = {"person_id": person_id, "title": title, "stage_id": stage_id}
     body.update(deal_state.encode_state(data or {}))
     if is_dry_run():
