@@ -6,6 +6,13 @@ pole vaja).
 
 ## Ettevalmistus
 
+0. Nulli mock-olek KÕIGEPEALT — reset kustutab ka kupongid, seega
+   see peab toimuma enne kupongi loomist:
+
+```sh
+.venv/bin/python mcp/wix-mcp/seed_mock.py reset
+```
+
 1. Loo Pipedrive'i KAKS test-deal'i (pipedrive-mcp või käsitsi):
    - **deal A**: `email = karmen+testA@kood.tech`, staadium Contacted.
      Testib e-posti kaudu sidumist (päris ost → Won).
@@ -15,16 +22,12 @@ pole vaja).
 2. Loo deal B-le näidisekupong wix-mcp kaudu (Claude Code'is):
    "loo wix-mcp-ga 100% kupong deal'ile <B id>, nimi 'integratsioonitest'".
    Kirjuta saadud kood deal B `discount_code` field'i.
-3. Külva mock-tellimused (asenda kood enda omaga):
+3. Külva mock-tellimused (asenda kood sammus 2 saadud koodiga):
 
 ```sh
-.venv/bin/python mcp/wix-mcp/seed_mock.py reset
 .venv/bin/python mcp/wix-mcp/seed_mock.py purchase karmen+testA@kood.tech
 .venv/bin/python mcp/wix-mcp/seed_mock.py sample karmen+testB@kood.tech RVET-<B>-XXXX
 ```
-
-NB! `reset` enne kupongi loomist nullib ka kupongid — tee sammud
-ülaltoodud järjekorras või jäta `reset` vahele.
 
 ## Jooks
 

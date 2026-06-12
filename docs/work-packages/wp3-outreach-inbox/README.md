@@ -36,8 +36,8 @@ skill annab mallid ja läti keele praktikad ette.
 DRY_RUN-is saad kirju koostada ja hinnata ilma ühegi võtmeta, alusta
 sellest. Deal'i field'idest personaliseerimine vajab wp1 `pipedrive-mcp`-d;
 päris saatmine vajab MS Graphi tokeneid (Mardilt, kui jõuab). Triage'i
-klassifikatsioonipiirid pane paika koos Meelisega, sest Lost-põhjused
-elavad tema pipeline'is.
+klassifikatsioonipiirid pane paika koos Mardiga, sest Lost-põhjused
+elavad pipeline'is, mille tema (wp1) ehitab.
 
 ## Valmis, kui
 

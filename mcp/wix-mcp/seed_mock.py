@@ -9,30 +9,16 @@ sales-detector-integration-test.md).
     # kupong peab olema enne loodud create_coupon'iga:
     .venv/bin/python mcp/wix-mcp/seed_mock.py sample ostja@example.lv RVET-42-AB12
 
-    # olek nulli:
+    # olek nulli (NB: kustutab ka kupongid):
     .venv/bin/python mcp/wix-mcp/seed_mock.py reset
 """
 
-import json
-import os
 import sys
 from datetime import datetime, timezone
-from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parent.parent.parent
-MOCK_STATE = Path(os.environ.get("WIX_MOCK_FILE",
-                                 REPO_ROOT / "cache" / "wix-mock.json"))
-
-
-def load() -> dict:
-    if MOCK_STATE.exists():
-        return json.loads(MOCK_STATE.read_text())
-    return {"orders": [], "coupons": {}}
-
-
-def save(state: dict) -> None:
-    MOCK_STATE.parent.mkdir(exist_ok=True)
-    MOCK_STATE.write_text(json.dumps(state, indent=2, ensure_ascii=False))
+# Olekufaili asukoht ja vorming elavad AINULT serveris; siit tuleb ka
+# WIX_MOCK_FILE override ja .env laadimine.
+from server import MOCK_STATE, _read_mock, _write_mock
 
 
 def main() -> None:
@@ -42,12 +28,12 @@ def main() -> None:
     cmd = sys.argv[1]
 
     if cmd == "reset":
-        save({"orders": [], "coupons": {}})
+        _write_mock({"orders": [], "coupons": {}})
         print(f"mock-olek nullitud: {MOCK_STATE}")
         return
 
     email = sys.argv[2]
-    state = load()
+    state = _read_mock()
     n = len(state["orders"]) + 1
     order = {
         "order_id": f"mock-{n}",
@@ -68,7 +54,7 @@ def main() -> None:
         coupon = state["coupons"].get(code)
         if not coupon:
             print(f"VIGA: kupongi {code} pole mock-olekus. Loo see enne "
-                  "wix-mcp create_coupon tööriistaga (DRY_RUN kirjutab "
+                  "wix-mcp create_coupon tööriistaga (mock-režiim kirjutab "
                   "mock-olekusse).", file=sys.stderr)
             sys.exit(1)
         coupon["usage_count"] = int(coupon.get("usage_count", 0)) + 1
@@ -77,7 +63,7 @@ def main() -> None:
         order["line_items"] = ["RavimusVET näidis"]
 
     state["orders"].append(order)
-    save(state)
+    _write_mock(state)
     print(f"lisatud {cmd}-tellimus nr {order['number']} ({email}) -> "
           f"{MOCK_STATE}")
 

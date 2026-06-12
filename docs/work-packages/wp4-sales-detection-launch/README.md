@@ -28,8 +28,9 @@ harust mestitud.
       Deal'i-sidumise läbiproov ootab wp1 `pipedrive-mcp`-d; sammud on
       valmis: [sales-detector-integration-test.md](sales-detector-integration-test.md).
 - [x] Cron: tikk iga 30 min (`claude -p "/tick"`), discovery kord nädalas —
-      `scripts/install-cron.sh` (testitud: paigaldus/eemaldus); päriselt
-      paigaldame, kui wp1 `/tick` on olemas, muidu jookseb tühja
+      `scripts/install-cron.sh` (testitud: paigaldus/eemaldus). Võib
+      paigaldada kohe: mõlemal kirjel on guard, tikk käivitub alles
+      siis, kui wp1 `/tick` skill repos olemas on
 - [ ] Faas 1, DRY_RUN: täisjooks päris registri peal, kirju saatmata;
       kogu tiim vaatab logid üle (kirjade kvaliteet, sihtimine, redel),
       sina koordineerid — sammud: [launch-checklist.md](launch-checklist.md)

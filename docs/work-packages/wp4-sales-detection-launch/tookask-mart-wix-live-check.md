@@ -13,7 +13,12 @@ on gitignore'itud, ja server loeb seda sealt.
 ## Eeldused
 
 - Wixi API võti (scope: eCommerce read + Coupons manage) ja poe site ID
-- `python3` ja `git`/`gh` masinas olemas
+- `python3` (≥ 3.10) ja `git`/`gh` masinas olemas
+
+NB: kontrolliskript käivitab wix-mcp serveri `DRY_RUN=0`-ga, sest
+live-kontrolli mõte ongi päris API-d puudutada. Sinu `.env`-i
+`DRY_RUN=1` jääb kehtima kõigele muule; ilma `--write` lipuga ei tee
+skript ühtegi kirjutust.
 
 ## Sammud
 

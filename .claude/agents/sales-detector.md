@@ -30,9 +30,12 @@ jooks töötleks samad tellimused uuesti.
 1. Loe kursor failist `cache/sales-detector-cursor.json`
    (`{"last_seen_at": "<ISO>"}`). Kui faili pole, kasuta tühja
    `since`-väärtust (kõik tellimused).
-2. `list_orders(since=last_seen_at)`. Kui tellimusi pole, kirjuta
-   kokkuvõte ja lõpeta.
-3. Iga tellimuse kohta, vanimast uuemani:
+2. `list_orders(since=last_seen_at)`. Tellimused tulevad vanimast
+   uuemani. Kui tellimusi pole, kirjuta kokkuvõte ja lõpeta. Kui
+   vastuses on `has_more: true`, töötle saadud partii lõpuni, uuenda
+   kursor (samm 4) ja kutsu `list_orders` uuesti — ära jäta
+   ülejäänud tellimusi järgmise tiki hooleks.
+3. Iga tellimuse kohta, järjekorras:
    a. **Seo deal'iga**, kahes järjekorras:
       - kui tellimusel on `coupon_code`, otsi deal, mille
         `discount_code` field on sama kood;

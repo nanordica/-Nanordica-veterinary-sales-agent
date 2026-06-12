@@ -13,12 +13,15 @@ Toodete/hindade muutmist ja tagasimakseid teadlikult ei avata
 
 ## Režiimid
 
-- **Live**: `.env`-is on `WIX_API_KEY` + `WIX_SITE_ID` (Mardilt).
-- **Mock**: võtmeta hoiab olekut failis `cache/wix-mock.json`, et
-  sales-detectorit saaks testida ilma Wixita.
-- **DRY_RUN** (`DRY_RUN=1`, vaikimisi sees): `create_coupon` logib
-  kavandatud tegevuse faili `logs/dry-run-wix.md` ega puutu päris
-  Wixi. Lugemised käivad live-režiimis ikka päris API vastu.
+Režiim on üks telg, et lugemised ja kirjutused käiksid alati sama
+salve vastu (iga vastus ütleb `"mode"`):
+
+- **Live**: `.env`-is on `WIX_API_KEY` + `WIX_SITE_ID` (Mardilt) JA
+  `DRY_RUN=0`. Kõik kõned käivad päris Wixi API vastu.
+- **Mock** (kõigil muudel juhtudel, sh `DRY_RUN=1` koos võtmetega):
+  olek failis `cache/wix-mock.json`; kirjutused logitakse lisaks
+  faili `logs/dry-run-wix.md`. Nii näeb `check_coupon_usage` dry-runis
+  loodud kuponge ja dry-run on otsast lõpuni isekooskõlaline.
 
 Live-režiimi Wixi kõnesid pole päris API võtmega veel jooksutatud.
 Kontroll käib võtmega masinas (Mart):

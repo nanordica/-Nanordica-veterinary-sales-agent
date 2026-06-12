@@ -16,7 +16,6 @@ from pathlib import Path
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 
-REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 SERVER = Path(__file__).parent / "server.py"
 
 
@@ -27,13 +26,16 @@ async def call(session: ClientSession, tool: str, args: dict) -> dict:
 
 
 async def main() -> None:
-    state_file = Path(tempfile.mkdtemp()) / "wix-mock.json"
+    tmp = Path(tempfile.mkdtemp())
+    state_file = tmp / "wix-mock.json"
+    dry_log = tmp / "dry-run-wix.md"
     env = {
         **os.environ,
         "DRY_RUN": "1",
         "WIX_API_KEY": "",      # sunni mock-režiim ka võtme olemasolul
         "WIX_SITE_ID": "",
         "WIX_MOCK_FILE": str(state_file),
+        "WIX_DRY_RUN_LOG": str(dry_log),  # ära saasta päris dry-run logi
     }
     params = StdioServerParameters(
         command=sys.executable, args=[str(SERVER)], env=env)
@@ -49,6 +51,7 @@ async def main() -> None:
 
             orders = await call(session, "list_orders", {})
             assert orders["mode"] == "mock" and orders["orders"] == []
+            assert orders["has_more"] is False
             print("2/5 list_orders töötab (tühi mock)")
 
             coupon = await call(session, "create_coupon", {
@@ -85,9 +88,8 @@ async def main() -> None:
             assert orders["orders"][0]["coupon_code"] == code
             print("5/5 lunastus nähtav: tellimus + kasutatud kupong")
 
-    dry_log = REPO_ROOT / "logs" / "dry-run-wix.md"
     assert dry_log.exists() and "create_coupon" in dry_log.read_text()
-    print(f"DRY_RUN logi kirjutatud: {dry_log.relative_to(REPO_ROOT)}")
+    print("DRY_RUN logi kirjutatud (isoleeritud testifaili)")
     print("SMOKE-TEST OK")
 
 

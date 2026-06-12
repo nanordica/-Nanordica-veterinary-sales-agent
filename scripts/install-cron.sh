@@ -38,11 +38,20 @@ mkdir -p "$REPO/logs"
 
 # Croni PATH on minimaalne (/usr/bin:/bin); claude'i hook'id vajavad
 # node'i jm. Anna kirjetele kaasa paigaldusaegne tööriistade PATH.
+CLAUDE_DIR="$(dirname "$CLAUDE_BIN")"
 NODE_BIN="$(command -v node || true)"
-CRON_PATH="$(dirname "$CLAUDE_BIN")${NODE_BIN:+:$(dirname "$NODE_BIN")}:/usr/bin:/bin"
+NODE_DIR="${NODE_BIN:+$(dirname "$NODE_BIN")}"
+CRON_PATH="$CLAUDE_DIR:/usr/bin:/bin"
+if [ -n "$NODE_DIR" ] && [ "$NODE_DIR" != "$CLAUDE_DIR" ]; then
+  CRON_PATH="$CLAUDE_DIR:$NODE_DIR:/usr/bin:/bin"
+fi
 
-TICK="*/30 * * * * cd $REPO && PATH=$CRON_PATH $CLAUDE_BIN -p \"/tick\" >> $REPO/logs/cron-tick.log 2>&1 $MARKER"
-DISCOVERY="0 7 * * 1 cd $REPO && [ -f scripts/discovery.py ] && PATH=$CRON_PATH .venv/bin/python scripts/discovery.py >> $REPO/logs/cron-discovery.log 2>&1 $MARKER"
+# Teed on quoteeritud (repo võib olla tühikuga rajal). Tikk käivitub
+# alles siis, kui wp1 /tick skill on repos olemas — enne seda oleks
+# iga 30 min headless-jooks asjatu kulu.
+TICK_GUARD="{ [ -d .claude/skills/tick ] || [ -f .claude/commands/tick.md ]; }"
+TICK="*/30 * * * * cd \"$REPO\" && $TICK_GUARD && PATH=\"$CRON_PATH\" \"$CLAUDE_BIN\" -p \"/tick\" >> \"$REPO/logs/cron-tick.log\" 2>&1 $MARKER"
+DISCOVERY="0 7 * * 1 cd \"$REPO\" && [ -f scripts/discovery.py ] && PATH=\"$CRON_PATH\" .venv/bin/python scripts/discovery.py >> \"$REPO/logs/cron-discovery.log\" 2>&1 $MARKER"
 
 { strip; echo "$TICK"; echo "$DISCOVERY"; } | crontab -
 
