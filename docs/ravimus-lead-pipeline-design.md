@@ -1,7 +1,10 @@
 # Ravimus lead-pipeline — variant A disain
 
-*Seis: 2026-06-12, v2 — täiendatud [issue #1](https://github.com/Elnora-hackathon/team-17/issues/1)
-tagasiside põhjal. Eelkäija: [ravimus-lead-pipeline-ideas.md](ravimus-lead-pipeline-ideas.md).*
+*Seis: 2026-06-12, v3 — A/B pakkumine viidud esmakirja (A: personaalne
+link · B: näidise sooduskood), "Offer" asendatud "Näidis tellitud"
+staadiumiga, protsessijoonis värvitud agendi järgi. v2:
+[issue #1](https://github.com/Elnora-hackathon/team-17/issues/1)
+tagasiside. Eelkäija: [ravimus-lead-pipeline-ideas.md](ravimus-lead-pipeline-ideas.md).*
 
 ## Ülevaade
 
@@ -34,15 +37,17 @@ flowchart TD
     Q -->|"jah → pingerida skoori järgi"| QF["Qualified"]
     Q -->|ei| L["Lost"]
 
-    QF -->|"esmakiri: A/B variant,<br/>personaalne Wixi link;<br/>ainult kui Contacted &lt; 20"| C["Contacted"]
+    QF -->|"esmakiri: A/B variant<br/>(A: personaalne link · B: näidise sooduskood);<br/>ainult kui Contacted &lt; 20"| C["Contacted"]
     C -->|"vaikus: follow-up redel,<br/>vahed 3→5→8→13 päeva,<br/>iga kiri uue sisuga"| C
     C -->|"5 kirja saadetud,<br/>endiselt vaikus"| L
     C -->|"vastus (hiljem ka<br/>klikk / avamine)"| EN["Engaged"]
+    C -->|"variant B lunastab<br/>näidise 100% kupongi"| S["Näidis tellitud"]
 
     EN -->|"'ei' / opt-out / bounce"| L
-    EN -->|"sisuline vastus +<br/>pakkumine personaalse koodiga"| O["Offer"]
-    O -->|"Wixi tellimus või<br/>personaalse kupongi kasutus"| W["Won"]
-    O -->|"meeldetuletus,<br/>siis vaikus"| L
+    EN -->|"näidise kupongi kasutus"| S
+    EN -->|"Wixi ost (päris)"| W["Won"]
+    S -->|"Wixi ost (päris)"| W
+    S -->|"meeldetuletus,<br/>siis vaikus"| L
     W -->|tänukiri| DONE["valmis"]
 
     subgraph tick["Pipeline tick — iga 30 min, järjekord on oluline"]
@@ -51,6 +56,37 @@ flowchart TD
         T3["3) enrichment → qualification"]
         T4["4) outreach-writer + keelekontroll → saatmine"]
         T1 --> T2 --> T3 --> T4
+    end
+
+    classDef discovery fill:#e0e0e0,stroke:#9e9e9e,color:#000
+    classDef enrich fill:#bbdefb,stroke:#1976d2,color:#000
+    classDef qualify fill:#d1c4e9,stroke:#7e57c2,color:#000
+    classDef outreach fill:#c8e6c9,stroke:#43a047,color:#000
+    classDef triage fill:#fff9c4,stroke:#fbc02d,color:#000
+    classDef sales fill:#ffe0b2,stroke:#fb8c00,color:#000
+    classDef lost fill:#ffcdd2,stroke:#e53935,color:#000
+
+    class FILTER,D discovery
+    class E enrich
+    class Q,QF qualify
+    class C,DONE outreach
+    class EN triage
+    class S,W sales
+    class L lost
+    class T1 triage
+    class T2 sales
+    class T3 enrich
+    class T4 outreach
+
+    subgraph legend["Värv = agent, kes staadiumisse liigutab"]
+        direction LR
+        LG1["discovery-skript"]:::discovery
+        LG2["enrichment"]:::enrich
+        LG3["qualification"]:::qualify
+        LG4["outreach-writer"]:::outreach
+        LG5["inbox-triage"]:::triage
+        LG6["sales-detector"]:::sales
+        LG7["mitu agenti → Lost"]:::lost
     end
 ```
 
@@ -65,8 +101,8 @@ flowchart TD
 | 3 | Qualified | Skoor üle läve, pingereas | qualification |
 | 4 | Contacted | Esmakiri saadetud, vastust pole | outreach-writer |
 | 5 | Engaged | Vastas / näitas huvi | inbox-triage |
-| 6 | Offer | Personaalne pakkumine saadetud | outreach-writer |
-| 7 | Won | Wixi ost tuvastatud | sales-detector |
+| 6 | Näidis tellitud | Tasuta näidis lunastatud (variant B, 100% kupong), ootab päris ostu | sales-detector |
+| 7 | Won | Päris Wixi ost tuvastatud | sales-detector |
 | 8 | Lost | Opt-out, bounce, "ei", madal skoor või redel ammendatud | mitu agenti |
 
 ### Custom field'id deal'il
@@ -83,6 +119,7 @@ flowchart TD
 | `ab_variant` | esmakirja A/B haru |
 | `personal_link` | personaalne Wixi link (esmakirjast alates) |
 | `discount_code` | personaalne sooduskood |
+| `sample_claimed_at` | tasuta näidise lunastamise aeg (meeldetuletuse taimer) |
 | `emails_sent` | saadetud kirjade arv (max 5) |
 | `last_contact_at` | viimase kirja aeg |
 | `lost_reason` | opt-out / bounce / said-no / unqualified / no-reply |
@@ -167,15 +204,17 @@ Staadiumiteadlik kirjutaja, töötab läti keeles. Põhimõtted:
 
 | Kiri | Sisu |
 |---|---|
-| 1. esmakiri | A/B testitav variant (vt allpool), personaalne link |
-| 2.–3. follow-up | pakkumised, mida esmakiri ei sisaldanud: −10% kood; tasuta näidis (Wixi 100% kupong) |
+| 1. esmakiri | A/B variant (A: personaalne link · B: näidise sooduskood), personaalne Wixi link |
+| 2.–3. follow-up | uued nurgad, mida esmakiri ei sisaldanud: teise haru võimendus (−10% kood või tasuta näidis Wixi 100% kupongiga) |
 | 4.–5. follow-up | uus sisu: teadusartikkel tema use-case'i kohta, kasutuslugu, küsimus |
 | 5 kirja saadetud, vaikus | → Lost (`no-reply`) |
 
-**A/B test esmakirjal**: variant on deal'i field (`ab_variant`),
-määratakse vaheldumisi. Mallide täpne sisu on konfigureeritav ja
-otsustatakse enne live'i (nt A: sooduskood, B: tasuta näidis).
-Redel kohandub harule — sama pakkumist ei korrata.
+**A/B test esmakirjal** on lehtri põhijaotus: variant on deal'i field
+(`ab_variant`), määratakse vaheldumisi. Kaks haru on **A: personaalne
+link päris tootele** ja **B: näidise sooduskood** (tasuta näidis enne
+ostu). Mallide täpne sõnastus on konfigureeritav ja otsustatakse enne
+live'i; jaotuse telg (link vs näidis) on paigas. Redel kohandub
+harule — sama pakkumist ei korrata.
 
 Pärast koostamist käib iga kiri läbi **keelekontrolli-subagendist**
 (läti keele toon, viisakusvormid, arusaadavus), alles siis saadetakse.
@@ -194,11 +233,11 @@ Tundmatult aadressilt kiri → note üldlogisse, inimesele vaatamiseks.
 
 ### sales-detector
 Pollib Wixi: uued tellimused + personaalsete kupongide kasutus. Seob
-ostja e-posti või kupongikoodi deal'iga → Won, outreach-writer saadab
-tänukirja. Tasuta näidise tellimus (100% kupong) loetakse samuti
-ostusündmuseks, aga deal jääb Offer-staadiumisse kuni päris ostuni —
-näidis on samm, mitte lõpp. Seostumatu tellimus logitakse (orgaaniline
-müük).
+ostja e-posti või kupongikoodi deal'iga. **Päris ost → Won**,
+outreach-writer saadab tänukirja. **Tasuta näidise lunastus (100%
+kupong) → Näidis tellitud** ja seab `sample_claimed_at` — näidis on
+samm, mitte lõpp; redel jätkab kuni päris ostuni. Seostumatu tellimus
+logitakse (orgaaniline müük).
 
 ## Tööriistakiht — kohalikud MCP serverid
 
@@ -235,8 +274,9 @@ Projekti skill `/tick`, cron käivitab headless'ina (`claude -p
      Contacted-staadiumis on alla 20 deal'i; võetakse pingerea tipust.
    - Contacted, redeli järgmise kirja aeg käes → follow-up.
    - Contacted, 5 kirja täis ja vaikus → Lost.
-   - Engaged (triage'i ülesanne ootel) → vastus ja/või pakkumine → Offer.
-   - Offer, ostu pole ≥ 3 päeva → üks meeldetuletus; veel vaikust → Lost.
+   - Engaged (triage'i ülesanne ootel) → sisuline vastus.
+   - Näidis tellitud, päris ostu pole ≥ 3 päeva → üks meeldetuletus;
+     veel vaikust → Lost.
 5. Kirjuta kokkuvõte `logs/tick-YYYYMMDD-HHMM.md`.
 
 ### Kaitserauad (jõustatud MCP-kihis, mitte agendi lubadustes)
@@ -311,8 +351,9 @@ eelmise kontroll läbib.
   võimalustega, mitte oma jälgimisteenusega. `lv-vet-email-funnel`
   skilli UTM-raamistik (`utm_content` A/B variandi kohta) on selle
   alus: personaalne link = tooteleht + UTM-parameetrid.
-- **A/B mallide täpne sisu** otsustatakse enne live'i; raamistik
-  (`ab_variant` field + harupõhine redel) on disainis olemas.
+- **A/B mallide täpne sõnastus** otsustatakse enne live'i; jaotuse telg
+  (A: personaalne link · B: näidise sooduskood), `ab_variant` field ja
+  harupõhine redel on disainis paigas.
 - **Kirjavahede peenhäälestus** (otsus 3): alus 3/5/8/13 päeva, vaadatakse
   üle, kui suur plaan töötab.
 - **MS Graphi tokenid** (Mail.Send, Mail.Read) ja **Wixi API võti +
