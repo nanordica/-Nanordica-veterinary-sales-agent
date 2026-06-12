@@ -1,6 +1,6 @@
 # Faas 2: sünteetilise "veti" andmed (Karmen)
 
-Wp1 discovery (Mart) lisab selle rea registri andmetesse enne faasi 2
+Discovery jooks (Meelise masinas, võtmed seal) lisab selle rea registri andmetesse enne faasi 2
 jooksu, samas formaadis, mis päris registrist parsitud read
 (`cache/registry.csv`). Täpne veerustruktuur selgub wp1
 discovery-sammus; siin on väärtused, mis rida kandma peab.

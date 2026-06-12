@@ -1,7 +1,7 @@
 # Sales-detectori integratsioonitest (wp4 "Valmis, kui" punkt 2)
 
 Eeldab ravimus serverit, milles on Pipedrive'i token JA Wixi võtmed —
-ehk Mardi masinat (Karmeni masinas võtmeid pole). Kõik kirjutused
+ehk Meelise masinat (Karmeni masinas võtmeid pole). Kõik kirjutused
 käivad `DRY_RUN=1`-ga, st server ainult logib need (`dry_log`); päris
 Pipedrive'i/Wixi midagi ei muudeta.
 

@@ -20,15 +20,15 @@ harust mestitud.
       ([tööriistakiht](../../ravimus-lead-pipeline-design.md#tööriistakiht--kohalikud-mcp-serverid)).
       Elavad ravimus serveris (`mcp/tools/wix.py`, ühine kiht Mardiga;
       eraldi wix-mcp sai dubleerimise vältimiseks maha võetud). Live-kõnede
-      kontroll on Mardil, kelle masinas võtmed on:
-      [tookask-mart-wix-live-check.md](tookask-mart-wix-live-check.md).
+      kontroll on Meelisel, kelle masinas võtmed nüüd on:
+      [tookask-meelis-integratsioon.md](tookask-meelis-integratsioon.md).
 - [x] `.claude/agents/sales-detector.md`: pollib Wixi, seob ostja e-posti
       või kupongikoodi deal'iga; päris ost → Won + tänukiri, näidise
       lunastus → Naidis tellitud + `sample_claimed_at`; seostumatu
       tellimus logitakse
       ([sales-detector](../../ravimus-lead-pipeline-design.md#sales-detector)).
       Ühendatud ravimus serveri tööriistadele; deal'i-sidumise läbiproov
-      käib võtmetega masinas (Mart), sammud on valmis:
+      käib võtmetega masinas (Meelis), sammud on valmis:
       [sales-detector-integration-test.md](sales-detector-integration-test.md).
 - [x] Cron: tikk iga 30 min (`claude -p "/tick"`), discovery kord nädalas —
       `scripts/install-cron.sh` (testitud: paigaldus/eemaldus). Võib
@@ -46,7 +46,7 @@ harust mestitud.
 ## Sõltuvused
 
 Sales-detector vajab ravimus serverit (wp1, main'is olemas) ning päris
-jooksuks Wixi + Pipedrive'i võtmeid, mis on ainult Mardi masinas — kuni
+jooksuks Wixi + Pipedrive'i võtmeid, mis on ainult Meelise masinas — kuni
 siis DRY_RUN. Faas 1 vajab kõiki nelja paketti, seega planeeri see
 viimasesse pooltundi ja hoia tiimi ajakaval.
 
