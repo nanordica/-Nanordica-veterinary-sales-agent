@@ -158,3 +158,4 @@ anywhere else** — always read them from this file.
 | `docs/google-cloud-vertex-setup.md` | Setting up gcloud + Vertex AI for image (nano-banana), video (Veo 3), voiceover (TTS), or any other Google Cloud AI API |
 | `plugins/vercel/skills/v0/SKILL.md` | Building/iterating a UI or app with Vercel v0 |
 | `.claude/knowledge-base.local.md` | Resolving vault paths when working with the knowledge base |
+| `.claude/skills/stop-slop/SKILL.md` | Writing or editing any prose — strip predictable AI patterns (filler, em-dashes, formulaic structure). Always applies. |
