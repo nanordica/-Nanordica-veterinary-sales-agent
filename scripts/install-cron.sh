@@ -36,8 +36,13 @@ fi
 
 mkdir -p "$REPO/logs"
 
-TICK="*/30 * * * * cd $REPO && $CLAUDE_BIN -p \"/tick\" >> $REPO/logs/cron-tick.log 2>&1 $MARKER"
-DISCOVERY="0 7 * * 1 cd $REPO && [ -f scripts/discovery.py ] && .venv/bin/python scripts/discovery.py >> $REPO/logs/cron-discovery.log 2>&1 $MARKER"
+# Croni PATH on minimaalne (/usr/bin:/bin); claude'i hook'id vajavad
+# node'i jm. Anna kirjetele kaasa paigaldusaegne tööriistade PATH.
+NODE_BIN="$(command -v node || true)"
+CRON_PATH="$(dirname "$CLAUDE_BIN")${NODE_BIN:+:$(dirname "$NODE_BIN")}:/usr/bin:/bin"
+
+TICK="*/30 * * * * cd $REPO && PATH=$CRON_PATH $CLAUDE_BIN -p \"/tick\" >> $REPO/logs/cron-tick.log 2>&1 $MARKER"
+DISCOVERY="0 7 * * 1 cd $REPO && [ -f scripts/discovery.py ] && PATH=$CRON_PATH .venv/bin/python scripts/discovery.py >> $REPO/logs/cron-discovery.log 2>&1 $MARKER"
 
 { strip; echo "$TICK"; echo "$DISCOVERY"; } | crontab -
 
