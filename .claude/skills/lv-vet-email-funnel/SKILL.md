@@ -57,8 +57,11 @@ Kui kasutaja palub koostada kirja või jada-sammu, järgi seda:
 - **Vastus (ka "ei") → jada peatub**, inimene jätkab müüki.
 - **Opt-out / bounce → eemalda kohe** jadast ja listist.
 - **Meditsiiniseadme väited peavad olema tõendatud** (vt product-fail).
-- **Iga läti kiri läbib automaatse QA** (`latvian-qa.md`) enne valmis-märkimist
-  — korrektuur + tagasitõlge + väite-kontroll. Natiivkõnelejat tiimis pole.
+- **Iga läti kiri läbib automaatse QA** (`latvian-qa.md`) enne valmis-märkimist:
+  korrektuur + tagasitõlge + väite-kontroll. Natiivkõnelejat tiimis pole.
+- **Kogu genereeritud kirjakoopia järgib `stop-slop` skilli:** ei mõttekriipse
+  (—), ei täitesõnu, aktiivne tegumood, konkreetne sõnastus. stop-slop kehtib
+  alati ja käib selle skilliga koos.
 
 ## Viitefailid
 

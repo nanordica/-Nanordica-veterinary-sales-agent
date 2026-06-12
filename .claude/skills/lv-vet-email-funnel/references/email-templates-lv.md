@@ -52,7 +52,7 @@ Kõik allolev läti tekst on **mustand — peab läbima automaatse QA värava**
 
 Pealkirja näited (lv, mustand):
 - `{{eesnimi}}, ātrāka brūču dzīšana?`
-- `Jautājums par pārsiešanu — {{kliinik}}`
+- `Jautājums par brūču pārsiešanu jūsu klīnikā`
 - `Atraumatiska pārsēja maiņa nemierīgiem dzīvniekiem`
 
 ## Näidiskiri 1 — esmane pöördumine, kassiarst (lv mustand)
@@ -63,10 +63,10 @@ Pealkirja näited (lv, mustand):
 >
 > Redzēju, ka {{kliinik}} piedāvā ķirurģiju un pēcoperācijas brūču aprūpi.
 >
-> Esmu Karmen no Nanordica. Izstrādājām RavimusVET — sterilu brūču pārsēju ar
+> Esmu Karmen no Nanordica. Izstrādājām RavimusVET, sterilu brūču pārsēju ar
 > zīda nanošķiedru un sudraba un vara nanodaļiņām. Klīniskā pētījumā brūces
 > dzija gandrīz divreiz ātrāk nekā ar sudraba pārsējiem, un pārsēja maiņa ir
-> atraumatiska — mazāk stresa nemierīgam kaķim.
+> atraumatiska, kas nozīmē mazāk stresa nemierīgam kaķim.
 >
 > Apskatiet RavimusVET tuvāk šeit → [tooteleht + UTM]
 >
