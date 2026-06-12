@@ -10,8 +10,13 @@ loomaliik, värske artikkel) tuleb juurde otsida. See fail kirjeldab kuidas.
 | Eesnimi | Anna |
 | Kliiniku nimi | Rīgas Veterinārā klīnika |
 | **Konkreetne loomaliik / eriala** | kassid, koerad, hobused, veised, eksootilised |
+| **Tootega seotud fookus (avarea haak)** | kirurgia, haavaravi, operatsioonijärgne hooldus, dermatoloogia, traumad |
 | Regioon | Rīga, Liepāja, maapiirkond |
 | Roll | omanik, praktiseeriv arst, ostujuht |
+
+**Avarea jaoks otsi kõige konkreetsemat tõde.** Enamik kontakte on
+väikeloomakliinikud, seega "kassid ja koerad" pole personaalne. Otsi
+kitsamat ja tootega seotud detaili (vt allpool, personalization.md).
 
 ## Allikad
 

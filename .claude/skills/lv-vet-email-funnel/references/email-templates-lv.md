@@ -9,7 +9,9 @@ Kõik allolev läti tekst on **mustand — peab läbima automaatse QA värava**
 
 ## Iga kirja reeglid
 
-- **Avarida = personaalne tähelepanek** (kliinik / regioon / eriala), mitte toode.
+- **Avarida = kõige konkreetsem tõde** kontaktist (eelistatult tootega seotud
+  teenus: kirurgia, haavaravi, operatsioonijärgne hooldus), mitte üldine
+  liigi-mainimine ega toode. Pingerida: vt `personalization.md`.
 - **Üks CTA** kirja kohta — **kindel ja käskiv** ("Vaata lähemalt siit" /
   "Apskatiet tuvāk šeit"), mitte küsiv ("kas soovite?").
 - Saatja päris inimese nimi.
@@ -59,7 +61,7 @@ Pealkirja näited (lv, mustand):
 >
 > Labdien, {{eesnimi}}!
 >
-> Pamanīju, ka {{kliinik}} specializējas kaķu un suņu aprūpē.
+> Redzēju, ka {{kliinik}} piedāvā ķirurģiju un pēcoperācijas brūču aprūpi.
 >
 > Esmu Karmen no Nanordica. Izstrādājām RavimusVET — sterilu brūču pārsēju ar
 > zīda nanošķiedru un sudraba un vara nanodaļiņām. Klīniskā pētījumā brūces
