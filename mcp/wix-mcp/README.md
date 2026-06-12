@@ -20,8 +20,11 @@ Toodete/hindade muutmist ja tagasimakseid teadlikult ei avata
   kavandatud tegevuse faili `logs/dry-run-wix.md` ega puutu päris
   Wixi. Lugemised käivad live-režiimis ikka päris API vastu.
 
-Live-režiimi Wixi kõnesid pole päris API võtmega veel jooksutatud;
-enne faasi 1 tee võtmega smoke-test käsitsi üle.
+Live-režiimi Wixi kõnesid pole päris API võtmega veel jooksutatud.
+Kontroll käib võtmega masinas (Mart):
+`.venv/bin/python mcp/wix-mcp/live_check.py` (ainult lugemine) ja
+`--write` lipuga lisaks üks TEST-kupong. Töökäsk:
+[tookask-mart-wix-live-check.md](../../docs/work-packages/wp4-sales-detection-launch/tookask-mart-wix-live-check.md).
 
 ## Paigaldus ja test
 

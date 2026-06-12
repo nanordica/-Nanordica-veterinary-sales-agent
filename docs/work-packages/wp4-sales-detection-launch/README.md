@@ -17,8 +17,9 @@ harust mestitud.
       (sh 100% näidisekupong), kupongi kasutuse kontroll; hindade muutmist
       ja tagasimakseid ei avata
       ([tööriistakiht](../../ravimus-lead-pipeline-design.md#tööriistakiht--kohalikud-mcp-serverid)).
-      Smoke-test: `.venv/bin/python mcp/wix-mcp/smoke_test.py`. Live-kõned
-      vajavad veel Wixi võtmega ülekontrolli (võti Mardilt).
+      Smoke-test: `.venv/bin/python mcp/wix-mcp/smoke_test.py`. Live-kõnede
+      kontroll on antud Mardile, kelle masinas võti on:
+      [tookask-mart-wix-live-check.md](tookask-mart-wix-live-check.md).
 - [x] `.claude/agents/sales-detector.md`: pollib Wixi, seob ostja e-posti
       või kupongikoodi deal'iga; päris ost → Won + tänukiri, näidise
       lunastus → Näidis tellitud + `sample_claimed_at`; seostumatu
