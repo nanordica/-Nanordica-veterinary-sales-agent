@@ -147,10 +147,16 @@ Staadiumiteadlik kirjutaja, töötab läti keeles. Põhimõtted:
   otsustusstiilile ja võrgustikule. Võrgustiku fakte (nt ühisartikkel
   kolleegiga) tohib nimepidi mainida, aga ainult **kontrollitavaid,
   tõeseid fakte** — mitte väiteid teiste ostude/arvamuste kohta.
-- **Faktid ainult lubatud allikatest**: Wixi tooteleht + tiimi
-  hallatav tooteinfo-fail (`docs/ravimus-product-facts.md`: omadused,
-  hind, sertifikaadid, teadusviited, müügiargumendid). Agent ei
-  mõtle tootefakte ise välja.
+- **Kirjutamise oskus tuleb skillist**: outreach-writer kasutab
+  tiimi `lv-vet-email-funnel` skilli (vt
+  [2026-06-12-lv-vet-email-funnel-skill-design.md](superpowers/specs/2026-06-12-lv-vet-email-funnel-skill-design.md))
+  — lätikeelsed mallid, A/B praktikad, UTM-märgistus, meditsiiniseadme
+  reklaaminõuded.
+- **Faktid ainult lubatud allikatest**: skilli
+  `references/product-ravimus-vet.md` (RavimusVET omadused,
+  kliinilised väited, suurused, müügiargumendid) + Wixi tooteleht.
+  Agent ei mõtle tootefakte ise välja; meditsiiniseadme väited ainult
+  tõendatud kujul.
 - **Iga kiri sisaldab uut infot** — uus nurk, uus pakkumine, uus
   teadusviide. Sama pakkumist ei korrata.
 - **Personaalne Wixi link juba esmakirjas**; personaalne sooduskood
@@ -282,8 +288,8 @@ Wixi tellimuste loetelu) enne faasi 1.
    `lib/` + `pipedrive-mcp` + smoke-test.
 2. **Discovery**: `registry.py` + `discovery.py` → kõik e-mailiga
    vetid deal'idena Pipedrive'is.
-3. **Tooteinfo + saatmine**: tiim koostab
-   `docs/ravimus-product-facts.md`; `mail-mcp` (Graph) +
+3. **Tooteinfo + saatmine**: `lv-vet-email-funnel` skill paigaldatud
+   (Karmeni haru, sh `product-ravimus-vet.md`); `mail-mcp` (Graph) +
    outreach-writer → esimene lätikeelne kiri DRY_RUN-is.
 4. **Vastuvõtt**: inbox-triage + Graphi delta-lugemine.
 5. **Profiil ja skoor**: enrichment (3 mõõdet) + qualification
@@ -302,7 +308,9 @@ eelmise kontroll läbib.
 - **Engaged-tuvastus klikist/avamisest** (issue #1, otsus 2): praegu
   Engaged = e-kirja vastus. Hiljem lisandub personaalse lingi klikk ja
   e-maili avamine — eelistatult Wixi/Pipedrive'i sisseehitatud
-  võimalustega, mitte oma jälgimisteenusega.
+  võimalustega, mitte oma jälgimisteenusega. `lv-vet-email-funnel`
+  skilli UTM-raamistik (`utm_content` A/B variandi kohta) on selle
+  alus: personaalne link = tooteleht + UTM-parameetrid.
 - **A/B mallide täpne sisu** otsustatakse enne live'i; raamistik
   (`ab_variant` field + harupõhine redel) on disainis olemas.
 - **Kirjavahede peenhäälestus** (otsus 3): alus 3/5/8/13 päeva, vaadatakse
