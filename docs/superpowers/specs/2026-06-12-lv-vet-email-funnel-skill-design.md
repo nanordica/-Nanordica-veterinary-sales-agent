@@ -10,8 +10,9 @@
 
 Anda Claude'ile oskus koostada e-maili turunduskampaaniaid, mis konverdivad
 Läti veterinaararstid Ravimuse klientideks ja suunavad nad veebilehel toodet
-ostma. Skill peab toetama funneli jälgimist (mis hetkel müük toimub) ja A/B
-testimist (milline kiri töötab kõige paremini).
+ostma. Skill peab toetama funneli jälgimist (mis hetkel müük toimub), A/B
+testimist (milline kiri töötab kõige paremini) ja **personaliseerimist** nii
+segmendi kui ka iga kontakti tasandil.
 
 **Tarne tüüp:** teadmiste-skill. E-kirjade saatmist skill ei tee — saatmine ja
 päris andmete kogumine jääb kasutaja ESP-sse. Skill annab teadmised, töövoo ja
@@ -29,6 +30,8 @@ mallid.
 | Keel | **Läti keel** |
 | Funneli eesmärk | Otsene ost veebilehel |
 | CTA sihtleht | `https://www.nanordica.com/ravimus` (ingliskeelne leht) |
+| Olemasolevad andmed | **E-posti aadressid + kaasatuse andmed** (avab / klikib / mitteaktiivne) |
+| Juurde otsitavad andmed | Nimi, kliinik, loomatüüp, regioon — rikastatakse päringuga |
 
 ### Toote müügiargumendid (veebilehelt)
 
@@ -79,10 +82,12 @@ lv-vet-email-funnel/
 ├── SKILL.md                      # frontmatter + ülevaade + töövoog
 └── references/
     ├── product-ravimus-vet.md    # toote faktid + müügiargumendid (läti k)
+    ├── contact-enrichment.md     # e-postist arsti/kliiniku leidmine + andmemudel
+    ├── personalization.md        # 2-tasandi personaliseerimine: segment + kontakt
     ├── funnel-framework.md       # funneli etapid + UTM + mõõdikud
     ├── ab-testing.md             # mida testida, kuidas võitja valida
     ├── latvia-market.md          # toon, GDPR/nõusolek, meditsiiniseadme reklaam
-    └── email-templates-lv.md     # läti k mallid (5 tüüpi)
+    └── email-templates-lv.md     # läti k mallid (merge-väljad + tingimusplokid)
 ```
 
 ---
@@ -91,9 +96,45 @@ lv-vet-email-funnel/
 
 ### SKILL.md
 Frontmatter `name` + `description` (käivitub, kui kasutaja koostab Ravimuse
-e-maili kampaaniat Läti vetidele). Sisaldab: lühikonteksti, töövoo sammud
-(eesmärk → segment → mall → UTM-märgistus → A/B plaan), ja viited
-`references/` failidele.
+e-maili kampaaniat Läti vetidele). Sisaldab lühikonteksti, viited
+`references/` failidele ja töövoo sammud:
+
+```
+1. Sisend: kontakti e-post(id) + kaasatuse andmed
+2. Rikasta: leia nimi, kliinik, loomatüüp (contact-enrichment.md)
+3. Segment: käitumise järgi (kaasatud / vaibunud / külm)
+4. Personaliseeri: segment + kontakti andmed → kohandatud kiri
+5. Mall: vali õige mall (email-templates-lv.md)
+6. UTM: märgista lingid (funnel-framework.md)
+7. A/B: planeeri test (ab-testing.md)
+```
+
+### references/contact-enrichment.md
+Töövoog, kuidas paljast e-posti aadressist arst/kliinik üles leida, sest
+muud andmed kui e-post ja kaasatus on vaja juurde otsida:
+
+- **E-posti domeen** → kliiniku tuvastus (nt `@kliinikunimi.lv`).
+- **Avalikud allikad**: Läti veterinaarregister (Pārtikas un veterinārais
+  dienests), Latvijas Veterinārārstu biedrība, kliiniku veebileht, Google.
+- **Mida koguda** (andmemudel): eesnimi, kliiniku nimi, loomatüüp
+  (väikeloom / suurloom / segapraksis), regioon, roll.
+- **Fallback**: kui kontakti ei leia, kasuta ainult käitumispõhist segmenti
+  ja üldist vetisõnumit — ära genereeri välja mõeldud (hallutsineeritud)
+  andmeid. Märgi kontakt "rikastamata".
+- Privaatsus: ainult avalikult kättesaadav info; vt `latvia-market.md`.
+
+### references/personalization.md
+Kahe tasandi personaliseerimine:
+
+- **Tasand 1 — segment (käitumine):** kaasatud (avab/klikib) → tootepakkumine
+  ja restock; vaibunud → win-back; külm (pole kunagi avanud) → uus
+  pöördumine/pealkirja test.
+- **Tasand 2 — kontakt (rikastatud):** pöördumine nime järgi, kliiniku
+  mainimine, ja **loomatüübi-põhised tingimusplokid** — väikeloomaarstile
+  rahutu kassi/koera sidemevahetuse näide, suurloomaarstile hobuse/veise
+  kroonilise haavandi näide.
+- **Renderdus:** ESP merge-väljad (`{{eesnimi}}`, `{{kliinik}}`) +
+  tingimuslik sisu. Skill annab teksti variandid; ESP paneb kokku.
 
 ### references/funnel-framework.md
 Funneli etapid ja mida igal etapil mõõta:
@@ -124,7 +165,10 @@ Kuna tööriista-integratsiooni pole, õpetab:
   olemas, viidata sellele korrektselt).
 
 ### references/email-templates-lv.md
-Viis konversioonile suunatud malli, läti keeles, CTA viib tootelehele:
+Viis konversioonile suunatud malli, läti keeles, CTA viib tootelehele.
+Iga mall sisaldab **merge-välju** (`{{eesnimi}}`, `{{kliinik}}`) ja
+**loomatüübi tingimusplokke** (väikeloom / suurloom), et sama mall
+personaliseeruks iga kontaktile (vt `personalization.md`):
 1. Tervitus / tutvustus (uus kontakt)
 2. Toote tutvustus (müügiargumendid + kliiniline tõend)
 3. Varu täienemine / korduvost (restock)
@@ -152,6 +196,10 @@ Viis konversioonile suunatud malli, läti keeles, CTA viib tootelehele:
 2. **Meditsiiniseadme reklaam** — väited peavad vastama Läti reklaaminõuetele.
 3. **ESP valimata** — UTM ja A/B näited jäävad üldiseks, mitte konkreetse
    tööriista-spetsiifiliseks.
+4. **Rikastamise täpsus ja privaatsus** — e-postist arsti leidmine ei õnnestu
+   alati. Skill ei tohi andmeid välja mõelda; leidmata kontakt läheb
+   käitumispõhisesse segmenti. Kasutada ainult avalikku infot, vastavalt
+   GDPR-ile (B2B õigustatud huvi + opt-out).
 
 ---
 
@@ -162,3 +210,6 @@ Viis konversioonile suunatud malli, läti keeles, CTA viib tootelehele:
 - Test: küsin Claude'ilt "koosta Ravimuse tutvustuskiri Läti vetidele" ja
   saan läti keeles kirja, mille CTA viib tootelehele + kaasas UTM-märgistuse
   ja A/B soovituse.
+- Personaliseerimise test: annan ühe kontakti e-posti + kaasatuse staatuse,
+  Claude rikastab (või märgib "rikastamata"), valib segmendi ja annab selle
+  kontakti jaoks kohandatud kirja loomatüübi-põhise plokiga.
