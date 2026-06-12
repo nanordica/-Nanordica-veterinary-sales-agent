@@ -20,15 +20,6 @@ def test_resolve_field_key(tmp_path, monkeypatch):
     assert field_map.resolve_field_key("score") == "hash_score"
 
 
-def test_translate_friendly_fields(tmp_path, monkeypatch):
-    p = tmp_path / "field_keys.json"
-    monkeypatch.setenv("FIELD_MAP_PATH", str(p))
-    field_map.save_field_map({"pipeline_id": 1, "stage_ids": {},
-                              "field_keys": {"score": "h1", "email": "h2"}})
-    out = field_map.to_pipedrive_fields({"score": 80, "email": "x@y.z"})
-    assert out == {"h1": 80, "h2": "x@y.z"}
-
-
 def test_load_missing_returns_empty(tmp_path, monkeypatch):
     monkeypatch.setenv("FIELD_MAP_PATH", str(tmp_path / "nope.json"))
     assert field_map.load_field_map() == {"pipeline_id": None, "stage_ids": {}, "field_keys": {}}

@@ -30,10 +30,3 @@ def resolve_field_key(name: str) -> str | None:
 
 def resolve_stage_id(name: str) -> int | None:
     return load_field_map().get("stage_ids", {}).get(name)
-
-
-def to_pipedrive_fields(friendly: dict) -> dict:
-    """Translate {friendly_name: value} -> {hashed_key: value}. Unknown names
-    pass through unchanged (already a hashed key or a standard field)."""
-    keys = load_field_map().get("field_keys", {})
-    return {keys.get(k, k): v for k, v in friendly.items()}
