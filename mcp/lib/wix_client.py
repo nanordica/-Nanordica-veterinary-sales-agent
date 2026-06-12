@@ -1,5 +1,7 @@
 """Wix client: list orders, create coupon, check coupon usage.
-Auth: raw Authorization header (no Bearer) + wix-account-id + wix-site-id."""
+Auth: raw Authorization header (no Bearer) + wix-site-id. Orders, Stores, and
+Coupons are all site-level resources, so only wix-site-id is sent; including
+wix-account-id alongside it triggers a METASITE_AND_ACCOUNT_MISMATCH error."""
 import os
 import json
 import urllib.request
@@ -13,7 +15,7 @@ def _headers() -> dict | None:
                        os.getenv("WIX_SITE_ID"))
     if not (key and acct and site):
         return None
-    return {"Authorization": key, "wix-account-id": acct, "wix-site-id": site,
+    return {"Authorization": key, "wix-site-id": site,
             "Content-Type": "application/json"}
 
 
@@ -48,18 +50,22 @@ def create_coupon(name: str, code: str, percent_off: int = 100,
     coupon = {"name": name, "code": code, "percentOffRate": percent_off,
               "usageLimit": usage_limit, "active": True,
               "scope": {"namespace": "stores"}}
-    return _call("POST", "/coupons/v2/coupons", {"specification": coupon})
+    return _call("POST", "/stores/v2/coupons", {"specification": coupon})
 
 
 def check_coupon_usage(code: str) -> dict:
-    """Find a coupon by code and return its usage count + active flag."""
-    res = _call("POST", "/coupons/v2/coupons/query",
-                {"query": {"filter": {"code": code}}})
+    """Find a coupon by code and return its usage count + active flag.
+    Wix Coupons v2 wants the filter as a JSON-encoded string and nests the
+    coupon body under `specification`; usage count + id sit at the top level."""
+    res = _call("POST", "/stores/v2/coupons/query",
+                {"query": {"filter": json.dumps({"code": code})}})
     if "error" in res:
         return res
     coupons = res.get("coupons", [])
     if not coupons:
         return {"found": False, "code": code}
     c = coupons[0]
+    spec = c.get("specification", {})
     return {"found": True, "code": code, "id": c.get("id"),
-            "number_of_usages": c.get("numberOfUsages", 0), "active": c.get("active")}
+            "number_of_usages": c.get("numberOfUsages", 0),
+            "active": spec.get("active")}
