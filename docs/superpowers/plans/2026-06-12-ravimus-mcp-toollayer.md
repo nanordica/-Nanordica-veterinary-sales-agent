@@ -20,6 +20,19 @@
 - **Friendly-name ↔ hashed-key mapping** persisted by the setup script to `data/field_keys.json`. Tools accept friendly field names and translate via `lib/field_map.py`.
 - **`DRY_RUN` defaults to ON** (`"1"`) when unset — safe by default.
 
+> **REVISION 2026-06-12 (single JSON state field):** A later design decision
+> superseded the per-field model in Tasks 4, 6, 7, 8. All deal metadata now
+> lives in **one** Pipedrive `text` custom field `ravimus_hackathon_data`,
+> holding a JSON object of the 13 data points. Pipeline renamed to
+> `ravimus-hackathon`. New module `lib/deal_state.py` (`read_state` /
+> `encode_state`) replaces per-field translation; `pipedrive_update_deal_fields`
+> became `pipedrive_update_deal_data` (read-modify-write merge); `create_deal`
+> takes a `stage` name + `data` dict; `to_pipedrive_fields` was removed.
+> `CUSTOM_FIELDS` is now a single entry. Guardrails are unchanged (they take a
+> dict — now the parsed state). Task 12 (mail) below is already updated to this
+> model. The as-shipped code reflects the revision; the older per-field code
+> blocks in Tasks 4/6/7 are retained for history only.
+
 ---
 
 ## File structure
@@ -862,6 +875,17 @@ def test_plan_adds_only_missing_stage():
     fields = [{"name": n, "key": f"k_{n}"} for n, _ in CUSTOM_FIELDS]
     plan = setup_plan.plan_setup(pipelines, stages, fields)
     assert [s["name"] for s in plan["create_stages"]] == ["Lost"]
+
+
+def test_plan_ignores_same_named_stages_in_other_pipelines():
+    # Our pipeline does not exist yet, but another pipeline already has a
+    # stage named "Qualified". The planner must still create ALL 8 stages
+    # for our pipeline -- stages from foreign pipelines do not count.
+    pipelines = [{"id": 9, "name": "some-other-pipeline"}]
+    stages = [{"name": "Qualified", "id": 99, "pipeline_id": 9}]
+    plan = setup_plan.plan_setup(pipelines, stages, [])
+    assert plan["create_pipeline"] is True
+    assert [s["name"] for s in plan["create_stages"]] == STAGES
 ```
 
 - [ ] **Step 2: Run it — expect failure**
@@ -886,9 +910,11 @@ def plan_setup(existing_pipelines: list, existing_stages: list,
     match = next((p for p in existing_pipelines if p.get("name") == PIPELINE_NAME), None)
     pipeline_id = match["id"] if match else None
 
+    # Only stages belonging to OUR pipeline count. If our pipeline does not
+    # exist yet (pipeline_id is None), no existing stage is ours -> create all.
     have_stage_names = {
         s["name"] for s in existing_stages
-        if pipeline_id is None or s.get("pipeline_id") == pipeline_id
+        if pipeline_id is not None and s.get("pipeline_id") == pipeline_id
     }
     create_stages = [
         {"name": name, "order_nr": i + 1}
@@ -1293,30 +1319,16 @@ git commit -m "feat(mcp): MS Graph app-only client (token, send, delta read)"
 
 ```python
 """Mail tools (MS Graph). mail_send enforces all guardrails from the Pipedrive
-deal (single source of truth) and writes the send back to the deal."""
+deal's JSON state (single source of truth) and writes the send back to the deal."""
 import os
 from datetime import datetime, timezone
 
 from mcp_app import mcp
 from lib import pipedrive_client as pc
 from lib import graph_client as gc
+from lib import deal_state
 from lib.guardrails import evaluate_send_guardrails
-from lib.field_map import to_pipedrive_fields, load_field_map
 from lib.dryrun import is_dry_run, dry_log
-
-
-def _deal_friendly(deal_id: int) -> dict | None:
-    """Fetch a deal and project its custom fields back to friendly names."""
-    raw = pc.get(f"deals/{deal_id}")
-    data = raw.get("data")
-    if not data:
-        return None
-    keys = load_field_map().get("field_keys", {})
-    inv = {v: k for k, v in keys.items()}
-    out = {}
-    for k, v in data.items():
-        out[inv.get(k, k)] = v
-    return out
 
 
 @mcp.tool
@@ -1330,14 +1342,17 @@ def mail_check_config() -> dict:
 
 @mcp.tool
 def mail_send(deal_id: int, to: str, subject: str, body_html: str) -> dict:
-    """Send an email to a lead. Enforces, from the Pipedrive deal:
+    """Send an email to a lead. Enforces, from the Pipedrive deal's JSON state:
     email match, opt-out, <=1 mail/24h, <=5 mails total. On success, updates
-    last_contact_at + emails_sent on the deal and logs a note."""
-    deal = _deal_friendly(deal_id)
-    if deal is None:
+    last_contact_at + emails_sent in the deal state and logs a note."""
+    raw = pc.get(f"deals/{deal_id}")
+    data = raw.get("data")
+    if not isinstance(data, dict):
         return {"error": f"deal {deal_id} not found"}
+    state = deal_state.read_state(data)
+
     now = datetime.now(timezone.utc)
-    refusal = evaluate_send_guardrails(deal, to, now)
+    refusal = evaluate_send_guardrails(state, to, now)
     if refusal:
         return {"refused": refusal, "deal_id": deal_id}
 
@@ -1348,13 +1363,13 @@ def mail_send(deal_id: int, to: str, subject: str, body_html: str) -> dict:
     if "error" in result:
         return result
 
-    # last_contact_at BEFORE the note so a note failure cannot cause a resend.
+    # last_contact_at + emails_sent BEFORE the note so a note failure can't resend.
     try:
-        sent = int(float(deal.get("emails_sent") or 0))
+        sent = int(float(state.get("emails_sent") or 0))
     except (TypeError, ValueError):
         sent = 0
-    pc.put(f"deals/{deal_id}", to_pipedrive_fields({
-        "last_contact_at": now.isoformat(), "emails_sent": sent + 1}))
+    merged = {**state, "last_contact_at": now.isoformat(), "emails_sent": sent + 1}
+    pc.put(f"deals/{deal_id}", deal_state.encode_state(merged))
     pc.post("notes", {"deal_id": deal_id,
                       "content": f"<b>Sent:</b> {subject}<br>{body_html}"})
     return {"sent": True, "deal_id": deal_id, "emails_sent": sent + 1}
