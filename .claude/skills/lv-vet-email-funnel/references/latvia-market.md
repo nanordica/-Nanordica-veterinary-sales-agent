@@ -5,12 +5,12 @@
 - Kirjad **läti keeles**.
 - **Mitte masintõlge eesti keelest** — see kõlab võõralt ja eksitab B2B
   meditsiinikontekstis.
-- **Emakeelne ülevaatus enne saatmist on kohustuslik.** Genereeritud läti
-  tekst on mustand, mille natiivne kõneleja peab üle vaatama.
+- **Kvaliteedikontroll on automaatne** (tiimis pole natiivkõnelejat). Iga kiri
+  läbib `latvian-qa.md` värava enne valmis-märkimist.
 - Toon: professionaalne, kolleegilt-kolleegile, mitte agressiivne müük.
   Loomaarst on ekspert — räägi temaga kui võrdsega.
 - Venekeelne segment Lätis on suur. Kui kontakti keele-eelistus on teada ja
-  vene, kaalu venekeelset varianti (eraldi otsus, vajab samuti natiivkontrolli).
+  vene, kaalu venekeelset varianti (eraldi otsus, läbib sama automaatse QA).
 
 ## GDPR + ePrivacy (külm B2B)
 

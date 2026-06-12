@@ -112,6 +112,7 @@ lv-vet-email-funnel/
     ├── funnel-framework.md       # funneli etapid + UTM + mõõdikud + MPP hoiatus
     ├── ab-testing.md             # mida testida, kuidas võitja valida
     ├── latvia-market.md          # toon, GDPR/ePrivacy, meditsiiniseadme reklaam
+    ├── latvian-qa.md             # AUTOMAATNE läti keele kvaliteedikontroll (pole natiivkõnelejat)
     └── email-templates-lv.md     # läti k külm jada + pealkirja/eelvaate praktikad
 ```
 
@@ -250,11 +251,27 @@ Meilboxist saatmise tegelikkus:
 
 ### references/latvia-market.md
 - Läti keele toon ja lokaliseerimine (mitte masintõlge eesti keelest).
-  **Emakeelne ülevaatus enne saatmist** — masintõlke-läti riskib vigadega
-  B2B meditsiinikontekstis.
+  Kvaliteedikontroll on **automaatne** (tiimis pole natiivkõnelejat) —
+  vt `latvian-qa.md`.
 - GDPR + ePrivacy (külm B2B): õigustatud huvi, opt-out igas kirjas,
   andmetöötluse teavitus, **andmeallika avalikustamine** (kust kontakt saadi).
   Vt ka `cold-outreach.md`.
+
+### references/latvian-qa.md
+**Automaatne läti keele kvaliteedikontroll.** Tiimis pole natiivkõnelejat,
+seega iga läti kiri läbib enne valmis-märkimist automaatse värava:
+
+1. **Korrektuuri-pass:** Claude loeb teksti range korrektorina —
+   käänded/pöörded, grammatika, loomulik sõnajärg, meditsiiniterminid.
+2. **Tagasitõlke-värav:** tõlgi läti tekst tagasi eesti keelde ja võrdle
+   algse briifi mõttega. Tähenduse triivi korral genereeri uuesti.
+3. **Väited:** kontrolli, et meditsiiniseadme väited vastavad
+   `product-ravimus-vet.md`-le (ei liialda).
+4. **Valikuline väline tööriist:** LanguageTool (`lv`) või hunspell (`lv_LV`)
+   spelling-kontroll kõva väravana.
+
+**Aus piirang:** automaatne kontroll ei asenda täielikult natiivkõnelejat,
+eriti väidete nüansis. Jääkrisk on dokumenteeritud (vt riskid).
 - **Meditsiiniseadme reklaami nõuded** — RavimusVET on meditsiiniseade;
   väited paranemiskiiruse kohta peavad olema tõendatud (kliiniline uuring on
   olemas, viidata sellele korrektselt).
@@ -309,11 +326,9 @@ praktika järgi):
 
 ## Riskid ja lahtised otsad
 
-1. **🟠 Läti tootelehte pole.** `https://www.nanordica.com/lv/ravimus` annab
-   404. CTA suunab praegu ingliskeelsele lehele
-   (`https://www.nanordica.com/ravimus`). Läti arst saab inglise keeles lehe,
-   mitte emakeelse. Ingliskeelne leht töötab, aga lätikeelne maandumisleht
-   tõstaks konversiooni. Soovitus järgmiseks sammuks, mitte praegune blokeerija.
+1. **🟢 CTA-leht ingliskeelne (kasutaja otsus).** `/lv/ravimus` puudub; CTA
+   läheb teadlikult ingliskeelsele lehele `https://www.nanordica.com/ravimus`.
+   Aktsepteeritud, mitte risk.
 2. **🟡 Õiguslik alus — kasutaja kinnitanud.** Kasutaja kinnitas, et aadressid
    on saadud turvaliselt ja õiguslik alus on olemas. Skill tagab opt-out'i ja
    selge saatja-identiteedi igas kirjas. Vastutus jääb kasutajale.
@@ -328,6 +343,10 @@ praktika järgi):
 6. **Rikastamise täpsus** — e-postist arsti leidmine ei õnnestu alati. Skill ei
    tohi andmeid ega teadusviiteid välja mõelda; leidmata kontakt läheb
    käitumispõhisesse segmenti. Ainult avalik, kontrollitud info.
+7. **🟠 Läti QA jääkrisk.** Tiimis pole natiivkõnelejat, kontroll on automaatne
+   (korrektuur + tagasitõlge). See püüab enamiku vigu, aga ei asenda täielikult
+   natiivkõnelejat, eriti meditsiiniväidete nüansis. Maandus: tagasitõlke-värav
+   + range väite-kontroll; valikuline LanguageTool/hunspell.
 
 ---
 
@@ -348,3 +367,5 @@ praktika järgi):
 - Deliverability test: skill esitab meilboxi-kontrollnimekirja
   (SPF/DKIM/DMARC, väike maht, verifitseeritud list) ja selgitab open rate'i
   mõõtmise piirangut.
+- Läti QA test: genereeritud läti kiri läbib automaatse värava — korrektuur,
+  tagasitõlge eesti keelde (mõte säilib) ja väite-kontroll product-faili vastu.

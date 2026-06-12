@@ -19,7 +19,7 @@ teksti.
 - **Bränd:** Ravimus (tootja Nanordica Medical)
 - **Toode:** RavimusVET — steriilne haavaside (vt `references/product-ravimus-vet.md`)
 - **Sihtgrupp:** Läti veterinaarkliinikud ja loomaarstid
-- **Keel:** läti (emakeelne ülevaatus enne saatmist, vt `references/latvia-market.md`)
+- **Keel:** läti. Tiimis pole natiivkõnelejat → **automaatne QA**, vt `references/latvian-qa.md`
 - **CTA sihtleht:** https://www.nanordica.com/ravimus (ingliskeelne)
 - **Eesmärk:** ost veebilehel; külmas jadas enne vastus/klikk, siis ost
 - **Kanal:** ettevõtte meilbox + mail-merge jälgimistööriist
@@ -44,6 +44,8 @@ Kui kasutaja palub koostada kirja või jada-sammu, järgi seda:
 7. Pealkiri + eelvaade              → references/email-templates-lv.md
 8. UTM: märgista CTA-link           → references/funnel-framework.md
 9. A/B: planeeri test               → references/ab-testing.md
+10. Läti QA: korrektuur + tagasitõlge + väite-kontroll (KOHUSTUSLIK enne
+   valmis-märkimist)                → references/latvian-qa.md
 ```
 
 ## Raudreeglid
@@ -55,7 +57,8 @@ Kui kasutaja palub koostada kirja või jada-sammu, järgi seda:
 - **Vastus (ka "ei") → jada peatub**, inimene jätkab müüki.
 - **Opt-out / bounce → eemalda kohe** jadast ja listist.
 - **Meditsiiniseadme väited peavad olema tõendatud** (vt product-fail).
-- **Läti tekst vajab emakeelset ülevaatust** enne saatmist.
+- **Iga läti kiri läbib automaatse QA** (`latvian-qa.md`) enne valmis-märkimist
+  — korrektuur + tagasitõlge + väite-kontroll. Natiivkõnelejat tiimis pole.
 
 ## Viitefailid
 
@@ -69,4 +72,5 @@ Kui kasutaja palub koostada kirja või jada-sammu, järgi seda:
 | `references/funnel-framework.md` | Funneli etapid, UTM, mõõdikud, MPP hoiatus |
 | `references/ab-testing.md` | Mida testida, väikese listi tegelikkus |
 | `references/latvia-market.md` | Läti toon, GDPR/ePrivacy, reklaaminõuded |
+| `references/latvian-qa.md` | Automaatne läti keele kvaliteedikontroll |
 | `references/email-templates-lv.md` | Läti jada-nurgad, ooteajad, pealkirjad |

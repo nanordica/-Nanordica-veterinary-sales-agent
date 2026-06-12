@@ -4,8 +4,8 @@
 Jada **ei lõpe fikseeritud arvu juures** — jätka kuni vastus (ka "ei"),
 opt-out või bounce.
 
-Kõik allolev läti tekst on **mustand — vajab emakeelset ülevaatust enne
-saatmist** (vt `latvia-market.md`).
+Kõik allolev läti tekst on **mustand — peab läbima automaatse QA värava**
+(`latvian-qa.md`) enne valmis-märkimist. Natiivkõnelejat tiimis pole.
 
 ## Iga kirja reeglid
 
@@ -81,5 +81,6 @@ CTA-link tuleb märgistada UTM-iga (`funnel-framework.md`).
 3. Leia värske haak (`contact-enrichment.md`).
 4. Kirjuta läti tekst, personaliseeri loomaliigi järgi.
 5. Lisa UTM-link, opt-out, nimeline saatja.
-6. Märgi: **vajab emakeelset ülevaatust**.
+6. **Läbi automaatne QA värav** (`latvian-qa.md`): korrektuur + tagasitõlge +
+   väite-kontroll. Alles siis märgi valmis.
 7. Anna ka kohatäidetega versioon mail-merge tööriista jaoks.
