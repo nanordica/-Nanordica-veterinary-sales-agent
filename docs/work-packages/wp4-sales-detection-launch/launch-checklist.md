@@ -41,8 +41,9 @@ Karmen on "vet": tema rida registri CSV-s, DRY_RUN väljas, mail-mcp
 lubab AINULT tema aadressi. Sünteetilise rea andmed wp1 jaoks:
 [faas2-synteetiline-vet.md](faas2-synteetiline-vet.md).
 
-- [ ] mail-mcp allowlist: ainult Karmeni e-post (wp3 kinnitab enne
-      DRY_RUN=0 keeramist!)
+- [ ] `MAIL_ALLOWLIST=karmen@kood.tech` serveri `.env`-is JA
+      kontrollitud, et teisele aadressile saatmine annab
+      `not_in_allowlist` keeldumise (enne DRY_RUN=0 keeramist!)
 - [ ] `DRY_RUN=0`, cron sees
 - [ ] discovery loob deal'i: Discovered
 - [ ] enrichment + qualification: Qualified

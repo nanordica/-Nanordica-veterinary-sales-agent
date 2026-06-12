@@ -41,3 +41,20 @@ def test_blocks_at_five_sent():
 
 def test_email_compare_case_insensitive():
     assert g.evaluate_send_guardrails(_deal(email="Vet@Clinic.LV"), "vet@clinic.lv", NOW) is None
+
+
+def test_allowlist_blocks_everyone_else():
+    r = g.evaluate_send_guardrails(_deal(), "vet@clinic.lv", NOW,
+                                   allowlist=["karmen@kood.tech"])
+    assert r == "not_in_allowlist"
+
+
+def test_allowlist_allows_listed_address_case_insensitive():
+    deal = _deal(email="karmen@kood.tech")
+    assert g.evaluate_send_guardrails(deal, "Karmen@Kood.Tech", NOW,
+                                      allowlist=[" karmen@kood.tech "]) is None
+
+
+def test_no_allowlist_means_no_restriction():
+    assert g.evaluate_send_guardrails(_deal(), "vet@clinic.lv", NOW,
+                                      allowlist=None) is None

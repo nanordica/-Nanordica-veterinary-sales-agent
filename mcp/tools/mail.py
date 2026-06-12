@@ -34,7 +34,11 @@ def mail_send(deal_id: int, to: str, subject: str, body_html: str) -> dict:
         return {"error": "state field key unknown; run pipedrive_setup first"}
 
     now = datetime.now(timezone.utc)
-    refusal = evaluate_send_guardrails(state, to, now)
+    # MAIL_ALLOWLIST (komaga eraldatud aadressid): faasis 2 tohib
+    # saata AINULT neile. Tühi/seadmata = piirang puudub (faas 3).
+    allowlist_env = os.getenv("MAIL_ALLOWLIST", "").strip()
+    allowlist = allowlist_env.split(",") if allowlist_env else None
+    refusal = evaluate_send_guardrails(state, to, now, allowlist=allowlist)
     if refusal:
         return {"refused": refusal, "deal_id": deal_id}
 
