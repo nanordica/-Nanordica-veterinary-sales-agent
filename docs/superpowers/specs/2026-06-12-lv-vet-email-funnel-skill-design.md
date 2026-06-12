@@ -24,15 +24,15 @@ mallid.
 | Parameeter | Väärtus |
 |------------|---------|
 | Bränd | **Ravimus** (tootja Nanordica Medical) |
-| Toode | **Ravimus VET** — steriilne haavaside |
+| Toode | **RavimusVET** — steriilne haavaside |
 | Sihtgrupp | Läti veterinaarkliinikud ja loomaarstid |
 | Keel | **Läti keel** |
 | Funneli eesmärk | Otsene ost veebilehel |
-| CTA sihtleht | `https://www.nanordica.com/et/ravimus` |
+| CTA sihtleht | `https://www.nanordica.com/ravimus` (ingliskeelne leht) |
 
 ### Toote müügiargumendid (veebilehelt)
 
-Ravimus VET on steriilne haavaside, mis koosneb naturaalse siidi
+RavimusVET on steriilne haavaside, mis koosneb naturaalse siidi
 nanokiudkihist antimikroobsete nanoosakestega (sünergiline hõbe + vask) ja
 imavast tselluloosikihist.
 
@@ -50,21 +50,27 @@ Põhilubadused:
 
 ## Arhitektuur: hübriid (kaks skilli)
 
+**Mõlemad skillid lähevad team-17 reposse:** `.claude/skills/`. Nii on need
+projektiga kaasas ja jagatav tiimiga (mitte ainult Karmeni masinas).
+
 ### Osa 1 — `email-marketing-bible` (valmis alus, muutmata)
 
 Paigaldatakse käsuga:
 
 ```
 git clone https://github.com/CosmoBlk/email-marketing-bible.git \
-  ~/.claude/skills/email-marketing-bible
+  .claude/skills/email-marketing-bible
+rm -rf .claude/skills/email-marketing-bible/.git
 ```
 
-Annab üldise e-maili turunduse sügavuse (strateegia, deliverability,
-segmenteerimine, copywriting, analüütika). Neutraalne alus, mida ei muudeta.
+`.git` eemaldatakse, et vältida pesastatud repo't — failid commit'itakse
+team-17 ajalukku. Annab üldise e-maili turunduse sügavuse (strateegia,
+deliverability, segmenteerimine, copywriting, analüütika). Neutraalne alus,
+mida ei muudeta.
 
 ### Osa 2 — `lv-vet-email-funnel` (custom-kiht)
 
-Asukoht: `~/.claude/skills/lv-vet-email-funnel/`
+Asukoht: `.claude/skills/lv-vet-email-funnel/`
 
 Õhuke, Ravimuse + Läti vetiturule suunatud kiht, mis tugineb alusele.
 
@@ -113,7 +119,7 @@ Kuna tööriista-integratsiooni pole, õpetab:
 ### references/latvia-market.md
 - Läti keele toon ja lokaliseerimine (mitte masintõlge eesti keelest).
 - GDPR / nõusolek (B2B vetid).
-- **Meditsiiniseadme reklaami nõuded** — Ravimus VET on meditsiiniseade;
+- **Meditsiiniseadme reklaami nõuded** — RavimusVET on meditsiiniseade;
   väited paranemiskiiruse kohta peavad olema tõendatud (kliiniline uuring on
   olemas, viidata sellele korrektselt).
 
@@ -138,11 +144,11 @@ Viis konversioonile suunatud malli, läti keeles, CTA viib tootelehele:
 
 ## Riskid ja lahtised otsad
 
-1. **🔴 Läti tootelehte pole.** `https://www.nanordica.com/lv/ravimus` annab
-   404. Praegu suunaks CTA läti arsti eestikeelsele lehele
-   (`/et/ravimus`) — see on funnelis suur leke. Soovitus: enne kampaaniat
-   teha lätikeelne maandumisleht, või vähemalt ingliskeelne. Skill kasutab
-   praegu `/et/` linki ja märgib selle puudusena.
+1. **🟠 Läti tootelehte pole.** `https://www.nanordica.com/lv/ravimus` annab
+   404. CTA suunab praegu ingliskeelsele lehele
+   (`https://www.nanordica.com/ravimus`). Läti arst saab inglise keeles lehe,
+   mitte emakeelse. Ingliskeelne leht töötab, aga lätikeelne maandumisleht
+   tõstaks konversiooni. Soovitus järgmiseks sammuks, mitte praegune blokeerija.
 2. **Meditsiiniseadme reklaam** — väited peavad vastama Läti reklaaminõuetele.
 3. **ESP valimata** — UTM ja A/B näited jäävad üldiseks, mitte konkreetse
    tööriista-spetsiifiliseks.
