@@ -29,17 +29,18 @@ loevad KÕIK NELI logid üle.
 - [ ] `logs/dry-run-*.md`: iga kavandatud kiri/kupong/staadiumimuutus
       kirjas, päris süsteeme ei puudutatud
 - [ ] kirjade kvaliteet: läti keel korrektne (Annelis), tootefaktid
-      ainult `product-ravimus-vet.md`-st (Mart), personaliseerimine
+      ainult `product-ravimus-vet.md`-st (Meelis), personaliseerimine
       asjakohane (Karmen)
 - [ ] sihtimine: ainult Qualified pingerea tipp, Contacted < 20
-      (Meelis)
+      (Mart)
 - [ ] redel: vahed 3/5/8/13, max 5 kirja, opt-out blokeerib
 - [ ] vead üle vaadatud: `logs/errors.md` tühi või selgitatud
 
 ## Faas 2: sünteetiline lead (projekti valmis-kontroll)
 
 Karmen on "vet": tema rida registri CSV-s, DRY_RUN väljas, mail-mcp
-lubab AINULT tema aadressi.
+lubab AINULT tema aadressi. Sünteetilise rea andmed wp1 jaoks:
+[faas2-synteetiline-vet.md](faas2-synteetiline-vet.md).
 
 - [ ] mail-mcp allowlist: ainult Karmeni e-post (wp3 kinnitab enne
       DRY_RUN=0 keeramist!)

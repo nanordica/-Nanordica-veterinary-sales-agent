@@ -1,6 +1,6 @@
 # wp1: Pipedrive'i alus, discovery ja orkestraator
 
-**Omanik:** Meelis Kadaja (Chief Business Officer)
+**Omanik:** Mart Roosimaa (Science liaison)
 **Disaini sammud:** 1, 2, 7 ([ehitusjärjekord](../../ravimus-lead-pipeline-design.md#ehitusjärjekord))
 
 ## Missioon

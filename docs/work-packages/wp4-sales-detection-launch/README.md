@@ -25,7 +25,8 @@ harust mestitud.
       lunastus → Näidis tellitud + `sample_claimed_at`; seostumatu
       tellimus logitakse
       ([sales-detector](../../ravimus-lead-pipeline-design.md#sales-detector)).
-      Deal'i-sidumise läbiproov ootab wp1 `pipedrive-mcp`-d.
+      Deal'i-sidumise läbiproov ootab wp1 `pipedrive-mcp`-d; sammud on
+      valmis: [sales-detector-integration-test.md](sales-detector-integration-test.md).
 - [x] Cron: tikk iga 30 min (`claude -p "/tick"`), discovery kord nädalas —
       `scripts/install-cron.sh` (testitud: paigaldus/eemaldus); päriselt
       paigaldame, kui wp1 `/tick` on olemas, muidu jookseb tühja

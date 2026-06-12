@@ -1,6 +1,6 @@
 # wp2: profiil ja skoor
 
-**Omanik:** Mart Roosimaa (Science liaison)
+**Omanik:** Meelis Kadaja (Chief Business Officer)
 **Disaini samm:** 5 ([ehitusjärjekord](../../ravimus-lead-pipeline-design.md#ehitusjärjekord))
 
 ## Missioon
