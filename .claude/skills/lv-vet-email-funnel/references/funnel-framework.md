@@ -19,11 +19,18 @@ https://www.nanordica.com/ravimus
   ?utm_source=mailbox
   &utm_medium=email
   &utm_campaign=ravimusvet-cold-lv
-  &utm_content=<kirja-nurk-või-AB-variant>
+  &utm_content=<kirja-nurk>-<utm_id>
 ```
 
-- `utm_content` eristab jada-sammu ja A/B varianti, nii saab võrrelda,
-  milline nurk päriselt müüb.
+- `utm_content` kaks osa, sidekriipsuga: **kirja-nurk** (jada-samm /
+  A/B variant, nt `esmakiri-a`) + **utm_id** (deal'i `_state.utm_id`,
+  per-vet unikaalne hex — outreach-writer genereerib ja salvestab).
+  Nii saab võrrelda, milline nurk päriselt müüb, JA siduda kliki
+  konkreetse vetiga: saidi Velo-snipet logib kliki `clickEvents`
+  kollektsiooni ning sales-detector viib `utm_id` kaudu deal'i
+  Engaged'iks. Ilma `utm_id`-ta on klikk anonüümne variandistatistika.
+- `utm_campaign` PEAB algama `ravimusvet-` — saidi snipet logib ainult
+  selle prefiksiga kampaaniad.
 
 ## Mida mõõta
 

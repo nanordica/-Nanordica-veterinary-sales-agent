@@ -69,7 +69,8 @@ korraldus — klassifitseerimisreeglid elavad agendi enda failis, ära
 neid siin ümber jutusta:
 
 1. **inbox-triage**: "Töötle uued saabunud kirjad."
-2. **sales-detector**: "Kontrolli Wixi tellimusi ja kuponge."
+2. **sales-detector**: "Kontrolli Wixi tellimusi, kuponge ja
+   Akadeemia-lingi klikke."
 
 Kui agenditüüpi pole registris või tema tööriistad puuduvad, jäta samm
 vahele ja kirjuta põhjus kokkuvõttesse — ÄRA tee tema tööd ise.

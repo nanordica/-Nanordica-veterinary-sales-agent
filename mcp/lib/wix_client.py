@@ -56,6 +56,43 @@ def create_coupon(name: str, code: str, percent_off: int = 100,
     return _call("POST", "/stores/v2/coupons", {"specification": coupon})
 
 
+def get_click_events(utm_content: str | None = None, since: str | None = None,
+                     limit: int = 100) -> dict:
+    """Query the `clickEvents` Wix Data collection (written by the masterPage.js
+    Velo snippet on nanordica.com). `utm_content` filters to one hash exactly;
+    `since` is ISO-8601 filtering on _createdDate >= since. Returns
+    {"events": [...], "count": N} with snake_case fields, newest first."""
+    query: dict = {"sort": [{"fieldName": "_createdDate", "order": "DESC"}],
+                   "paging": {"limit": limit}}
+    flt: dict = {}
+    if utm_content:
+        flt["utmContent"] = utm_content
+    if since:
+        # Date operands must be wrapped as {"$date": ...} — a bare ISO string
+        # compares as a string against the date-typed column and matches nothing.
+        flt["_createdDate"] = {"$gte": {"$date": since}}
+    if flt:
+        query["filter"] = flt
+    res = _call("POST", "/wix-data/v2/items/query",
+                {"dataCollectionId": "clickEvents", "query": query})
+    if "error" in res:
+        return res
+    events = []
+    for item in res.get("dataItems", []):
+        d = item.get("data", {})
+        created = d.get("_createdDate")
+        events.append({
+            "utm_content": d.get("utmContent"),
+            "utm_source": d.get("utmSource"),
+            "utm_medium": d.get("utmMedium"),
+            "utm_campaign": d.get("utmCampaign"),
+            "page_path": d.get("pagePath"),
+            "referrer": d.get("referrer"),
+            "clicked_at": created.get("$date") if isinstance(created, dict) else created,
+        })
+    return {"events": events, "count": len(events)}
+
+
 def check_coupon_usage(code: str) -> dict:
     """Find a coupon by code and return its usage count + active flag.
     Wix Coupons v2 wants the filter as a JSON-encoded string and nests the
