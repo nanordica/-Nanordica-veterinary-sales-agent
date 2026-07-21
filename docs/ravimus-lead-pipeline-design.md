@@ -250,7 +250,7 @@ live-süsteemi ohutus ei sõltu agendi heast käitumisest.
 | Server | Lubatud tööriistad | Teadlikult puudu |
 |---|---|---|
 | `pipedrive-mcp` | deal'ide lugemine, staadiumimuutus, field'ide uuendus, note lisamine | kustutamine, masskirjutus, admin |
-| `mail-mcp` (MS Graph) | `send_mail` (jõustab: ≤1 kiri lead'ile 24 h, max 5 kirja, opt-out blokeerimisnimekiri, DRY_RUN), `list_new_messages` | kustutamine, teiste kaustade lugemine |
+| `mail-mcp` (MS Graph) | `send_mail` (jõustab: ≤1 kiri lead'ile 24 h, max 5 kirja, opt-out blokeerimisnimekiri, DRY_RUN), `list_new_messages`; kalendritööriistad `calendar_find_slots` + `calendar_book_slot` (getSchedule-põhine vabade aegade otsing — findMeetingTimes ei tööta app-only õigustega —, topeltbroneeringu vastu flock-lukk ümber kontrolli-ja-loo sammu, broneerimine DRY_RUN-i taga) | kustutamine, teiste kaustade lugemine, teiste kalendrite muutmine |
 | `wix-mcp` | tellimuste loetelu, personaalse kupongi loomine (sh 100% näidisekupong), kupongi kasutuse kontroll | toodete/hindade muutmine, tagasimaksed |
 
 Jagatud API-loogika elab `lib/`-is; discovery-skript kasutab sama

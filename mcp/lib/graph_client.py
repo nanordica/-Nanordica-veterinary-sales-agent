@@ -1,5 +1,6 @@
 """Microsoft Graph app-only (client-credentials) client: token, sendMail,
-inbox delta read. Sender mailbox = GRAPH_SENDER."""
+inbox delta read, calendar free-slot search + booking. Sender mailbox =
+GRAPH_SENDER; calendar mailbox = GRAPH_CALENDAR_USER."""
 import os
 import json
 import time
@@ -105,3 +106,221 @@ def list_new_messages(folder: str = "inbox") -> dict:
         return {"error": f"delta HTTP {e.code}", "detail": e.read().decode()[:500]}
     except Exception as e:
         return {"error": str(e)}
+
+
+# --- Calendar (getSchedule + event booking) --------------------------------
+# getSchedule is used deliberately: findMeetingTimes is delegated-only and
+# silently unusable with app-only client-credentials auth.
+
+_BLOCKING = {"busy", "tentative", "oof"}
+_DAYS = {"monday": 0, "tuesday": 1, "wednesday": 2, "thursday": 3,
+         "friday": 4, "saturday": 5, "sunday": 6}
+
+
+def _call(method: str, path: str, body: dict | None = None) -> dict:
+    """Authenticated Graph call. Returns parsed JSON or {'error': ...}."""
+    headers = _auth_headers()
+    if headers is None:
+        return get_token()  # carries the error
+    data = json.dumps(body).encode() if body is not None else None
+    req = urllib.request.Request(f"{_GRAPH}{path}", data=data,
+                                 headers=headers, method=method)
+    try:
+        with urllib.request.urlopen(req, timeout=30) as r:
+            raw = r.read().decode()
+            return json.loads(raw) if raw else {"status": r.status}
+    except urllib.error.HTTPError as e:
+        return {"error": f"Graph HTTP {e.code}", "detail": e.read().decode()[:500]}
+    except Exception as e:
+        return {"error": str(e)}
+
+
+def _parse_dt(s: str):
+    """Parse a Graph/ISO datetime as UTC-aware. Graph emits 7 fractional
+    digits, which fromisoformat rejects — truncate to 6."""
+    from datetime import datetime, timezone
+    s = s.strip()
+    if s.endswith("Z"):
+        s = s[:-1]
+    if "." in s:
+        head, frac = s.split(".", 1)
+        s = f"{head}.{frac[:6]}"
+    dt = datetime.fromisoformat(s)
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    return dt.astimezone(timezone.utc)
+
+
+def _fmt_dt(dt) -> str:
+    return dt.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def _wh_tz(working_hours: dict):
+    """Resolve the workingHours timezone. UTC and IANA names resolve exactly;
+    Windows names (e.g. 'FLE Standard Time') fall back to UTC — documented."""
+    from datetime import timezone
+    name = ((working_hours.get("timeZone") or {}).get("name") or "UTC")
+    if name.upper() == "UTC":
+        return timezone.utc
+    try:
+        from zoneinfo import ZoneInfo
+        return ZoneInfo(name)
+    except Exception:
+        return timezone.utc
+
+
+def _working_intervals(working_hours: dict | None, win_start, win_end) -> list:
+    """UTC intervals inside [win_start, win_end] allowed by workingHours.
+    No workingHours -> the whole window is allowed."""
+    from datetime import datetime, time as dtime, timedelta
+    if not working_hours or not working_hours.get("startTime"):
+        return [(win_start, win_end)]
+    days = {_DAYS[d.lower()] for d in working_hours.get("daysOfWeek", [])
+            if d.lower() in _DAYS}
+    tz = _wh_tz(working_hours)
+    start_t = dtime.fromisoformat(working_hours["startTime"].split(".")[0])
+    end_t = dtime.fromisoformat(working_hours["endTime"].split(".")[0])
+    out = []
+    day = win_start.astimezone(tz).date() - timedelta(days=1)  # tz-shift margin
+    last = win_end.astimezone(tz).date() + timedelta(days=1)
+    while day <= last:
+        if day.weekday() in days:
+            from datetime import timezone as _tzmod
+            s = datetime.combine(day, start_t, tzinfo=tz).astimezone(_tzmod.utc)
+            e = datetime.combine(day, end_t, tzinfo=tz).astimezone(_tzmod.utc)
+            s, e = max(s, win_start), min(e, win_end)
+            if s < e:
+                out.append((s, e))
+        day += timedelta(days=1)
+    return out
+
+
+def _merge_busy(items: list, win_start, win_end) -> list:
+    """Merged, sorted UTC busy intervals (busy/tentative/oof) clipped to the
+    window."""
+    spans = []
+    for it in items:
+        if (it.get("status") or "busy") not in _BLOCKING:
+            continue
+        s = max(_parse_dt(it["start"]["dateTime"]), win_start)
+        e = min(_parse_dt(it["end"]["dateTime"]), win_end)
+        if s < e:
+            spans.append((s, e))
+    spans.sort()
+    merged = []
+    for s, e in spans:
+        if merged and s <= merged[-1][1]:
+            merged[-1] = (merged[-1][0], max(merged[-1][1], e))
+        else:
+            merged.append((s, e))
+    return merged
+
+
+def _subtract(intervals: list, busy: list) -> list:
+    """Subtract merged busy spans from allowed intervals."""
+    free = []
+    for s, e in intervals:
+        cur = s
+        for bs, be in busy:
+            if be <= cur or bs >= e:
+                continue
+            if bs > cur:
+                free.append((cur, bs))
+            cur = max(cur, be)
+        if cur < e:
+            free.append((cur, e))
+    return free
+
+
+def get_free_slots(date_from: str, date_to: str, duration_minutes: int = 20,
+                   max_slots: int = 20) -> dict:
+    """Free meeting slots of `duration_minutes` for GRAPH_CALENDAR_USER within
+    [date_from, date_to] (ISO-8601 UTC). Uses POST /calendar/getSchedule
+    (app-only-safe; findMeetingTimes is delegated-only), then computes free
+    windows locally: busy/tentative/oof blocks are subtracted and, when the
+    response carries workingHours, slots are offered only inside them.
+    Returns {'slots': [{'start': ..., 'end': ...}, ...], 'count': N}
+    (capped at max_slots) or {'error': ...}."""
+    from datetime import timedelta
+    calendar_user = _env("GRAPH_CALENDAR_USER")
+    if not calendar_user:
+        return {"error": "GRAPH_CALENDAR_USER not set"}
+    interval = max(5, min(1440, int(duration_minutes)))  # Graph bounds
+    body = {"schedules": [calendar_user],
+            "startTime": {"dateTime": date_from, "timeZone": "UTC"},
+            "endTime": {"dateTime": date_to, "timeZone": "UTC"},
+            "availabilityViewInterval": interval}
+    res = _call("POST", f"/users/{urllib.parse.quote(calendar_user)}"
+                        "/calendar/getSchedule", body)
+    if "error" in res:
+        return res
+    entry = (res.get("value") or [{}])[0]
+    win_start, win_end = _parse_dt(date_from), _parse_dt(date_to)
+    allowed = _working_intervals(entry.get("workingHours"), win_start, win_end)
+    busy = _merge_busy(entry.get("scheduleItems", []), win_start, win_end)
+    dur = timedelta(minutes=int(duration_minutes))
+    slots = []
+    for s, e in _subtract(allowed, busy):
+        cur = s
+        while cur + dur <= e and len(slots) < max_slots:
+            slots.append({"start": _fmt_dt(cur), "end": _fmt_dt(cur + dur)})
+            cur += dur
+        if len(slots) >= max_slots:
+            break
+    return {"slots": slots, "count": len(slots)}
+
+
+def _window_is_free(calendar_user: str, start: str, end: str) -> dict:
+    """Re-check [start, end] via getSchedule. {'free': bool} or {'error':}."""
+    body = {"schedules": [calendar_user],
+            "startTime": {"dateTime": start, "timeZone": "UTC"},
+            "endTime": {"dateTime": end, "timeZone": "UTC"},
+            "availabilityViewInterval": 5}
+    res = _call("POST", f"/users/{urllib.parse.quote(calendar_user)}"
+                        "/calendar/getSchedule", body)
+    if "error" in res:
+        return res
+    entry = (res.get("value") or [{}])[0]
+    busy = _merge_busy(entry.get("scheduleItems", []),
+                       _parse_dt(start), _parse_dt(end))
+    return {"free": not busy}
+
+
+def book_slot(start: str, end: str, attendee_email: str, subject: str,
+              body_text: str = "") -> dict:
+    """Create a Teams meeting in GRAPH_CALENDAR_USER's calendar and invite
+    `attendee_email` (Graph sends the invitation automatically). Double-booking
+    is prevented by an exclusive flock (GRAPH_BOOK_LOCK_PATH, default
+    ./cache/calendar-book.lock) held around a getSchedule re-check + POST:
+    if the window is no longer free, returns {'error': 'slot_taken'} without
+    creating anything."""
+    import fcntl
+    calendar_user = _env("GRAPH_CALENDAR_USER")
+    if not calendar_user:
+        return {"error": "GRAPH_CALENDAR_USER not set"}
+    lock_path = Path(_env("GRAPH_BOOK_LOCK_PATH") or "./cache/calendar-book.lock")
+    lock_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(lock_path, "w") as lock_f:
+        fcntl.flock(lock_f, fcntl.LOCK_EX)
+        try:
+            check = _window_is_free(calendar_user, start, end)
+            if "error" in check:
+                return check
+            if not check["free"]:
+                return {"error": "slot_taken", "start": start, "end": end}
+            event = {"subject": subject,
+                     "body": {"contentType": "Text", "content": body_text},
+                     "start": {"dateTime": start, "timeZone": "UTC"},
+                     "end": {"dateTime": end, "timeZone": "UTC"},
+                     "attendees": [{"emailAddress": {"address": attendee_email},
+                                    "type": "required"}],
+                     "isOnlineMeeting": True,
+                     "onlineMeetingProvider": "teamsForBusiness"}
+            res = _call("POST", f"/users/{urllib.parse.quote(calendar_user)}"
+                                "/events", event)
+            if "error" in res:
+                return res
+            return {"booked": True, "event_id": res.get("id"),
+                    "start": start, "end": end}
+        finally:
+            fcntl.flock(lock_f, fcntl.LOCK_UN)

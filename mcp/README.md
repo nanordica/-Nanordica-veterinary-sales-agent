@@ -87,6 +87,38 @@ Auth uses raw `Authorization` header + `wix-site-id` only.
 | `wix_create_coupon` | `(name: str, code: str, percent_off=100, usage_limit=1)` | Create a personal coupon (DRY_RUN-guarded). |
 | `wix_check_coupon_usage` | `(code: str)` | Check how many times a coupon code has been used. |
 
+### Calendar (`calendar.py`)
+
+Free-slot search + Teams-meeting booking on the `GRAPH_CALENDAR_USER`
+mailbox, app-only. Uses `POST /calendar/getSchedule` deliberately —
+`findMeetingTimes` is **delegated-only** and silently unusable with
+app-only client-credentials auth. Free windows are computed locally:
+busy/tentative/oof blocks are subtracted and, when the response carries
+`workingHours`, slots are offered only inside them (mailbox timezones with
+non-IANA Windows names fall back to UTC).
+
+| Tool | Signature | Description |
+|---|---|---|
+| `calendar_check_config` | `()` | Report whether Graph credentials and calendar user are set (no call). |
+| `calendar_find_slots` | `(date_from: str, date_to: str, duration_minutes=20)` | Free slots (ISO-8601 UTC window). Returns `{"slots": [{"start", "end"}, ...], "count": N}`, capped at 20. |
+| `calendar_book_slot` | `(deal_id: int, start: str, end: str, attendee_email: str, subject: str, body_text="")` | Book a Teams meeting; Graph sends the invite. DRY_RUN-guarded. `deal_id` is logging/note context only. |
+
+**No-double-book strategy:** `book_slot` takes an exclusive `flock` on
+`GRAPH_BOOK_LOCK_PATH` (default `./cache/calendar-book.lock`) for the whole
+check-then-insert: the window is re-verified as free via `getSchedule`
+immediately before the `POST /events`, inside the lock. If it is no longer
+free, the tool returns `{"error": "slot_taken"}` and creates nothing.
+
+**Azure scopes (application permissions, admin consent required):**
+`Calendars.Read` (getSchedule), `Calendars.ReadWrite` (event creation);
+`MailboxSettings.Read` optional. Recommended: an Exchange
+`ApplicationAccessPolicy` limiting the app registration to the target
+mailbox only.
+
+**Live smoke test** (after granting scopes):
+`python -m scripts.smoke_calendar` prints tomorrow's free slots (read-only);
+add `--book --start ... --end ... --attendee ...` to create a real event.
+
 ## Guardrails (`mail_send`)
 
 `mail_send` reads the deal's `_state` from Pipedrive and refuses when:
@@ -117,6 +149,8 @@ See `.env.example` for all required keys. Secrets (`*_TOKEN`, `*_SECRET`,
 | `GRAPH_CLIENT_ID` | `mail_*` tools |
 | `GRAPH_CLIENT_SECRET` | `mail_*` tools |
 | `GRAPH_SENDER` | `mail_send` (the from-address) |
+| `GRAPH_CALENDAR_USER` | `calendar_*` tools (whose calendar is offered/booked) |
+| `GRAPH_BOOK_LOCK_PATH` | `calendar_book_slot` flock file (default `./cache/calendar-book.lock`) |
 | `WIX_API_KEY` | `wix_*` tools |
 | `WIX_ACCOUNT_ID` | `wix_*` tools |
 | `WIX_SITE_ID` | `wix_*` tools |
