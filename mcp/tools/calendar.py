@@ -1,7 +1,8 @@
 """Calendar tools (MS Graph, app-only). Free-slot search via getSchedule
 (findMeetingTimes is delegated-only and unusable app-only) and Teams-meeting
 booking with a flock-serialized check-then-insert against double booking.
-Target mailbox = GRAPH_CALENDAR_USER."""
+Organizer model: events are created on the agent mailbox (GRAPH_SENDER),
+inviting GRAPH_CALENDAR_USER (whose free/busy is offered) and the lead."""
 import os
 
 from mcp_app import mcp
@@ -11,10 +12,12 @@ from lib.dryrun import is_dry_run, dry_log
 
 @mcp.tool
 def calendar_check_config() -> dict:
-    """Report whether Graph credentials and calendar user are set (no call)."""
+    """Report whether Graph credentials, organizer, and calendar user are set
+    (no call)."""
     return {"tenant_set": bool(os.getenv("GRAPH_TENANT_ID")),
             "client_set": bool(os.getenv("GRAPH_CLIENT_ID")),
             "secret_set": bool(os.getenv("GRAPH_CLIENT_SECRET")),
+            "sender": os.getenv("GRAPH_SENDER", ""),
             "calendar_user": os.getenv("GRAPH_CALENDAR_USER", "")}
 
 
@@ -31,10 +34,12 @@ def calendar_find_slots(date_from: str, date_to: str,
 def calendar_book_slot(deal_id: int, start: str, end: str,
                        attendee_email: str, subject: str,
                        body_text: str = "") -> dict:
-    """Book a Teams meeting with a lead (invite is sent by Graph). The window
-    is re-verified as free under an exclusive lock right before creation;
-    {'error': 'slot_taken'} means someone got there first. `deal_id` is
-    carried through for logging/note context (the tick layer writes Pipedrive)."""
+    """Book a Teams meeting with a lead: the event is created on the agent
+    mailbox's calendar (GRAPH_SENDER as organizer), inviting GRAPH_CALENDAR_USER
+    and the lead (invites are sent by Graph). The window is re-verified as free
+    under an exclusive lock right before creation; {'error': 'slot_taken'}
+    means someone got there first. `deal_id` is carried through for
+    logging/note context (the tick layer writes Pipedrive)."""
     if is_dry_run():
         return dry_log("calendar_book_slot", deal_id=deal_id, start=start,
                        end=end, attendee_email=attendee_email,

@@ -7,6 +7,9 @@ Calendars.Read / Calendars.ReadWrite (admin consent) in Azure:
         --attendee you@example.com --subject "Smoke test"  # creates a REAL event
 
 Reads GRAPH_* env vars (source mcp/.env first). Never books without --book.
+Organizer model: free slots are GRAPH_CALENDAR_USER's availability; a --book
+run creates the event on GRAPH_SENDER's calendar, inviting both
+GRAPH_CALENDAR_USER and --attendee.
 """
 import argparse
 import json

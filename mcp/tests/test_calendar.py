@@ -27,8 +27,9 @@ def _patch_call(monkeypatch, responses):
     return calls
 
 
-def _schedule_response(items=None, working_hours=None):
-    entry = {"scheduleId": "vet@nanordica.com",
+def _schedule_response(items=None, working_hours=None,
+                       schedule_id="meelis@nanordica.com"):
+    entry = {"scheduleId": schedule_id,
              "scheduleItems": items or []}
     if working_hours is not None:
         entry["workingHours"] = working_hours
@@ -50,7 +51,10 @@ _WH_9_17 = {"daysOfWeek": ["monday", "tuesday", "wednesday", "thursday",
 
 @pytest.fixture
 def cal_env(monkeypatch):
-    monkeypatch.setenv("GRAPH_CALENDAR_USER", "vet@nanordica.com")
+    # Organizer model: events live on the agent mailbox (GRAPH_SENDER);
+    # GRAPH_CALENDAR_USER is whose availability is offered (Meelis).
+    monkeypatch.setenv("GRAPH_SENDER", "ravimus@nanordica.com")
+    monkeypatch.setenv("GRAPH_CALENDAR_USER", "meelis@nanordica.com")
 
 
 # 2026-07-22 is a Wednesday.
@@ -60,20 +64,29 @@ DAY = "2026-07-22"
 # --- get_free_slots: env + request shape -----------------------------------
 
 def test_free_slots_env_not_set(monkeypatch):
+    monkeypatch.setenv("GRAPH_SENDER", "ravimus@nanordica.com")
     monkeypatch.delenv("GRAPH_CALENDAR_USER", raising=False)
     out = gc.get_free_slots(f"{DAY}T09:00:00Z", f"{DAY}T10:00:00Z")
     assert "error" in out and "GRAPH_CALENDAR_USER" in out["error"]
 
 
+def test_free_slots_sender_not_set(monkeypatch):
+    monkeypatch.delenv("GRAPH_SENDER", raising=False)
+    monkeypatch.setenv("GRAPH_CALENDAR_USER", "meelis@nanordica.com")
+    out = gc.get_free_slots(f"{DAY}T09:00:00Z", f"{DAY}T10:00:00Z")
+    assert "error" in out and "GRAPH_SENDER" in out["error"]
+
+
 def test_free_slots_request_shape(monkeypatch, cal_env):
+    # getSchedule anchors on the ORGANIZER mailbox, querying Meelis's schedule.
     calls = _patch_call(monkeypatch, _schedule_response())
     gc.get_free_slots(f"{DAY}T09:00:00Z", f"{DAY}T10:00:00Z",
                       duration_minutes=20)
     assert len(calls) == 1
     c = calls[0]
     assert c["method"] == "POST"
-    assert c["path"] == "/users/vet%40nanordica.com/calendar/getSchedule"
-    assert c["body"]["schedules"] == ["vet@nanordica.com"]
+    assert c["path"] == "/users/ravimus%40nanordica.com/calendar/getSchedule"
+    assert c["body"]["schedules"] == ["meelis@nanordica.com"]
     assert c["body"]["startTime"] == {"dateTime": f"{DAY}T09:00:00Z",
                                       "timeZone": "UTC"}
     assert c["body"]["endTime"] == {"dateTime": f"{DAY}T10:00:00Z",
@@ -164,6 +177,19 @@ def test_slot_cap(monkeypatch, cal_env):
     assert out["count"] == 4 and len(out["slots"]) == 4
 
 
+def test_schedule_entry_matched_by_id_not_index(monkeypatch, cal_env):
+    # Be deliberate about which value[] entry is parsed: match scheduleId,
+    # not blind index 0.
+    other = {"scheduleId": "someone@else.com",
+             "scheduleItems": [_busy(f"{DAY}T09:00:00", f"{DAY}T10:00:00")]}
+    mine = _schedule_response(
+        items=[_busy(f"{DAY}T09:00:00", f"{DAY}T09:40:00")])["value"][0]
+    _patch_call(monkeypatch, {"value": [other, mine]})
+    out = gc.get_free_slots(f"{DAY}T09:00:00Z", f"{DAY}T10:00:00Z",
+                            duration_minutes=20)
+    assert [s["start"] for s in out["slots"]] == [f"{DAY}T09:40:00Z"]
+
+
 def test_busy_overlapping_window_edge_clipped(monkeypatch, cal_env):
     # Busy block starting before the window still blocks its overlap.
     _patch_call(monkeypatch, _schedule_response(
@@ -183,10 +209,19 @@ def _lock_env(monkeypatch, tmp_path, name="locks/cal.lock"):
 
 
 def test_book_env_not_set(monkeypatch):
+    monkeypatch.setenv("GRAPH_SENDER", "ravimus@nanordica.com")
     monkeypatch.delenv("GRAPH_CALENDAR_USER", raising=False)
     out = gc.book_slot(f"{DAY}T09:00:00Z", f"{DAY}T09:20:00Z",
                        "lead@clinic.ee", "Ravimus demo")
     assert "error" in out and "GRAPH_CALENDAR_USER" in out["error"]
+
+
+def test_book_sender_not_set(monkeypatch):
+    monkeypatch.delenv("GRAPH_SENDER", raising=False)
+    monkeypatch.setenv("GRAPH_CALENDAR_USER", "meelis@nanordica.com")
+    out = gc.book_slot(f"{DAY}T09:00:00Z", f"{DAY}T09:20:00Z",
+                       "lead@clinic.ee", "Ravimus demo")
+    assert "error" in out and "GRAPH_SENDER" in out["error"]
 
 
 def test_book_happy_path(monkeypatch, cal_env, tmp_path):
@@ -197,14 +232,21 @@ def test_book_happy_path(monkeypatch, cal_env, tmp_path):
                        "lead@clinic.ee", "Ravimus demo", "Tere!")
     assert out == {"booked": True, "event_id": "evt-123",
                    "start": f"{DAY}T09:00:00Z", "end": f"{DAY}T09:20:00Z"}
-    # call 1 = re-check, call 2 = create
-    assert calls[0]["path"].endswith("/calendar/getSchedule")
+    # call 1 = re-check of MEELIS's free/busy (anchored on the organizer),
+    # call 2 = create on the ORGANIZER's calendar.
+    assert calls[0]["path"] == \
+        "/users/ravimus%40nanordica.com/calendar/getSchedule"
+    assert calls[0]["body"]["schedules"] == ["meelis@nanordica.com"]
     ev = calls[1]
     assert ev["method"] == "POST"
-    assert ev["path"] == "/users/vet%40nanordica.com/events"
+    assert ev["path"] == "/users/ravimus%40nanordica.com/events"
     body = ev["body"]
     assert body["subject"] == "Ravimus demo"
+    # Both Meelis and the vet are invited as required attendees.
     assert body["attendees"] == [{"emailAddress":
+                                  {"address": "meelis@nanordica.com"},
+                                  "type": "required"},
+                                 {"emailAddress":
                                   {"address": "lead@clinic.ee"},
                                   "type": "required"}]
     assert body["start"] == {"dateTime": f"{DAY}T09:00:00Z",
@@ -250,10 +292,12 @@ def test_calendar_check_config(monkeypatch):
     monkeypatch.setenv("GRAPH_TENANT_ID", "t")
     monkeypatch.setenv("GRAPH_CLIENT_ID", "c")
     monkeypatch.delenv("GRAPH_CLIENT_SECRET", raising=False)
-    monkeypatch.setenv("GRAPH_CALENDAR_USER", "vet@nanordica.com")
+    monkeypatch.setenv("GRAPH_SENDER", "ravimus@nanordica.com")
+    monkeypatch.setenv("GRAPH_CALENDAR_USER", "meelis@nanordica.com")
     out = calendar_check_config.fn()
     assert out == {"tenant_set": True, "client_set": True,
-                   "secret_set": False, "calendar_user": "vet@nanordica.com"}
+                   "secret_set": False, "sender": "ravimus@nanordica.com",
+                   "calendar_user": "meelis@nanordica.com"}
 
 
 def test_find_slots_delegates(monkeypatch, cal_env):

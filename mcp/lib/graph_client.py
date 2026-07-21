@@ -1,6 +1,6 @@
 """Microsoft Graph app-only (client-credentials) client: token, sendMail,
-inbox delta read, calendar free-slot search + booking. Sender mailbox =
-GRAPH_SENDER; calendar mailbox = GRAPH_CALENDAR_USER."""
+inbox delta read, calendar free-slot search + booking. Sender/organizer
+mailbox = GRAPH_SENDER; offered availability = GRAPH_CALENDAR_USER."""
 import os
 import json
 import time
@@ -111,6 +111,13 @@ def list_new_messages(folder: str = "inbox") -> dict:
 # --- Calendar (getSchedule + event booking) --------------------------------
 # getSchedule is used deliberately: findMeetingTimes is delegated-only and
 # silently unusable with app-only client-credentials auth.
+#
+# Organizer-calendar model: all Graph calls anchor on the agent mailbox
+# (GRAPH_SENDER = ravimus@) — events are created on ITS calendar, inviting
+# both GRAPH_CALENDAR_USER (whose availability is offered) and the lead.
+# The app therefore never writes the human's mailbox (ApplicationAccessPolicy
+# only needs to cover the agent mailbox); free/busy of GRAPH_CALENDAR_USER
+# arrives via getSchedule's org-default sharing.
 
 _BLOCKING = {"busy", "tentative", "oof"}
 _DAYS = {"monday": 0, "tuesday": 1, "wednesday": 2, "thursday": 3,
@@ -167,6 +174,16 @@ def _wh_tz(working_hours: dict):
         return ZoneInfo(name)
     except Exception:
         return timezone.utc
+
+
+def _pick_schedule(res: dict, schedule_id: str) -> dict:
+    """The value[] entry whose scheduleId matches (case-insensitive);
+    falls back to the first entry (we only ever request one schedule)."""
+    entries = res.get("value") or [{}]
+    for entry in entries:
+        if (entry.get("scheduleId") or "").lower() == schedule_id.lower():
+            return entry
+    return entries[0]
 
 
 def _working_intervals(working_hours: dict | None, win_start, win_end) -> list:
@@ -240,21 +257,23 @@ def get_free_slots(date_from: str, date_to: str, duration_minutes: int = 20,
     windows locally: busy/tentative/oof blocks are subtracted and, when the
     response carries workingHours, slots are offered only inside them.
     Returns {'slots': [{'start': ..., 'end': ...}, ...], 'count': N}
-    (capped at max_slots) or {'error': ...}."""
+    (capped at max_slots) or {'error': ...}. The call anchors on the
+    ORGANIZER mailbox (GRAPH_SENDER) and queries GRAPH_CALENDAR_USER's
+    schedule — the app needs no rights on the human's mailbox."""
     from datetime import timedelta
-    calendar_user = _env("GRAPH_CALENDAR_USER")
-    if not calendar_user:
-        return {"error": "GRAPH_CALENDAR_USER not set"}
+    sender, calendar_user = _env("GRAPH_SENDER"), _env("GRAPH_CALENDAR_USER")
+    if not (sender and calendar_user):
+        return {"error": "GRAPH_SENDER/GRAPH_CALENDAR_USER not all set"}
     interval = max(5, min(1440, int(duration_minutes)))  # Graph bounds
     body = {"schedules": [calendar_user],
             "startTime": {"dateTime": date_from, "timeZone": "UTC"},
             "endTime": {"dateTime": date_to, "timeZone": "UTC"},
             "availabilityViewInterval": interval}
-    res = _call("POST", f"/users/{urllib.parse.quote(calendar_user)}"
+    res = _call("POST", f"/users/{urllib.parse.quote(sender)}"
                         "/calendar/getSchedule", body)
     if "error" in res:
         return res
-    entry = (res.get("value") or [{}])[0]
+    entry = _pick_schedule(res, calendar_user)
     win_start, win_end = _parse_dt(date_from), _parse_dt(date_to)
     allowed = _working_intervals(entry.get("workingHours"), win_start, win_end)
     busy = _merge_busy(entry.get("scheduleItems", []), win_start, win_end)
@@ -270,17 +289,19 @@ def get_free_slots(date_from: str, date_to: str, duration_minutes: int = 20,
     return {"slots": slots, "count": len(slots)}
 
 
-def _window_is_free(calendar_user: str, start: str, end: str) -> dict:
-    """Re-check [start, end] via getSchedule. {'free': bool} or {'error':}."""
+def _window_is_free(sender: str, calendar_user: str,
+                    start: str, end: str) -> dict:
+    """Re-check calendar_user's [start, end] via getSchedule (anchored on the
+    organizer mailbox). {'free': bool} or {'error': ...}."""
     body = {"schedules": [calendar_user],
             "startTime": {"dateTime": start, "timeZone": "UTC"},
             "endTime": {"dateTime": end, "timeZone": "UTC"},
             "availabilityViewInterval": 5}
-    res = _call("POST", f"/users/{urllib.parse.quote(calendar_user)}"
+    res = _call("POST", f"/users/{urllib.parse.quote(sender)}"
                         "/calendar/getSchedule", body)
     if "error" in res:
         return res
-    entry = (res.get("value") or [{}])[0]
+    entry = _pick_schedule(res, calendar_user)
     busy = _merge_busy(entry.get("scheduleItems", []),
                        _parse_dt(start), _parse_dt(end))
     return {"free": not busy}
@@ -288,22 +309,24 @@ def _window_is_free(calendar_user: str, start: str, end: str) -> dict:
 
 def book_slot(start: str, end: str, attendee_email: str, subject: str,
               body_text: str = "") -> dict:
-    """Create a Teams meeting in GRAPH_CALENDAR_USER's calendar and invite
-    `attendee_email` (Graph sends the invitation automatically). Double-booking
-    is prevented by an exclusive flock (GRAPH_BOOK_LOCK_PATH, default
-    ./cache/calendar-book.lock) held around a getSchedule re-check + POST:
-    if the window is no longer free, returns {'error': 'slot_taken'} without
-    creating anything."""
+    """Create a Teams meeting on the ORGANIZER's calendar (GRAPH_SENDER) and
+    invite both GRAPH_CALENDAR_USER and `attendee_email` as required attendees
+    (Graph sends the invitations automatically). Double-booking against
+    GRAPH_CALENDAR_USER's free/busy is prevented by an exclusive flock
+    (GRAPH_BOOK_LOCK_PATH, default ./cache/calendar-book.lock) held around a
+    getSchedule re-check + POST: if the window is no longer free (tentative
+    counts — covering not-yet-accepted invites), returns
+    {'error': 'slot_taken'} without creating anything."""
     import fcntl
-    calendar_user = _env("GRAPH_CALENDAR_USER")
-    if not calendar_user:
-        return {"error": "GRAPH_CALENDAR_USER not set"}
+    sender, calendar_user = _env("GRAPH_SENDER"), _env("GRAPH_CALENDAR_USER")
+    if not (sender and calendar_user):
+        return {"error": "GRAPH_SENDER/GRAPH_CALENDAR_USER not all set"}
     lock_path = Path(_env("GRAPH_BOOK_LOCK_PATH") or "./cache/calendar-book.lock")
     lock_path.parent.mkdir(parents=True, exist_ok=True)
     with open(lock_path, "w") as lock_f:
         fcntl.flock(lock_f, fcntl.LOCK_EX)
         try:
-            check = _window_is_free(calendar_user, start, end)
+            check = _window_is_free(sender, calendar_user, start, end)
             if "error" in check:
                 return check
             if not check["free"]:
@@ -312,11 +335,13 @@ def book_slot(start: str, end: str, attendee_email: str, subject: str,
                      "body": {"contentType": "Text", "content": body_text},
                      "start": {"dateTime": start, "timeZone": "UTC"},
                      "end": {"dateTime": end, "timeZone": "UTC"},
-                     "attendees": [{"emailAddress": {"address": attendee_email},
+                     "attendees": [{"emailAddress": {"address": calendar_user},
+                                    "type": "required"},
+                                   {"emailAddress": {"address": attendee_email},
                                     "type": "required"}],
                      "isOnlineMeeting": True,
                      "onlineMeetingProvider": "teamsForBusiness"}
-            res = _call("POST", f"/users/{urllib.parse.quote(calendar_user)}"
+            res = _call("POST", f"/users/{urllib.parse.quote(sender)}"
                                 "/events", event)
             if "error" in res:
                 return res
