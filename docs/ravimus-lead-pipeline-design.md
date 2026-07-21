@@ -252,6 +252,7 @@ live-süsteemi ohutus ei sõltu agendi heast käitumisest.
 | `pipedrive-mcp` | deal'ide lugemine, staadiumimuutus, field'ide uuendus, note lisamine | kustutamine, masskirjutus, admin |
 | `mail-mcp` (MS Graph) | `send_mail` (jõustab: ≤1 kiri lead'ile 24 h, max 5 kirja, opt-out blokeerimisnimekiri, DRY_RUN), `list_new_messages` | kustutamine, teiste kaustade lugemine |
 | `wix-mcp` | tellimuste loetelu, personaalse kupongi loomine (sh 100% näidisekupong), kupongi kasutuse kontroll | toodete/hindade muutmine, tagasimaksed |
+| `omniva-mcp` | pakiautomaadi otsing (avalik feed), saadetise registreerimine (DRY_RUN), sildi PDF, jälgimine | tühistamine, saadetise muutmine, kulleritellimused |
 
 Jagatud API-loogika elab `lib/`-is; discovery-skript kasutab sama
 teeki otse (ta on ise deterministlik kood).

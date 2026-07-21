@@ -87,6 +87,25 @@ Auth uses raw `Authorization` header + `wix-site-id` only.
 | `wix_create_coupon` | `(name: str, code: str, percent_off=100, usage_limit=1)` | Create a personal coupon (DRY_RUN-guarded). |
 | `wix_check_coupon_usage` | `(code: str)` | Check how many times a coupon code has been used. |
 
+### Omniva (`omniva.py`)
+
+Physical sample dispatch to Latvian vets via Omniva parcel machines
+(OMX REST API, `https://omx.omniva.eu/api/v01/omx`, HTTP Basic auth).
+Pickup points come from the public `https://www.omniva.ee/locations.json`
+feed (no auth, EE+LV+LT; cached in-process for 24 h).
+
+| Tool | Signature | Description |
+|---|---|---|
+| `omniva_check_config` | `()` | Report whether customer code, username, and password are set (no API call). |
+| `omniva_list_pickup_points` | `(country="LV", query?: str, limit=20)` | Search pickup points; returned `zip` is the `pickup_point_id` for shipment registration. |
+| `omniva_create_shipment` | `(deal_id: int, receiver_name, receiver_phone, pickup_point_id, receiver_email?)` | Register a parcel-machine sample shipment (DRY_RUN-guarded). Mobile phone mandatory — arrival SMS carries the door code. `deal_id` is context only. |
+| `omniva_get_label` | `(barcode: str)` | Fetch the label PDF to `cache/labels/<barcode>.pdf`, return the path (DRY_RUN-guarded: authenticated call + file write). |
+| `omniva_track` | `(barcode: str)` | Tracking events for a barcode (read-only). |
+
+**No public sandbox exists** — the first live test must be a real (cheap)
+shipment. Keep `DRY_RUN=1` until then; the dry-run log shows the exact
+would-be registration.
+
 ## Guardrails (`mail_send`)
 
 `mail_send` reads the deal's `_state` from Pipedrive and refuses when:
@@ -120,6 +139,10 @@ See `.env.example` for all required keys. Secrets (`*_TOKEN`, `*_SECRET`,
 | `WIX_API_KEY` | `wix_*` tools |
 | `WIX_ACCOUNT_ID` | `wix_*` tools |
 | `WIX_SITE_ID` | `wix_*` tools |
+| `OMNIVA_CUSTOMER_CODE` | `omniva_*` tools (partner/AXA code, goes into request bodies) |
+| `OMNIVA_API_USERNAME` | `omniva_*` tools (HTTP Basic) |
+| `OMNIVA_API_PASSWORD` | `omniva_*` tools (HTTP Basic) |
+| `OMNIVA_SENDER_*` | `omniva_create_shipment` sender block (NAME, PHONE, EMAIL, COUNTRY, POSTCODE, DELIVERYPOINT, STREET, HOUSE_NO) |
 | `DRY_RUN` | all write tools (default `1`) |
 
 ## Claude Code integration
