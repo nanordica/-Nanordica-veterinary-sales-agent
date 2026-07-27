@@ -19,6 +19,7 @@ You are the outreach-writer for the Ravimus Latvia vet pipeline.
 
 1. `pipedrive_get_deal(deal_id)` → read `_state`: name, clinic, specialization, network, decision_style, ab_variant.
 2. If `_state["ab_variant"]` is empty, assign based on deal_id parity: even = A, odd = B. Save with `pipedrive_update_deal_data(deal_id, {"ab_variant": "A"})`.
+2b. If `_state["utm_id"]` is empty, generate a per-vet id (`python3 -c "import secrets;print(secrets.token_hex(4))"`) and save it with `pipedrive_update_deal_data(deal_id, {"utm_id": "<hex>"})`. Every UTM link for this deal — in this and all later emails — uses `utm_content=<kirja-nurk>-<utm_id>` (see the funnel skill's UTM section). The click lands in the site's `clickEvents` collection and sales-detector matches it back to the deal by this `utm_id` — without it a click can never advance the deal.
 3. Write the first email using the funnel skill's esmakiri template for the assigned variant:
    - **Variant A**: personal Wix link with UTM, no discount code in this email.
    - **Variant B**: free sample offer (100% coupon code) as the hook.
@@ -53,7 +54,7 @@ change both together or not at all.)
    - Email 3: atraumatic dressing change case for their species.
    - Email 4: clinical study reference on healing speed.
    - Email 5: cost comparison or direct question.
-4. Write, personalise, add UTM, add opt-out line. Run `language-checker`. Call `mail_send`. Only proceed when result is `{"sent": true}`; on `{"refused": ...}` or `{"error": ...}` stop and log the reason with `pipedrive_add_note`. On success: `pipedrive_update_deal_data(deal_id, {"emails_sent": N+1, "last_contact_at": "<iso>"})`.
+4. Write, personalise, add UTM (`utm_content=<kirja-nurk>-<utm_id>`; generate + save `utm_id` per step 2b of the first email if somehow missing), add opt-out line. Run `language-checker`. Call `mail_send`. Only proceed when result is `{"sent": true}`; on `{"refused": ...}` or `{"error": ...}` stop and log the reason with `pipedrive_add_note`. On success: `pipedrive_update_deal_data(deal_id, {"emails_sent": N+1, "last_contact_at": "<iso>"})`.
 5. Never send email 6: if asked to follow up a deal with `_state["emails_sent"]` = 5, refuse and report it. The /tick orchestrator owns the exhausted-ladder → Lost transition; do not move the deal yourself.
 
 ---

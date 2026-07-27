@@ -33,3 +33,12 @@ def wix_create_coupon(name: str, code: str, percent_off: int = 100,
 def wix_check_coupon_usage(code: str) -> dict:
     """Check how many times a coupon code has been used."""
     return w.check_coupon_usage(code)
+
+
+@mcp.tool
+def wix_get_click_events(utm_content: str | None = None, since: str | None = None,
+                         limit: int = 100) -> dict:
+    """List Academy-link click events (clickEvents Wix Data collection, logged by
+    the site's Velo snippet). Filter by exact utm_content hash and/or `since`
+    (ISO-8601, on click time). Newest first. Read-only."""
+    return w.get_click_events(utm_content, since, limit)
