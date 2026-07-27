@@ -258,6 +258,7 @@ live-süsteemi ohutus ei sõltu agendi heast käitumisest.
 | `pipedrive-mcp` | deal'ide lugemine, staadiumimuutus, field'ide uuendus, note lisamine | kustutamine, masskirjutus, admin |
 | `mail-mcp` (MS Graph) | `send_mail` (jõustab: ≤1 kiri lead'ile 24 h, max 5 kirja, opt-out blokeerimisnimekiri, DRY_RUN), `list_new_messages`; kalendritööriistad `calendar_find_slots` + `calendar_book_slot` (getSchedule-põhine vabade aegade otsing — findMeetingTimes ei tööta app-only õigustega —, topeltbroneeringu vastu flock-lukk ümber kontrolli-ja-loo sammu, broneerimine DRY_RUN-i taga; korraldajamudel: sündmus luuakse agendi postkasti (`GRAPH_SENDER`) kalendrisse, kutsudes nii inimese (`GRAPH_CALENDAR_USER`) kui ka vetarsti — äpp ei kirjuta kunagi inimese postkasti, ApplicationAccessPolicy katab ainult agendi postkasti) | kustutamine, teiste kaustade lugemine, inimese kalendri muutmine |
 | `wix-mcp` | tellimuste loetelu, personaalse kupongi loomine (sh 100% näidisekupong), kupongi kasutuse kontroll, klikisündmuste lugemine (`clickEvents` Wix Data kollektsioon) | toodete/hindade muutmine, tagasimaksed, kollektsioonide haldus |
+| `omniva-mcp` | pakiautomaadi otsing (avalik feed), saadetise registreerimine (DRY_RUN), sildi PDF, jälgimine | tühistamine, saadetise muutmine, kulleritellimused |
 
 Jagatud API-loogika elab `lib/`-is; discovery-skript kasutab sama
 teeki otse (ta on ise deterministlik kood).
