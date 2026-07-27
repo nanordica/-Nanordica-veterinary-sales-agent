@@ -22,4 +22,5 @@ STATE_KEYS = [
     "last_contact_at", "lost_reason",
     "valid_until", "practice_scope", "source",
     "sample_reminder_sent", "thanked_at",
+    "utm_id", "engaged_at",
 ]

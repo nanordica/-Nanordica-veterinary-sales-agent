@@ -86,6 +86,7 @@ Auth uses raw `Authorization` header + `wix-site-id` only.
 | `wix_list_orders` | `(since?: str, limit=50)` | List recent store orders, optionally filtered by `since` (ISO-8601). |
 | `wix_create_coupon` | `(name: str, code: str, percent_off=100, usage_limit=1)` | Create a personal coupon (DRY_RUN-guarded). |
 | `wix_check_coupon_usage` | `(code: str)` | Check how many times a coupon code has been used. |
+| `wix_get_click_events` | `(utm_content?: str, since?: str, limit=100)` | List Academy-link click events from the `clickEvents` Wix Data collection (written by the site's masterPage.js Velo snippet). Filter by exact `utm_content` hash and/or `since` (ISO-8601). Newest first, read-only. Requires the **Wix Data – Read Data Items** permission on the API key. |
 
 ### Calendar (`calendar.py`)
 

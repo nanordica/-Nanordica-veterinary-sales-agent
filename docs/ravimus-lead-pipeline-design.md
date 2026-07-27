@@ -40,7 +40,7 @@ flowchart TD
     QF -->|"esmakiri: A/B variant<br/>(A: personaalne link · B: näidise sooduskood);<br/>ainult kui Contacted &lt; 20"| C["Contacted"]
     C -->|"vaikus: follow-up redel,<br/>vahed 3→5→8→13 päeva,<br/>iga kiri uue sisuga"| C
     C -->|"5 kirja saadetud,<br/>endiselt vaikus"| L
-    C -->|"vastus (hiljem ka<br/>klikk / avamine)"| EN["Engaged"]
+    C -->|"vastus / klikk<br/>(Wix clickEvents)"| EN["Engaged"]
     C -->|"variant B lunastab<br/>näidise 100% kupongi"| S["Näidis tellitud"]
 
     EN -->|"'ei' / opt-out / bounce"| L
@@ -232,12 +232,18 @@ Loeb Graphi kaudu uued kirjad alates eelmisest tikist (delta-token
 Tundmatult aadressilt kiri → note üldlogisse, inimesele vaatamiseks.
 
 ### sales-detector
-Pollib Wixi: uued tellimused + personaalsete kupongide kasutus. Seob
-ostja e-posti või kupongikoodi deal'iga. **Päris ost → Won**,
-outreach-writer saadab tänukirja. **Tasuta näidise lunastus (100%
-kupong) → Näidis tellitud** ja seab `sample_claimed_at` — näidis on
-samm, mitte lõpp; redel jätkab kuni päris ostuni. Seostumatu tellimus
-logitakse (orgaaniline müük).
+Pollib Wixi: uued tellimused + personaalsete kupongide kasutus +
+Akadeemia-lingi klikid. Seob ostja e-posti või kupongikoodi deal'iga.
+**Päris ost → Won**, outreach-writer saadab tänukirja. **Tasuta
+näidise lunastus (100% kupong) → Näidis tellitud** ja seab
+`sample_claimed_at` — näidis on samm, mitte lõpp; redel jätkab kuni
+päris ostuni. Seostumatu tellimus logitakse (orgaaniline müük).
+**Klikk (`wix_get_click_events`, match `_state.utm_id` järgi) →
+Contacted deal Engaged'iks** + `engaged_at`; juba edasi jõudnud deal'e
+tagasi ei liigutata. Klikiandmed tulevad saidi `clickEvents` Wix Data
+kollektsioonist, kuhu masterPage.js Velo-snipet logib iga
+`ravimusvet-*` kampaania külastuse (Wixi analüütika-API-l UTM-vaadet
+pole — kontrollitud 2026-07-21).
 
 ## Tööriistakiht — kohalikud MCP serverid
 
@@ -251,7 +257,7 @@ live-süsteemi ohutus ei sõltu agendi heast käitumisest.
 |---|---|---|
 | `pipedrive-mcp` | deal'ide lugemine, staadiumimuutus, field'ide uuendus, note lisamine | kustutamine, masskirjutus, admin |
 | `mail-mcp` (MS Graph) | `send_mail` (jõustab: ≤1 kiri lead'ile 24 h, max 5 kirja, opt-out blokeerimisnimekiri, DRY_RUN), `list_new_messages`; kalendritööriistad `calendar_find_slots` + `calendar_book_slot` (getSchedule-põhine vabade aegade otsing — findMeetingTimes ei tööta app-only õigustega —, topeltbroneeringu vastu flock-lukk ümber kontrolli-ja-loo sammu, broneerimine DRY_RUN-i taga; korraldajamudel: sündmus luuakse agendi postkasti (`GRAPH_SENDER`) kalendrisse, kutsudes nii inimese (`GRAPH_CALENDAR_USER`) kui ka vetarsti — äpp ei kirjuta kunagi inimese postkasti, ApplicationAccessPolicy katab ainult agendi postkasti) | kustutamine, teiste kaustade lugemine, inimese kalendri muutmine |
-| `wix-mcp` | tellimuste loetelu, personaalse kupongi loomine (sh 100% näidisekupong), kupongi kasutuse kontroll | toodete/hindade muutmine, tagasimaksed |
+| `wix-mcp` | tellimuste loetelu, personaalse kupongi loomine (sh 100% näidisekupong), kupongi kasutuse kontroll, klikisündmuste lugemine (`clickEvents` Wix Data kollektsioon) | toodete/hindade muutmine, tagasimaksed, kollektsioonide haldus |
 
 Jagatud API-loogika elab `lib/`-is; discovery-skript kasutab sama
 teeki otse (ta on ise deterministlik kood).
@@ -345,12 +351,15 @@ eelmise kontroll läbib.
 
 ## Lahtised punktid (kokkuleppel hilisemaks)
 
-- **Engaged-tuvastus klikist/avamisest** (issue #1, otsus 2): praegu
-  Engaged = e-kirja vastus. Hiljem lisandub personaalse lingi klikk ja
-  e-maili avamine — eelistatult Wixi/Pipedrive'i sisseehitatud
-  võimalustega, mitte oma jälgimisteenusega. `lv-vet-email-funnel`
-  skilli UTM-raamistik (`utm_content` A/B variandi kohta) on selle
-  alus: personaalne link = tooteleht + UTM-parameetrid.
+- **Engaged-tuvastus klikist** — LAHENDATUD 2026-07-21: personaalse
+  lingi klikk (utm_content = `<kirja-nurk>-<utm_id>`) logitakse saidi
+  Velo-snipetiga `clickEvents` Wix Data kollektsiooni ja
+  sales-detector viib deal'i Engaged'iks (`wix_get_click_events`).
+  Wixi/Pipedrive'i sisseehitatud võimalustest ei piisanud: Wixi
+  analüütika-API on agregeeritud (UTM-dimensioonita) ja Pipedrive'i
+  klikijälgimine töötab ainult Pipedrive'ist saadetud kirjadel.
+  E-maili avamist ei mõõda (avamised on müra; klikk + vastus on
+  signaalid).
 - **A/B mallide täpne sõnastus** otsustatakse enne live'i; jaotuse telg
   (A: personaalne link · B: näidise sooduskood), `ab_variant` field ja
   harupõhine redel on disainis paigas.
