@@ -107,6 +107,62 @@ nevēlaties saņemt vairāk vēstuļu, atbildiet uz šo e-pastu.
 
 ---
 
+## K2 — järelkiri: kutse akadeemiasse panustada (kinnitatud mall, 2026-07-28)
+
+**Pealkiri:** Uzaicinājums dalīties ar savu pieredzi Brūču aprūpes akadēmijā
+
+**Saatja:** Meelis, Nanordica Medical
+
+**Avarea variandid (rikastamine valib):**
+
+| Stsenaarium | Tekst |
+|---|---|
+| Kirurgia | {{klīnika}} ķirurģijas prakse nozīmē, ka Jums ir pēcoperācijas brūču aprūpes pieredze, kas varētu būt noderīga citiem ārstiem. |
+| Pikaajaline kogemus | Kā ilggadējs praktizējošs ārsts Jums, visticamāk, ir brūču aprūpes metodes, kas ir vērtas uzmanības. |
+| Kliinikuomanik | Kā klīnikas īpašnieks Jums, visticamāk, ir praktiski risinājumi, kas gadu gaitā ir izveidojušies un ko citi ārsti varētu arī zināt. |
+| Kassid / hobused (mitte koerad) | {{klīnika}} nodarbojas ar {{dzīvnieku sugu}}, kuriem brūču aprūpe bieži ir sarežģītāka — tieši šāda pieredze akadēmijā ir maz pārstāvēta. |
+
+**Kirja tekst:**
+
+```
+Cienījamais/ā Dr. {{uzvārds}},
+
+{{personalizēta rinda}}
+
+Brūču aprūpes akadēmijas videomateriāli ir veidoti no praktizējošu
+veterinārārstu pieredzes. Ja Jums ir brūču aprūpes metode, ko varētu
+izmantot arī citi ārsti, labprāt palīdzēsim to padarīt pieejamu citiem
+veterinārārstiem.
+
+Jūs filmējat ārstniecisko paņēmienu ar tālruni — mēs no tā izveidosim
+aptuveni vienu minūti garu mācību video ar skaidrojumiem. Jūsu vārds un
+klīnika tiks norādīti, pēc vēlēšanās pievienosim arī Jūsu fotoattēlu.
+Pirms publicēšanas lūgsim Jūsu galīgo apstiprinājumu.
+
+Šāda video piemērs: https://www.nanordica.com/lv/ravimus?utm_source=email&utm_medium=cold&utm_content=k2-{{utm_id}}
+
+Ja vēlaties video izmantot RavimusVET brūču pārsējus, nosūtīsim tos bez
+maksas. Ja Jums ir jautājumi, esmu gatavs arī īsai videokonferencei.
+
+Ko Jūs domājat?
+
+Ar labiem vēlējumiem,
+Meelis
+Nanordica Medical
+
+Jūsu kontaktinformāciju atradām publiskajā veterinārārstu reģistrā. Ja
+nevēlaties saņemt vairāk vēstuļu, atbildiet uz šo e-pastu.
+```
+
+**Märkused:**
+- `Cienījamais` (mees) / `Cienījamā` (naine) — rikastamine valib soo järgi
+- UTM `utm_content=k2-{{utm_id}}` — sama `utm_id` mis K1-s, nurk erineb
+- Käivitub +7 päeva pärast K1-t kui vastust pole
+- CTA: vastus kirjale → inbox-triage märgib Engaged → outreach-writer saadab K4 (aadressi küsimine)
+- Kassid/hobused avarea: mitte kasutada koerte puhul
+
+---
+
 ## Vana näidiskiri 1: esmane pöördumine, kassiarst (lv mustand, asendatud)
 
 > **Pealkiri:** {{eesnimi}}, atraumatiska pārsiešana kaķiem?
