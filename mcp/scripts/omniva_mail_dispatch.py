@@ -35,6 +35,7 @@ Run from mcp/:  python -m scripts.omniva_mail_dispatch [--top 25]
 import argparse
 import html
 import json
+import os
 import re
 import time
 import urllib.error
@@ -293,6 +294,26 @@ def build_clarification(res: dict, subject: str | None) -> tuple:
     return subj, "".join(parts)
 
 
+# --- shipped notification (K5: internal, deterministic, no LLM) -------------
+
+def build_shipped_notice(res: dict) -> tuple:
+    """(subject, html_body) for the internal notification after a shipment
+    is registered: receiver, machine, tracking number; label PDF attached
+    by the caller."""
+    f = res.get("fields", {})
+    machine = (res.get("machine") or {}).get("name", "?")
+    barcode = res.get("barcode", "?")
+    subj = f"Pakk registreeritud: {f.get('name', '?')} → {machine}"
+    body = ("Tere!<br><br>Omniva saadetis on registreeritud.<br><ul>"
+            f"<li>Saaja: {f.get('name', '?')} ({f.get('phone', '?')})</li>"
+            f"<li>Pakiautomaat: {machine}</li>"
+            f"<li>Jälgimisnumber: <b>{barcode}</b></li></ul>"
+            "Pakisilt on kirjaga kaasas — prindi ja kleebi pakile. "
+            "Jälgimine: https://www.omniva.ee/abi/jalgimine<br><br>"
+            "— Ravimus'e saatmisagent (automaatne kiri)")
+    return subj, body
+
+
 # --- registry ---------------------------------------------------------------
 
 def inherit_fields(registry: dict, conversation_id: str | None) -> dict:
@@ -409,6 +430,15 @@ def main() -> int:
         res.update({"id": msg["id"], "from": sender,
                     "subject": msg.get("subject"),
                     "received": msg.get("receivedDateTime")})
+        if res["status"] == "registered":
+            # K5: notify the office (label + tracking number), deterministic.
+            notify_to = os.getenv("DISPATCH_NOTIFY_EMAIL",
+                                  "vera@nanordica.com")
+            subj, html_body = build_shipped_notice(res)
+            lab = res.get("label")
+            atts = [lab] if lab and str(lab).endswith(".pdf") else None
+            res["notification"] = gc.send_mail(notify_to, subj, html_body,
+                                               attachments=atts)
         if res["status"] in ("error", "ambiguous"):
             subj, html_body = build_clarification(res, msg.get("subject"))
             if is_dry_run() and not args.send_asks:

@@ -222,6 +222,28 @@ def test_build_clarification_ambiguous():
     assert "A pakiautomaat" in body and "B pakiautomaat" in body
 
 
+# --- shipped notification ---------------------------------------------------
+
+def test_build_shipped_notice():
+    subj, body = od.build_shipped_notice(
+        {"fields": {"name": "Mari Maasikas", "phone": "51234567"},
+         "machine": {"name": "Viljandi Männimäe Selveri pakiautomaat"},
+         "barcode": "CC123EE"})
+    assert "Mari Maasikas" in subj and "Selveri" in subj
+    assert "CC123EE" in body and "51234567" in body
+
+
+def test_file_attachment_builds_base64(tmp_path):
+    from lib import graph_client as gc
+    p = tmp_path / "label.pdf"
+    p.write_bytes(b"%PDF-1.4 test")
+    att = gc.file_attachment(str(p))
+    assert att["name"] == "label.pdf"
+    assert att["contentType"] == "application/pdf"
+    import base64
+    assert base64.b64decode(att["contentBytes"]).startswith(b"%PDF")
+
+
 # --- thread field inheritance -----------------------------------------------
 
 def test_inherit_fields_merges_thread_rounds():
