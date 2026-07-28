@@ -211,10 +211,18 @@ def resolve_pickup_point(fields: dict, lookup=oc.list_pickup_points) -> dict:
 
 # --- Graph inbox ------------------------------------------------------------
 
+def _internal(addr: str) -> bool:
+    """True when the address is in the company domain. Two hard rules hang
+    on this: (1) a NEW shipment may only be initiated by an internal
+    sender; (2) label/tracking notifications may only be emailed to an
+    internal address."""
+    return (addr or "").lower().endswith(INTERNAL_DOMAIN)
+
+
 def _is_dispatch_candidate(sender: str, own_address: str, *texts) -> bool:
     """Internal sender (not the mailbox itself) + shipping keyword anywhere."""
     s = (sender or "").lower()
-    if not s.endswith(INTERNAL_DOMAIN) or s == (own_address or "").lower():
+    if not _internal(s) or s == (own_address or "").lower():
         return False
     blob = " ".join(t or "" for t in texts).lower()
     return any(k in blob for k in KEYWORDS)
@@ -312,6 +320,21 @@ def build_shipped_notice(res: dict) -> tuple:
             "Jälgimine: https://www.omniva.ee/abi/jalgimine<br><br>"
             "— Ravimus'e saatmisagent (automaatne kiri)")
     return subj, body
+
+
+def send_shipped_notice(res: dict) -> dict:
+    """Email the shipped-notice (label + tracking) to the office address.
+    HARD RULE: label/tracking info may only go to an @nanordica.com
+    address — anything else is refused, never sent."""
+    notify_to = os.getenv("DISPATCH_NOTIFY_EMAIL", "vera@nanordica.com")
+    if not _internal(notify_to):
+        return {"error": f"notify blocked: '{notify_to}' ei ole "
+                         f"{INTERNAL_DOMAIN} aadress — pakisildi/jälgimise "
+                         "info tohib minna ainult firmasisesele aadressile"}
+    subj, html_body = build_shipped_notice(res)
+    lab = res.get("label")
+    atts = [lab] if lab and str(lab).endswith(".pdf") else None
+    return gc.send_mail(notify_to, subj, html_body, attachments=atts)
 
 
 # --- registry ---------------------------------------------------------------
@@ -432,16 +455,14 @@ def main() -> int:
                     "received": msg.get("receivedDateTime")})
         if res["status"] == "registered":
             # K5: notify the office (label + tracking number), deterministic.
-            notify_to = os.getenv("DISPATCH_NOTIFY_EMAIL",
-                                  "vera@nanordica.com")
-            subj, html_body = build_shipped_notice(res)
-            lab = res.get("label")
-            atts = [lab] if lab and str(lab).endswith(".pdf") else None
-            res["notification"] = gc.send_mail(notify_to, subj, html_body,
-                                               attachments=atts)
+            res["notification"] = send_shipped_notice(res)
         if res["status"] in ("error", "ambiguous"):
             subj, html_body = build_clarification(res, msg.get("subject"))
-            if is_dry_run() and not args.send_asks:
+            if not _internal(sender):
+                # Defense in depth — the candidate filter already guarantees
+                # an internal sender; never reply outside the domain.
+                res["clarification"] = {"error": "blocked: väline saatja"}
+            elif is_dry_run() and not args.send_asks:
                 res["clarification"] = dry_log(
                     "omniva_mail_dispatch.clarify", to=sender, subject=subj)
             else:

@@ -244,6 +244,39 @@ def test_file_attachment_builds_base64(tmp_path):
     assert base64.b64decode(att["contentBytes"]).startswith(b"%PDF")
 
 
+# --- internal-domain guards -------------------------------------------------
+
+def test_internal_domain_check():
+    assert od._internal("vera@nanordica.com")
+    assert not od._internal("vera@gmail.com")
+    assert not od._internal("")
+
+
+def test_shipped_notice_blocked_for_external_recipient(monkeypatch):
+    monkeypatch.setenv("DISPATCH_NOTIFY_EMAIL", "keegi@gmail.com")
+
+    def boom(*a, **kw):  # send_mail must never be reached
+        raise AssertionError("send_mail called for external recipient")
+    monkeypatch.setattr(od.gc, "send_mail", boom)
+    res = od.send_shipped_notice({"fields": {}, "machine": {}, "barcode": "X"})
+    assert "blocked" in res["error"]
+
+
+def test_shipped_notice_goes_to_internal(monkeypatch):
+    monkeypatch.setenv("DISPATCH_NOTIFY_EMAIL", "vera@nanordica.com")
+    sent = {}
+
+    def fake_send(to, subj, body, attachments=None):
+        sent.update(to=to, attachments=attachments)
+        return {"sent": True}
+    monkeypatch.setattr(od.gc, "send_mail", fake_send)
+    res = od.send_shipped_notice({"fields": {"name": "M"}, "machine": {},
+                                  "barcode": "X", "label": "/tmp/x.pdf"})
+    assert res == {"sent": True}
+    assert sent["to"] == "vera@nanordica.com"
+    assert sent["attachments"] == ["/tmp/x.pdf"]
+
+
 # --- thread field inheritance -----------------------------------------------
 
 def test_inherit_fields_merges_thread_rounds():
