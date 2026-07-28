@@ -113,12 +113,61 @@ def test_resolve_address_with_only_post_office_errors():
     assert "pakiautomaati" in r["error"]
 
 
+# --- free-text fallback -----------------------------------------------------
+
+FREETEXT_BODY = """
+Mari Maasikas
+51234567 , Viljandisse Männimäele
+
+
+Soovin saata paki. Saadetis on paksem A4-formaadis ümbrik.
+
+
+Tervitades,
+Vera
+"""
+
+EE_MACHINES = MACHINES + [
+    {"zip": "96284", "name": "Viljandi Männimäe Maksimarketi pakiautomaat",
+     "address": "Riia mnt 35, Viljandi", "type": "parcel_machine"},
+]
+
+
+def test_fallback_parse_free_text():
+    f = od.fallback_parse(FREETEXT_BODY)
+    assert f["name"] == "Mari Maasikas"
+    assert f["phone"] == "51234567"
+    assert f["country"] == "EE"  # Estonian mobile prefix 5
+    assert f["address"] == "Viljandi Männimäe"  # case endings stemmed
+
+
+def test_fallback_lv_phone_sets_lv():
+    assert od.fallback_parse("Zvaniet +371 26123456")["country"] == "LV"
+
+
+def test_labeled_fields_win_over_fallback(monkeypatch):
+    monkeypatch.setenv("DRY_RUN", "1")
+    body = FREETEXT_BODY + "\nSaaja: Teine Nimi\n"
+    res = od.process_message(_msg(body), lookup=fake_lookup(EE_MACHINES))
+    assert res["fields"]["name"] == "Teine Nimi"
+
+
+def test_process_free_text_dry_run(monkeypatch):
+    monkeypatch.setenv("DRY_RUN", "1")
+    res = od.process_message(_msg(FREETEXT_BODY),
+                             lookup=fake_lookup(EE_MACHINES))
+    assert res["status"] == "dry_run"
+    assert res["machine"]["zip"] == "96284"
+
+
 # --- candidate filter -------------------------------------------------------
 
 def test_candidate_filter():
     own = "ravimus@nanordica.com"
     assert od._is_dispatch_candidate("vera@nanordica.com", own,
                                      "Palun saada pakk", "")
+    assert od._is_dispatch_candidate("vera@nanordica.com", own,
+                                     "soovin saata paki", "")
     assert not od._is_dispatch_candidate("vet@klinika.lv", own,
                                          "Palun saada pakk", "")
     assert not od._is_dispatch_candidate("vera@nanordica.com", own,

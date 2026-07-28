@@ -48,7 +48,7 @@ from lib.dryrun import is_dry_run, dry_log
 
 _GRAPH = "https://graph.microsoft.com/v1.0"
 INTERNAL_DOMAIN = "@nanordica.com"
-KEYWORDS = ("pakk", "pakiautomaat", "omniva", "saatmine", "saada")
+KEYWORDS = ("pakk", "paki", "omniva", "saatmi", "saata", "saada")
 STATE_PATH = Path(__file__).resolve().parents[2] / "cache" / "omniva-dispatch.json"
 
 # Body-line labels -> canonical field names (case-insensitive, ':' or '=').
@@ -85,6 +85,55 @@ def parse_dispatch_email(text: str) -> dict:
         key = FIELD_ALIASES.get(m.group(1).lower())
         if key and key not in fields:
             fields[key] = m.group(2).strip()
+    return fields
+
+
+_GREETINGS = {"tere", "tervitades", "lugupidamisega", "soovin", "palun",
+              "aitäh", "parimate"}
+_NAME_RE = re.compile(r"^[A-ZÕÄÖÜŠŽ][a-zõäöüšž\-'’ēāīūčģķļņ]+$")
+
+
+def _stem_place(token: str) -> str:
+    """Strip Estonian directional case endings so 'Viljandisse Männimäele'
+    matches the feed's nominative names ('Viljandi Männimäe ...')."""
+    for suf in ("sse", "ile", "le", "ni"):
+        if token.lower().endswith(suf) and len(token) > len(suf) + 2:
+            return token[:-len(suf)]
+    return token
+
+
+def fallback_parse(text: str) -> dict:
+    """Heuristic free-text extraction for emails without labeled lines.
+    Labeled fields always win — the caller merges these underneath. Finds:
+    phone (digit run), receiver name (capitalized 2-3 word line), place
+    (comma-segment on the phone line, case endings stemmed) and country
+    (from the phone's prefix; Estonian mobiles start with 5)."""
+    fields = {}
+    m = re.search(r"(\+?\d[\d\s\-]{5,}\d)", text)
+    if m:
+        phone = " ".join(m.group(1).split())
+        digits = re.sub(r"\D", "", phone)
+        if len(digits) >= 7:
+            fields["phone"] = phone
+            if phone.startswith("+371"):
+                fields["country"] = "LV"
+            elif phone.startswith("+372") or digits.startswith("5"):
+                fields["country"] = "EE"
+    for line in text.splitlines():
+        words = line.strip().rstrip(",.").split()
+        if (2 <= len(words) <= 3 and words[0].lower() not in _GREETINGS
+                and all(_NAME_RE.match(w) for w in words)):
+            fields.setdefault("name", " ".join(words))
+            break
+    if m:
+        phone_line = next((ln for ln in text.splitlines()
+                           if m.group(1) in ln), "")
+        after = phone_line.split(",", 1)
+        if len(after) == 2:
+            toks = [_stem_place(t) for t in after[1].split()
+                    if t[:1].isupper()]
+            if toks:
+                fields["address"] = " ".join(toks)
     return fields
 
 
@@ -215,7 +264,8 @@ def process_message(msg: dict, lookup=oc.list_pickup_points,
     if (msg.get("body") or {}).get("contentType", "").lower() == "html" \
             or "<" in body:
         body = strip_html(body)
-    fields = parse_dispatch_email(body)
+    labeled = parse_dispatch_email(body)
+    fields = {**fallback_parse(body), **labeled}  # labeled lines always win
     missing = validate_fields(fields)
     if missing:
         return {"status": "error", "missing": missing, "fields": fields}
