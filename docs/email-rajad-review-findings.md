@@ -1,16 +1,15 @@
 # Review findings — email-rajad ja näidiskirjad
 
-*2026-07-27. Three-way parallel review of `docs/email-rajad-ja-naidiskirjad.md`: (1) repo/design consistency, (2) cold-email craft vs email-marketing-bible + `lv-vet-email-funnel` references, (3) Latvian language QA per `latvian-qa.md`. Findings deduplicated and ranked. The funnel doc itself is untouched — apply fixes from here.*
+*2026-07-27. Three-way parallel review of the v1 funnel/copy note: (1) repo/design consistency, (2) cold-email craft vs email-marketing-bible + `lv-vet-email-funnel` references, (3) Latvian language QA per `latvian-qa.md`. Findings deduplicated and ranked.*
+
+***2026-07-28 pruning:** the v1 note was superseded by [email-lehter-v2.md](email-lehter-v2.md); structural A-block findings 1–5 were resolved by the v2 redesign and are collapsed below. Everything else (medical claims, compliance, copy craft, Latvian language) still applies to the v1 LV letter drafts, which must be re-adapted to the v2 structure — treat this file as the checklist for that rewrite (v2 open question #5). Delete this file once K1–K10 copies are rewritten and language-checked.*
 
 ---
 
-## A. Blockers — the doc misleads an implementer (fix before anyone builds from it)
+## A. Blockers — ~~1–5 resolved by the v2 redesign~~ + medical claims (still open)
 
-1. **Phantom agents.** `calendar-booker`, `shipping-dispatcher`, `feedback-collector` (graph, E3-A/E4-B/E5-B, legend) don't exist. Real owners: **outreach-writer** dispatched by `/tick`, calling mail-mcp `calendar_find_slots`/`calendar_book_slot`, `omniva_create_shipment`/`omniva_get_label`/`omniva_track`; **inbox-triage** classifies feedback replies. NB: none of these tools are wired into `/tick` or any agent file yet — tooling exists, orchestration is TODO.
-2. **Cal.com is cited but was rejected.** E3-A must describe the implemented organizer model: event on `GRAPH_SENDER`'s calendar, inviting `GRAPH_CALendar_USER` + vet; getSchedule slot search; flock no-double-book.
-3. **Wrong click mechanism.** "klikk (Wixi UTM) / Wixi UTM-statistikast" → clicks come from the `clickEvents` Wix Data collection (masterPage.js Velo snippet), read via `wix_get_click_events`, matched by `_state.utm_id`. Wix analytics has no UTM API (verified 2026-07-21).
-4. **A/B split at the wrong point.** Design + outreach-writer.md put the A/B fork in the **first email** (A = personal link, B = 100% sample Wix coupon as the hook, `ab_variant` by deal-id parity). The doc gives everyone the same E1 and forks after engagement — variant B's first-email hook silently disappears and the pipeline's `ab_variant`/`utm_content=esmakiri-a/b` measurement has no email behind it. Decide: rewrite doc to first-email A/B, or change the design first.
-5. **Path B is unimplementable as drawn.** "Huvi kinnitatud" stage doesn't exist (stages: Discovered…Naidis tellitud, Won, Lost — ASCII names). D2 "Näidis teel", D3 "Tagasiside", D5 "Sooduskood" have no stage/state key; STATE_KEYS lacks `shipped_at`/`tracking`/`feedback_at`; nothing polls `omniva_track`, so "tarne + 7 p" and "vaikus +3 p" timers can't fire. Implemented flow (tick §4): coupon redeemed → "Naidis tellitud" + `sample_claimed_at`; +3 p reminder (`sample_reminder_sent`); +13 p → Lost. Also: doc's reply-driven physical dispatch (jā → address → Omniva) coexists unreconciled with the implemented self-serve coupon model — pick the authoritative one; if physical, add state keys + a delivery-poll step and a "Näidis tellitud" node.
+~~1–5: phantom agents / Cal.com / wrong click mechanism / A/B split point / unimplementable path B~~ — **lahendatud v2-s (28.07):** roles fixed to real agents+tools, organizer-model calendar, clickEvents mechanism, physical Omniva dispatch made authoritative and implemented (`omniva_mail_dispatch.py` + state keys in v2 doc). A/B split remains as v2 open question #3.
+
 6. **Medical-device claims exceed evidenced form** (product-ravimus-vet.md is the only allowed source):
    - E1 "dziedēja brūces gandrīz divreiz ātrāk nekā sudraba pārsēji" — RCT was **human DFU patients** (n=30), metric = wound-area reduction; "Nedrīkst teikt" forbids implying an animal study. Required framing: "pētījumā ar cilvēku pacientiem (identiska tehnoloģija) brūču laukums samazinājās ~2× ātrāk". Same defect in "Rakendatud reeglid".
    - Tänukiri dressing-change tip ("kad eksudāts sasniedz malu") — no source in any product file; remove or replace with a sourced fact.
