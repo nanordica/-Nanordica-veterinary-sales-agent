@@ -222,6 +222,31 @@ def test_build_clarification_ambiguous():
     assert "A pakiautomaat" in body and "B pakiautomaat" in body
 
 
+# --- thread field inheritance -----------------------------------------------
+
+def test_inherit_fields_merges_thread_rounds():
+    reg = {"m1": {"conversationId": "c1", "ts": 1,
+                  "fields": {"name": "Mari Maasikas", "phone": "51234567",
+                             "address": "Viljandi Männimäe", "country": "EE"}},
+           "m2": {"conversationId": "c2", "ts": 2,
+                  "fields": {"name": "Keegi Muu"}}}
+    assert od.inherit_fields(reg, "c1")["name"] == "Mari Maasikas"
+    assert od.inherit_fields(reg, "puudub") == {}
+    assert od.inherit_fields(reg, None) == {}
+
+
+def test_short_reply_completes_via_inheritance(monkeypatch):
+    monkeypatch.setenv("DRY_RUN", "1")
+    inherited = {"name": "Mari Maasikas", "phone": "51234567",
+                 "address": "Viljandi Männimäe", "country": "EE"}
+    res = od.process_message(
+        _msg("Pakiautomaat: Viljandi Männimäe Selveri pakiautomaat\n"),
+        lookup=fake_lookup(AMBIG_MACHINES), inherited=inherited)
+    assert res["status"] == "dry_run"
+    assert res["machine"]["zip"] == "96063"  # explicit machine beats address
+    assert res["fields"]["name"] == "Mari Maasikas"
+
+
 # --- candidate filter -------------------------------------------------------
 
 def test_candidate_filter():

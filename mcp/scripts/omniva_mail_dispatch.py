@@ -227,7 +227,8 @@ def list_recent_inbox(top: int = 25) -> dict:
         return gc.get_token()
     url = (f"{_GRAPH}/users/{urllib.parse.quote(sender)}/mailFolders/inbox/"
            f"messages?$top={top}&$orderby=receivedDateTime%20desc"
-           "&$select=id,subject,from,receivedDateTime,body,bodyPreview")
+           "&$select=id,conversationId,subject,from,receivedDateTime,body,"
+           "bodyPreview")
     try:
         req = urllib.request.Request(url, headers=headers, method="GET")
         with urllib.request.urlopen(req, timeout=30) as r:
@@ -294,6 +295,22 @@ def build_clarification(res: dict, subject: str | None) -> tuple:
 
 # --- registry ---------------------------------------------------------------
 
+def inherit_fields(registry: dict, conversation_id: str | None) -> dict:
+    """Fields gathered earlier in the same thread (latest clarification
+    round wins). Lets a short reply like 'Pakiautomaat: X' complete a
+    request whose name/phone arrived in the original email."""
+    if not conversation_id:
+        return {}
+    rounds = [e for e in registry.values()
+              if e.get("conversationId") == conversation_id
+              and e.get("fields")]
+    rounds.sort(key=lambda e: e.get("ts", 0))
+    merged = {}
+    for e in rounds:
+        merged.update(e["fields"])
+    return merged
+
+
 def load_registry() -> dict:
     try:
         return json.loads(STATE_PATH.read_text())
@@ -309,7 +326,8 @@ def save_registry(reg: dict) -> None:
 # --- per-message processing -------------------------------------------------
 
 def process_message(msg: dict, lookup=oc.list_pickup_points,
-                    create=oc.create_shipment, label=oc.get_label) -> dict:
+                    create=oc.create_shipment, label=oc.get_label,
+                    inherited: dict | None = None) -> dict:
     """Parse -> validate -> resolve machine -> (DRY_RUN?) register + label.
     Returns a result dict with status: error | dry_run | registered."""
     body = (msg.get("body") or {}).get("content", "") or msg.get("bodyPreview", "")
@@ -318,7 +336,9 @@ def process_message(msg: dict, lookup=oc.list_pickup_points,
         body = strip_html(body)
     body = strip_quoted(body)
     labeled = parse_dispatch_email(body)
-    fields = {**fallback_parse(body), **labeled}  # labeled lines always win
+    # Precedence: this email's labeled lines > this email's free text >
+    # fields inherited from earlier rounds of the same thread.
+    fields = {**(inherited or {}), **fallback_parse(body), **labeled}
     missing = validate_fields(fields)
     if missing:
         return {"status": "error", "missing": missing, "fields": fields}
@@ -384,7 +404,8 @@ def main() -> int:
             continue
         if msg["id"] in registry:
             continue
-        res = process_message(msg)
+        res = process_message(
+            msg, inherited=inherit_fields(registry, msg.get("conversationId")))
         res.update({"id": msg["id"], "from": sender,
                     "subject": msg.get("subject"),
                     "received": msg.get("receivedDateTime")})
@@ -400,7 +421,9 @@ def main() -> int:
         res["graph_marked"] = graph_mark.get("marked", False)
         registry[msg["id"]] = {k: res.get(k) for k in
                                ("status", "missing", "options", "barcode",
-                                "subject", "from", "received")} | {"ts": int(time.time())}
+                                "subject", "from", "received", "fields")} | {
+            "conversationId": msg.get("conversationId"),
+            "ts": int(time.time())}
         save_registry(registry)
         results.append(res)
 
