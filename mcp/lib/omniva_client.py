@@ -180,8 +180,11 @@ def get_label(barcode: str) -> dict:
     customer_code = os.getenv("OMNIVA_CUSTOMER_CODE")
     if not customer_code:
         return {"error": "OMNIVA_CUSTOMER_CODE not set"}
+    # OMX deserializes barcodes into BarcodeValueDto objects — a bare string
+    # array fails with an HTTP 500 JSON parse error (verified live 2026-07-28).
     res = _call("POST", "/shipments/package-labels",
-                {"customerCode": customer_code, "barcodes": [barcode],
+                {"customerCode": customer_code,
+                 "barcodes": [{"barcode": barcode}],
                  "sendAddressCardTo": "RESPONSE"})
     if "error" in res:
         return res
