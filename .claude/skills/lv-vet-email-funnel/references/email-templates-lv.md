@@ -163,6 +163,42 @@ nevēlaties saņemt vairāk vēstuļu, atbildiet uz šo e-pastu.
 
 ---
 
+## K3 — breakup-kiri: akadeemia küsib arvamust (kinnitatud mall, 2026-07-28)
+
+**Pealkiri:** Brūču aprūpes akadēmija ir ieinteresēta Jūsu viedoklī
+
+**Saatja:** Meelis, Nanordica Medical
+
+**Kirja tekst:**
+
+```
+Cienījamais/ā Dr. {{uzvārds}},
+
+Rakstīju Jums divas reizes par Brūču aprūpes akadēmiju un iespēju tajā
+iesaistīties. Jūs neatbildējāt, kas ir pilnīgi saprotami. Varbūt mans
+pieejas veids nebija pareizs.
+
+Tomēr, ja Jums kādreiz rodas interese par RavimusVET vai vēlaties
+iesaistīties akadēmijā — esmu pieejams. Tāpat varat man laipni paziņot,
+kas būtu padarījis šo vēstuļu tēmu Jums interesantu?
+
+Ar labiem vēlējumiem,
+Meelis
+Nanordica Medical
+
+Jūsu kontaktinformāciju atradām publiskajā veterinārārstu reģistrā. Ja
+nevēlaties saņemt vairāk vēstuļu, atbildiet uz šo e-pastu.
+```
+
+**Märkused:**
+- `Cienījamais` (mees) / `Cienījamā` (naine) — rikastamine valib soo järgi
+- Käivitub +14 päeva pärast K1-t (+7p pärast K2-t) kui vastust pole
+- Ei ole personaalset avarea ega UTM-linki — tahtlik, hoiab ausa tooni
+- Vastus → inbox-triage märgib Engaged → outreach-writer saadab K4
+- Vaikus → Lost (no-reply)
+
+---
+
 ## Vana näidiskiri 1: esmane pöördumine, kassiarst (lv mustand, asendatud)
 
 > **Pealkiri:** {{eesnimi}}, atraumatiska pārsiešana kaķiem?
