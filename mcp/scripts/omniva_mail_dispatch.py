@@ -75,16 +75,36 @@ def strip_html(text: str) -> str:
     return "\n".join(" ".join(line.split()) for line in text.splitlines())
 
 
+_QUOTE_MARKERS = re.compile(
+    r"^\s*(from:|saatja:|sent:|saadetud:|to:|adressaat:|-{4,}|>|"
+    r"on .{0,80} wrote:|t[äa]psustus vajalik|see on automaatne vastus)",
+    re.I)
+
+
+def strip_quoted(text: str) -> str:
+    """Drop quoted reply history: everything from the first quote marker on.
+    Keeps only the sender's fresh text so our own clarification template
+    (literal 'Saaja: <nimi>' lines) is never parsed as data."""
+    kept = []
+    for line in text.splitlines():
+        if _QUOTE_MARKERS.match(line):
+            break
+        kept.append(line)
+    return "\n".join(kept)
+
+
 def parse_dispatch_email(text: str) -> dict:
-    """Extract labeled fields from plain-text body. First value per field wins."""
+    """Extract labeled fields from plain-text body. First value per field wins.
+    Placeholder values like '<nimi>' are ignored."""
     fields = {}
     for line in text.splitlines():
         m = re.match(r"^\s*([A-Za-zÕÄÖÜõäöü\-]+)\s*[:=]\s*(.+?)\s*$", line)
         if not m:
             continue
         key = FIELD_ALIASES.get(m.group(1).lower())
-        if key and key not in fields:
-            fields[key] = m.group(2).strip()
+        value = m.group(2).strip()
+        if key and key not in fields and "<" not in value and ">" not in value:
+            fields[key] = value
     return fields
 
 
@@ -185,7 +205,7 @@ def resolve_pickup_point(fields: dict, lookup=oc.list_pickup_points) -> dict:
                          "'Pakiautomaat: <nimi>' või kasuta teist linna"}
     pick = machines[0]
     return {"zip": pick["zip"], "name": pick["name"],
-            "alternatives": len(machines) - 1}
+            "alternatives": [m["name"] for m in machines[1:6]]}
 
 
 # --- Graph inbox ------------------------------------------------------------
@@ -240,6 +260,38 @@ def mark_processed_graph(msg_id: str, status: str) -> dict:
         return {"error": str(e)}
 
 
+# --- clarification reply ----------------------------------------------------
+
+_FORMAT_HELP = ("Saatmiskorralduse vorming (üks väli rea kohta):<br>"
+                "&nbsp;&nbsp;Saaja: &lt;nimi&gt;<br>"
+                "&nbsp;&nbsp;Telefon: &lt;mobiil&gt;<br>"
+                "&nbsp;&nbsp;Pakiautomaat: &lt;automaadi nimi&gt; "
+                "VÕI Aadress: &lt;linn/aadress&gt;<br>"
+                "&nbsp;&nbsp;Kaal: &lt;kg&gt; (valikuline) · "
+                "Riik: EE/LV (valikuline)")
+
+
+def build_clarification(res: dict, subject: str | None) -> tuple:
+    """(subject, html_body) for the reply asking the sender to clarify.
+    Deterministic template — no LLM."""
+    subj = f"Täpsustus vajalik: {subject or 'paki saatmine'}"
+    parts = ["Tere!<br><br>",
+             "See on automaatne vastus sinu saatmiskorraldusele."]
+    if res["status"] == "error":
+        parts.append("<br><br>Korraldusest jäi puudu:<ul>")
+        parts += [f"<li>{m}</li>" for m in res.get("missing", [])]
+        parts.append("</ul>")
+    if res["status"] == "ambiguous":
+        parts.append("<br><br>Sihtkohas on mitu Omniva pakiautomaati — "
+                     "palun täpsusta, millisesse saata:<ul>")
+        parts += [f"<li>{o}</li>" for o in res.get("options", [])]
+        parts.append("</ul>Vasta UUE kirjaga, milles on rida "
+                     "„Pakiautomaat: &lt;nimi&gt;“ ja ülejäänud andmed.")
+    parts.append(f"<br><br>{_FORMAT_HELP}<br><br>— Ravimus'e saatmisagent "
+                 "(automaatne kiri)")
+    return subj, "".join(parts)
+
+
 # --- registry ---------------------------------------------------------------
 
 def load_registry() -> dict:
@@ -264,6 +316,7 @@ def process_message(msg: dict, lookup=oc.list_pickup_points,
     if (msg.get("body") or {}).get("contentType", "").lower() == "html" \
             or "<" in body:
         body = strip_html(body)
+    body = strip_quoted(body)
     labeled = parse_dispatch_email(body)
     fields = {**fallback_parse(body), **labeled}  # labeled lines always win
     missing = validate_fields(fields)
@@ -272,6 +325,12 @@ def process_message(msg: dict, lookup=oc.list_pickup_points,
     point = resolve_pickup_point(fields, lookup=lookup)
     if "error" in point:
         return {"status": "error", "missing": [point["error"]],
+                "fields": fields}
+    if point["alternatives"]:
+        # More than one machine matches the given destination — don't guess,
+        # ask the sender which one (reply email in main()).
+        return {"status": "ambiguous",
+                "options": [point["name"]] + point["alternatives"],
                 "fields": fields}
     # Weight is optional in OMX (parcel-machine pricing is size-based) —
     # None when the email doesn't state it, rather than a made-up default.
@@ -304,6 +363,9 @@ def main() -> int:
                                             "shipping-request emails")
     p.add_argument("--top", type=int, default=25,
                    help="how many newest inbox messages to scan")
+    p.add_argument("--send-asks", action="store_true",
+                   help="really send clarification replies even in DRY_RUN "
+                        "(registration itself stays dry)")
     args = p.parse_args()
 
     own = gc._env("GRAPH_SENDER")
@@ -326,11 +388,19 @@ def main() -> int:
         res.update({"id": msg["id"], "from": sender,
                     "subject": msg.get("subject"),
                     "received": msg.get("receivedDateTime")})
+        if res["status"] in ("error", "ambiguous"):
+            subj, html_body = build_clarification(res, msg.get("subject"))
+            if is_dry_run() and not args.send_asks:
+                res["clarification"] = dry_log(
+                    "omniva_mail_dispatch.clarify", to=sender, subject=subj)
+            else:
+                res["clarification"] = gc.send_mail(sender, subj, html_body)
+            res["status"] = "clarification_sent"
         graph_mark = mark_processed_graph(msg["id"], res["status"])
         res["graph_marked"] = graph_mark.get("marked", False)
         registry[msg["id"]] = {k: res.get(k) for k in
-                               ("status", "missing", "barcode", "subject",
-                                "from", "received")} | {"ts": int(time.time())}
+                               ("status", "missing", "options", "barcode",
+                                "subject", "from", "received")} | {"ts": int(time.time())}
         save_registry(registry)
         results.append(res)
 

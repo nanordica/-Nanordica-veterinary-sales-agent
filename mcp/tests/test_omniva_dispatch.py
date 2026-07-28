@@ -98,7 +98,7 @@ def test_resolve_by_machine_name():
 def test_resolve_by_address_prefers_parcel_machine():
     r = od.resolve_pickup_point({"address": "Rīga"},
                                 lookup=fake_lookup(MACHINES))
-    assert r["zip"] in ("9114", "9520") and r["alternatives"] == 1
+    assert r["zip"] in ("9114", "9520") and len(r["alternatives"]) == 1
 
 
 def test_resolve_machine_not_found():
@@ -160,6 +160,66 @@ def test_process_free_text_dry_run(monkeypatch):
     assert res["machine"]["zip"] == "96284"
     # no Kaal line -> no fabricated weight (OMX: measurement is optional)
     assert res["dry"]["details"]["weight_kg"] is None
+
+
+# --- quoted-reply stripping -------------------------------------------------
+
+REPLY_BODY = """Pakiautomaat: Viljandi Männimäe Selveri pakiautomaat
+Saaja: Mari Maasikas
+Telefon: 51234567
+
+Saatja: ravimus@nanordica.com
+Saadetud: esmaspäev
+Tere! See on automaatne vastus sinu saatmiskorraldusele.
+Saatmiskorralduse vorming (üks väli rea kohta):
+Saaja: <nimi>
+Telefon: <mobiil>
+"""
+
+
+def test_strip_quoted_drops_history_and_placeholders(monkeypatch):
+    monkeypatch.setenv("DRY_RUN", "1")
+    res = od.process_message(_msg(REPLY_BODY),
+                             lookup=fake_lookup(AMBIG_MACHINES))
+    assert res["status"] == "dry_run"
+    assert res["fields"]["name"] == "Mari Maasikas"  # not '<nimi>'
+    assert res["machine"]["zip"] == "96063"  # Selver picked by name
+
+
+def test_placeholder_values_ignored():
+    f = od.parse_dispatch_email("Saaja: <nimi>\nSaaja: Päris Nimi\n")
+    assert f["name"] == "Päris Nimi"
+
+
+# --- ambiguity + clarification ----------------------------------------------
+
+AMBIG_MACHINES = EE_MACHINES + [
+    {"zip": "96063", "name": "Viljandi Männimäe Selveri pakiautomaat",
+     "address": "Riia mnt 35, Viljandi", "type": "parcel_machine"},
+]
+
+
+def test_ambiguous_destination_asks_instead_of_guessing(monkeypatch):
+    monkeypatch.setenv("DRY_RUN", "1")
+    res = od.process_message(_msg(FREETEXT_BODY),
+                             lookup=fake_lookup(AMBIG_MACHINES))
+    assert res["status"] == "ambiguous"
+    assert len(res["options"]) == 2
+
+
+def test_build_clarification_missing():
+    subj, body = od.build_clarification(
+        {"status": "error", "missing": ["Telefon — lisa rida"]}, "saada pakk")
+    assert subj.startswith("Täpsustus vajalik")
+    assert "Telefon" in body and "Saatmiskorralduse vorming" in body
+
+
+def test_build_clarification_ambiguous():
+    subj, body = od.build_clarification(
+        {"status": "ambiguous", "options": ["A pakiautomaat",
+                                            "B pakiautomaat"]}, None)
+    assert "mitu Omniva pakiautomaati" in body
+    assert "A pakiautomaat" in body and "B pakiautomaat" in body
 
 
 # --- candidate filter -------------------------------------------------------
