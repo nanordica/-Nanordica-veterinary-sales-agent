@@ -55,7 +55,59 @@ Pealkirja näited (lv, mustand):
 - `Jautājums par brūču pārsiešanu jūsu klīnikā`
 - `Atraumatiska pārsēja maiņa nemierīgiem dzīvniekiem`
 
-## Näidiskiri 1: esmane pöördumine, kassiarst (lv mustand)
+## Esmakiri 1 — kinnitatud mall (2026-07-28)
+
+**Pealkiri:** Brūču aprūpes akadēmija: dzīvnieku brūces ar RavimusVET
+
+**Saatja:** Meelis, šūnu biologs, Nanordica Medical
+
+**Avarea variandid (rikastamine valib):**
+
+| Stsenaarium | Tekst |
+|---|---|
+| Kirurgia | Rakstu Jums, jo {{klīnika}} piedāvā ķirurģiju un pēcoperācijas brūču aprūpi. |
+| Innovatsioon | Rakstu Jums, jo esat profesionāli aktīvs un atvērts jauniem risinājumiem. |
+| 24h / kiirabi | Rakstu Jums, jo {{klīnika}} diennakts dežūra nozīmē, ka traumatiskas brūces ir Jūsu ikdienas darbs. |
+| Kliinikuomanik | Rakstu Jums, jo kā klīnikas īpašnieks Jūs izlemjat, kādus ārstniecības līdzekļus izmantot. |
+
+**Kirja tekst:**
+
+```
+Cienījamais/ā Dr. {{uzvārds}},
+
+{{personalizēta rinda}}
+
+Pet City un Evidensia veterinārārsti ir sākuši pārsiet dzīvnieku brūces ar
+RavimusVET — arī brūces, kuras iepriekš atstāja vaļā. RavimusVET paātrina
+brūces dzīšanu tiktāl, ka tas atsver dzīvnieku brūču pārsiešanas papildu
+izaicinājumus. Klīniskā pētījumā ar cilvēkiem brūces laukums samazinājās,
+piemēram, par 43% vienas nedēļas laikā RavimusVET grupā, salīdzinot ar 13%
+sudraba pārsēja grupā.
+
+Ar dzīvnieku brūču pārsiešanas praksi varat iepazīties Brūču aprūpes
+akadēmijā: https://www.nanordica.com/lv/ravimus?utm_source=email&utm_medium=cold&utm_content=esmakiri-{{utm_id}}
+
+Ja vēlaties izmēģināt brūču aprūpi ar RavimusVET, vienkārši atbildiet uz šo
+e-pastu un mēs nosūtīsim bezmaksas paraugu.
+
+Meelis
+Šūnu biologs
+Nanordica Medical
+
+Jūsu kontaktinformāciju atradām publiskajā veterinārārstu reģistrā. Ja
+nevēlaties saņemt vairāk vēstuļu, atbildiet uz šo e-pastu.
+```
+
+**Märkused:**
+- `Cienījamais` (mees) / `Cienījamā` (naine) — rikastamine valib soo järgi
+- UTM `utm_content=esmakiri-{{utm_id}}` — outreach-writer genereerib `utm_id` per deal
+- Sotsiaalne tõestus: Pet City ja Evidensia — vähemalt üks arst kummastki testinud ja rahul
+- Kliiniline uuring: inimeste peal (DPČ), 30 patsienti, 1 nädal — vt `product-ravimus-vet.md`
+- CTA: vastus kirjale → inbox-triage märgib Engaged → outreach-writer saadab kupongi
+
+---
+
+## Vana näidiskiri 1: esmane pöördumine, kassiarst (lv mustand, asendatud)
 
 > **Pealkiri:** {{eesnimi}}, atraumatiska pārsiešana kaķiem?
 >
