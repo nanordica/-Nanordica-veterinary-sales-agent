@@ -136,7 +136,7 @@ def _sender_addressee() -> dict:
 def create_shipment(receiver_name: str, receiver_phone: str,
                     pickup_point_id: str, receiver_email: str | None = None,
                     receiver_country: str = "LV",
-                    weight_kg: float = 1.0) -> dict:
+                    weight_kg: float | None = None) -> dict:
     """Register a business-to-client parcel-machine shipment via OMX
     POST /shipments/business-to-client. `pickup_point_id` is the machine's
     ZIP from the locations feed (sent as address.offloadPostcode). Mobile
@@ -157,9 +157,12 @@ def create_shipment(receiver_name: str, receiver_phone: str,
         receiver["contactEmail"] = receiver_email
     shipment = {"mainService": "PARCEL",
                 "deliveryChannel": "PARCEL_MACHINE",
-                "measurement": {"weight": weight_kg},
                 "receiverAddressee": receiver,
                 "senderAddressee": _sender_addressee()}
+    # Per the OMX manual, measurement (incl. weight) is optional for parcels —
+    # parcel-machine pricing is size-based, so only send weight when known.
+    if weight_kg is not None:
+        shipment["measurement"] = {"weight": weight_kg}
     body = {"customerCode": customer_code,
             "fileId": f"ravimus-{int(time.time())}",
             "shipments": [shipment]}

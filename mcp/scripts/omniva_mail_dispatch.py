@@ -273,7 +273,10 @@ def process_message(msg: dict, lookup=oc.list_pickup_points,
     if "error" in point:
         return {"status": "error", "missing": [point["error"]],
                 "fields": fields}
-    weight = float(fields.get("weight", "1.0").replace(",", "."))
+    # Weight is optional in OMX (parcel-machine pricing is size-based) —
+    # None when the email doesn't state it, rather than a made-up default.
+    weight = (float(fields["weight"].replace(",", "."))
+              if fields.get("weight") else None)
     country = (fields.get("country") or "LV").strip().upper()
     if is_dry_run():
         dry = dry_log("omniva_mail_dispatch.create_shipment",

@@ -158,6 +158,8 @@ def test_process_free_text_dry_run(monkeypatch):
                              lookup=fake_lookup(EE_MACHINES))
     assert res["status"] == "dry_run"
     assert res["machine"]["zip"] == "96284"
+    # no Kaal line -> no fabricated weight (OMX: measurement is optional)
+    assert res["dry"]["details"]["weight_kg"] is None
 
 
 # --- candidate filter -------------------------------------------------------
