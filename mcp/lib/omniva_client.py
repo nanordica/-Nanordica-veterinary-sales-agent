@@ -155,8 +155,11 @@ def create_shipment(receiver_name: str, receiver_phone: str,
                             "offloadPostcode": str(pickup_point_id)}}
     if receiver_email:
         receiver["contactEmail"] = receiver_email
+    # partnerShipmentId is mandatory (live 400 'must not be null',
+    # 2026-07-28): our unique id per shipment registration.
     shipment = {"mainService": "PARCEL",
                 "deliveryChannel": "PARCEL_MACHINE",
+                "partnerShipmentId": f"ravimus-{int(time.time() * 1000)}",
                 "receiverAddressee": receiver,
                 "senderAddressee": _sender_addressee()}
     # Per the OMX manual, measurement (incl. weight) is optional for parcels —

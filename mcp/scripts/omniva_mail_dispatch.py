@@ -339,20 +339,58 @@ def send_shipped_notice(res: dict) -> dict:
 
 # --- registry ---------------------------------------------------------------
 
-def inherit_fields(registry: dict, conversation_id: str | None) -> dict:
-    """Fields gathered earlier in the same thread (latest clarification
-    round wins). Lets a short reply like 'Pakiautomaat: X' complete a
-    request whose name/phone arrived in the original email."""
-    if not conversation_id:
-        return {}
+_SUBJECT_PREFIX = re.compile(
+    r"^(re|fwd?|vs|edasi|t[äa]psustus vajalik)\s*:\s*", re.I)
+
+
+def _base_subject(subject: str | None) -> str:
+    """Strip reply/forward/clarification prefixes repeatedly:
+    'Re: Täpsustus vajalik: soovin saata paki' -> 'soovin saata paki'."""
+    s = (subject or "").strip()
+    while True:
+        m = _SUBJECT_PREFIX.match(s)
+        if not m:
+            return s.lower()
+        s = s[m.end():].strip()
+
+
+def inherit_context(registry: dict, conversation_id: str | None,
+                    sender: str | None, subject: str | None) -> tuple:
+    """(fields, options) gathered from earlier rounds of the same request.
+    A round matches by Graph conversationId OR — because our clarification
+    may start a new thread — by same sender + same base subject. Latest
+    round wins; lets a short reply complete the original request."""
+    base = _base_subject(subject)
     rounds = [e for e in registry.values()
-              if e.get("conversationId") == conversation_id
-              and e.get("fields")]
+              if (conversation_id and e.get("conversationId") == conversation_id)
+              or (sender and e.get("from") == sender and base
+                  and _base_subject(e.get("subject")) == base)]
     rounds.sort(key=lambda e: e.get("ts", 0))
-    merged = {}
+    fields, options = {}, []
     for e in rounds:
-        merged.update(e["fields"])
-    return merged
+        fields.update(e.get("fields") or {})
+        if e.get("options"):
+            options = e["options"]
+    return fields, options
+
+
+def match_option(text: str, options: list) -> str | None:
+    """Pick the offered machine the sender's free text refers to
+    ('Palun Selveri automaati' -> the ...Selveri... option). Each option's
+    distinctive words (absent from the other options) are prefix-matched
+    against the text; exactly one matching option wins."""
+    low = text.lower()
+    hits = []
+    for i, opt in enumerate(options):
+        words = {w for w in re.findall(r"[a-zõäöüšž]{4,}", opt.lower())}
+        others = set()
+        for j, o in enumerate(options):
+            if j != i:
+                others |= {w for w in re.findall(r"[a-zõäöüšž]{4,}", o.lower())}
+        distinctive = words - others
+        if any(w[:6] in low for w in distinctive):
+            hits.append(opt)
+    return hits[0] if len(hits) == 1 else None
 
 
 def load_registry() -> dict:
@@ -371,7 +409,8 @@ def save_registry(reg: dict) -> None:
 
 def process_message(msg: dict, lookup=oc.list_pickup_points,
                     create=oc.create_shipment, label=oc.get_label,
-                    inherited: dict | None = None) -> dict:
+                    inherited: dict | None = None,
+                    inherited_options: list | None = None) -> dict:
     """Parse -> validate -> resolve machine -> (DRY_RUN?) register + label.
     Returns a result dict with status: error | dry_run | registered."""
     body = (msg.get("body") or {}).get("content", "") or msg.get("bodyPreview", "")
@@ -383,6 +422,12 @@ def process_message(msg: dict, lookup=oc.list_pickup_points,
     # Precedence: this email's labeled lines > this email's free text >
     # fields inherited from earlier rounds of the same thread.
     fields = {**(inherited or {}), **fallback_parse(body), **labeled}
+    if not labeled.get("machine") and inherited_options:
+        # Earlier round offered concrete machines — see whether this email's
+        # fresh text picks one of them by name fragment.
+        pick = match_option(body, inherited_options)
+        if pick:
+            fields["machine"] = pick
     missing = validate_fields(fields)
     if missing:
         return {"status": "error", "missing": missing, "fields": fields}
@@ -413,8 +458,11 @@ def process_message(msg: dict, lookup=oc.list_pickup_points,
                  receiver_email=fields.get("email"),
                  receiver_country=country, weight_kg=weight)
     if "error" in res:
-        return {"status": "error", "missing": [f"Omniva: {res['error']}"],
-                "fields": fields, "detail": res.get("detail")}
+        why = "; ".join(f.get("message", "") for f in res.get("failed", [])
+                        if isinstance(f, dict)) or res.get("detail") or ""
+        return {"status": "error",
+                "missing": [f"Omniva: {res['error']}" + (f" ({why})" if why else "")],
+                "fields": fields, "detail": why or None}
     out = {"status": "registered", "barcode": res["barcode"],
            "machine": point, "fields": fields}
     lab = label(res["barcode"])
@@ -448,8 +496,10 @@ def main() -> int:
             continue
         if msg["id"] in registry:
             continue
-        res = process_message(
-            msg, inherited=inherit_fields(registry, msg.get("conversationId")))
+        inh_fields, inh_options = inherit_context(
+            registry, msg.get("conversationId"), sender, msg.get("subject"))
+        res = process_message(msg, inherited=inh_fields,
+                              inherited_options=inh_options)
         res.update({"id": msg["id"], "from": sender,
                     "subject": msg.get("subject"),
                     "received": msg.get("receivedDateTime")})
@@ -466,7 +516,13 @@ def main() -> int:
                 res["clarification"] = dry_log(
                     "omniva_mail_dispatch.clarify", to=sender, subject=subj)
             else:
-                res["clarification"] = gc.send_mail(sender, subj, html_body)
+                # Reply IN-THREAD so the sender's answer keeps the same
+                # conversationId (a fresh sendMail would fork the thread and
+                # break inheritance); fall back to a new mail on error.
+                sent = gc.reply_mail(msg["id"], html_body)
+                if "error" in sent:
+                    sent = gc.send_mail(sender, subj, html_body)
+                res["clarification"] = sent
             res["status"] = "clarification_sent"
         graph_mark = mark_processed_graph(msg["id"], res["status"])
         res["graph_marked"] = graph_mark.get("marked", False)

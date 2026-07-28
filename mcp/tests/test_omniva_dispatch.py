@@ -279,15 +279,63 @@ def test_shipped_notice_goes_to_internal(monkeypatch):
 
 # --- thread field inheritance -----------------------------------------------
 
-def test_inherit_fields_merges_thread_rounds():
-    reg = {"m1": {"conversationId": "c1", "ts": 1,
-                  "fields": {"name": "Mari Maasikas", "phone": "51234567",
-                             "address": "Viljandi Männimäe", "country": "EE"}},
-           "m2": {"conversationId": "c2", "ts": 2,
-                  "fields": {"name": "Keegi Muu"}}}
-    assert od.inherit_fields(reg, "c1")["name"] == "Mari Maasikas"
-    assert od.inherit_fields(reg, "puudub") == {}
-    assert od.inherit_fields(reg, None) == {}
+REG = {"m1": {"conversationId": "c1", "ts": 1, "from": "vera@nanordica.com",
+              "subject": "soovin saata paki",
+              "fields": {"name": "Mari Maasikas", "phone": "51234567",
+                         "address": "Viljandi Männimäe", "country": "EE"},
+              "options": ["Viljandi Männimäe Maksimarketi pakiautomaat",
+                          "Viljandi Männimäe Selveri pakiautomaat"]},
+       "m2": {"conversationId": "c2", "ts": 2, "from": "teine@nanordica.com",
+              "subject": "muu teema", "fields": {"name": "Keegi Muu"}}}
+
+
+def test_inherit_context_by_conversation():
+    f, opts = od.inherit_context(REG, "c1", None, None)
+    assert f["name"] == "Mari Maasikas" and len(opts) == 2
+    assert od.inherit_context(REG, "puudub", None, None) == ({}, [])
+
+
+def test_inherit_context_by_base_subject():
+    # our clarification forked the thread: new conversationId, Re:-chained subject
+    f, opts = od.inherit_context(
+        REG, "UUS-CONV", "vera@nanordica.com",
+        "Re: Täpsustus vajalik: soovin saata paki")
+    assert f["phone"] == "51234567" and len(opts) == 2
+
+
+def test_base_subject_strips_prefixes():
+    assert od._base_subject(
+        "Re: Täpsustus vajalik: Re: Täpsustus vajalik: soovin saata paki"
+    ) == "soovin saata paki"
+
+
+def test_match_option_picks_unique_fragment():
+    opts = ["Viljandi Männimäe Maksimarketi pakiautomaat",
+            "Viljandi Männimäe Selveri pakiautomaat"]
+    assert od.match_option("Palun Selveri automaati ssata.", opts) == opts[1]
+    assert od.match_option("Maksimarket sobib", opts) == opts[0]
+    assert od.match_option("ükskõik kumb", opts) is None
+    assert od.match_option("Männimäe automaat", opts) is None  # shared word
+
+
+def test_reply_completes_request_via_option_match(monkeypatch):
+    monkeypatch.setenv("DRY_RUN", "0")
+    created = {}
+
+    def fake_create(**kw):
+        created.update(kw)
+        return {"barcode": "CC9", "saved": [{"barcode": "CC9"}]}
+
+    f, opts = od.inherit_context(
+        REG, None, "vera@nanordica.com", "Re: Täpsustus vajalik: soovin saata paki")
+    res = od.process_message(_msg("Palun Selveri automaati ssata.\n"),
+                             lookup=fake_lookup(AMBIG_MACHINES),
+                             create=fake_create,
+                             label=lambda b: {"barcode": b, "path": "/tmp/x.pdf"},
+                             inherited=f, inherited_options=opts)
+    assert res["status"] == "registered"
+    assert created["pickup_point_id"] == "96063"  # Selver
+    assert created["receiver_name"] == "Mari Maasikas"
 
 
 def test_short_reply_completes_via_inheritance(monkeypatch):

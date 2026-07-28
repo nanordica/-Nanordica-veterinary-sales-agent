@@ -90,6 +90,28 @@ def send_mail(to: str, subject: str, body_html: str,
         return {"error": str(e)}
 
 
+def reply_mail(message_id: str, comment_html: str) -> dict:
+    """Reply to a message in GRAPH_SENDER's mailbox (POST /messages/{id}/reply,
+    covered by Mail.Send). Keeps the Graph conversationId, so the sender's
+    answer lands in the same thread. Returns {'sent': True} or {'error': ...}."""
+    sender = _env("GRAPH_SENDER")
+    headers = _auth_headers()
+    if headers is None:
+        return get_token()
+    url = (f"{_GRAPH}/users/{urllib.parse.quote(sender)}/messages/"
+           f"{message_id}/reply")
+    req = urllib.request.Request(
+        url, data=json.dumps({"comment": comment_html}).encode(),
+        headers=headers, method="POST")
+    try:
+        with urllib.request.urlopen(req, timeout=30) as r:
+            return {"sent": True, "status": r.status}
+    except urllib.error.HTTPError as e:
+        return {"error": f"reply HTTP {e.code}", "detail": e.read().decode()[:500]}
+    except Exception as e:
+        return {"error": str(e)}
+
+
 def list_new_messages(folder: str = "inbox") -> dict:
     """Read new messages via the delta endpoint. Persists the deltaLink to
     GRAPH_DELTA_PATH so each call returns only messages since the last call."""
