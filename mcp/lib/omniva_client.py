@@ -136,7 +136,7 @@ def _sender_addressee() -> dict:
 def create_shipment(receiver_name: str, receiver_phone: str,
                     pickup_point_id: str, receiver_email: str | None = None,
                     receiver_country: str = "LV",
-                    weight_kg: float = 1.0) -> dict:
+                    weight_kg: float | None = None) -> dict:
     """Register a business-to-client parcel-machine shipment via OMX
     POST /shipments/business-to-client. `pickup_point_id` is the machine's
     ZIP from the locations feed (sent as address.offloadPostcode). Mobile
@@ -155,11 +155,17 @@ def create_shipment(receiver_name: str, receiver_phone: str,
                             "offloadPostcode": str(pickup_point_id)}}
     if receiver_email:
         receiver["contactEmail"] = receiver_email
+    # partnerShipmentId is mandatory (live 400 'must not be null',
+    # 2026-07-28): our unique id per shipment registration.
     shipment = {"mainService": "PARCEL",
                 "deliveryChannel": "PARCEL_MACHINE",
-                "measurement": {"weight": weight_kg},
+                "partnerShipmentId": f"ravimus-{int(time.time() * 1000)}",
                 "receiverAddressee": receiver,
                 "senderAddressee": _sender_addressee()}
+    # Per the OMX manual, measurement (incl. weight) is optional for parcels —
+    # parcel-machine pricing is size-based, so only send weight when known.
+    if weight_kg is not None:
+        shipment["measurement"] = {"weight": weight_kg}
     body = {"customerCode": customer_code,
             "fileId": f"ravimus-{int(time.time())}",
             "shipments": [shipment]}
@@ -180,8 +186,11 @@ def get_label(barcode: str) -> dict:
     customer_code = os.getenv("OMNIVA_CUSTOMER_CODE")
     if not customer_code:
         return {"error": "OMNIVA_CUSTOMER_CODE not set"}
+    # OMX deserializes barcodes into BarcodeValueDto objects — a bare string
+    # array fails with an HTTP 500 JSON parse error (verified live 2026-07-28).
     res = _call("POST", "/shipments/package-labels",
-                {"customerCode": customer_code, "barcodes": [barcode],
+                {"customerCode": customer_code,
+                 "barcodes": [{"barcode": barcode}],
                  "sendAddressCardTo": "RESPONSE"})
     if "error" in res:
         return res

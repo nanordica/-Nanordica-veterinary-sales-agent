@@ -49,16 +49,35 @@ def _auth_headers() -> dict | None:
     return {"Authorization": f"Bearer {t['token']}", "Content-Type": "application/json"}
 
 
-def send_mail(to: str, subject: str, body_html: str) -> dict:
-    """Send mail as GRAPH_SENDER. Returns {'sent': True} or {'error': ...}."""
+def file_attachment(path: str) -> dict:
+    """Graph fileAttachment entry (base64 contentBytes) for a local file."""
+    import base64
+    import mimetypes
+    p = Path(path)
+    ctype = mimetypes.guess_type(p.name)[0] or "application/octet-stream"
+    return {"@odata.type": "#microsoft.graph.fileAttachment",
+            "name": p.name, "contentType": ctype,
+            "contentBytes": base64.b64encode(p.read_bytes()).decode()}
+
+
+def send_mail(to: str, subject: str, body_html: str,
+              attachments: list | None = None) -> dict:
+    """Send mail as GRAPH_SENDER. `attachments` = local file paths, embedded
+    as base64 fileAttachments (sendMail size cap ~3 MB total — labels are
+    tens of kB). Returns {'sent': True} or {'error': ...}."""
     sender = _env("GRAPH_SENDER")
     headers = _auth_headers()
     if headers is None:
         return get_token()  # carries the error
-    msg = {"message": {"subject": subject,
-                       "body": {"contentType": "HTML", "content": body_html},
-                       "toRecipients": [{"emailAddress": {"address": to}}]},
-           "saveToSentItems": True}
+    message = {"subject": subject,
+               "body": {"contentType": "HTML", "content": body_html},
+               "toRecipients": [{"emailAddress": {"address": to}}]}
+    if attachments:
+        try:
+            message["attachments"] = [file_attachment(a) for a in attachments]
+        except OSError as e:
+            return {"error": f"attachment unreadable: {e}"}
+    msg = {"message": message, "saveToSentItems": True}
     url = f"{_GRAPH}/users/{urllib.parse.quote(sender)}/sendMail"
     req = urllib.request.Request(url, data=json.dumps(msg).encode(),
                                  headers=headers, method="POST")
@@ -67,6 +86,28 @@ def send_mail(to: str, subject: str, body_html: str) -> dict:
             return {"sent": True, "status": r.status}
     except urllib.error.HTTPError as e:
         return {"error": f"sendMail HTTP {e.code}", "detail": e.read().decode()[:500]}
+    except Exception as e:
+        return {"error": str(e)}
+
+
+def reply_mail(message_id: str, comment_html: str) -> dict:
+    """Reply to a message in GRAPH_SENDER's mailbox (POST /messages/{id}/reply,
+    covered by Mail.Send). Keeps the Graph conversationId, so the sender's
+    answer lands in the same thread. Returns {'sent': True} or {'error': ...}."""
+    sender = _env("GRAPH_SENDER")
+    headers = _auth_headers()
+    if headers is None:
+        return get_token()
+    url = (f"{_GRAPH}/users/{urllib.parse.quote(sender)}/messages/"
+           f"{message_id}/reply")
+    req = urllib.request.Request(
+        url, data=json.dumps({"comment": comment_html}).encode(),
+        headers=headers, method="POST")
+    try:
+        with urllib.request.urlopen(req, timeout=30) as r:
+            return {"sent": True, "status": r.status}
+    except urllib.error.HTTPError as e:
+        return {"error": f"reply HTTP {e.code}", "detail": e.read().decode()[:500]}
     except Exception as e:
         return {"error": str(e)}
 
