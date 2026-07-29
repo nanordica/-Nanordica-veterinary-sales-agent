@@ -265,6 +265,80 @@ Nanordica Medical
 
 ---
 
+## K7 — tagasiside-meeldetuletus: kutse akadeemiasse video + vorm (kinnitatud mall, 2026-07-29)
+
+**Pealkiri:** Kuidas RavimusVET Teie patsientidel toimis?
+
+**Saatja:** Meelis, Nanordica Medical
+
+**Kirja tekst (eesti algtekst):**
+
+```
+Lugupeetud Dr. {{perekonnanimi}} / {{eesnimi}},
+
+Pöördun Teie poole uuesti palvega panustada haavaravi akadeemiasse.
+Kui Teil on olnud võimalust jäädvustada mõnda kasulikku haavaravi
+meetodit lühikese videona, saame seda jagada akadeemias teiste
+veterinaaridega. Kõige parem oleks video RavimusVET haavasidemega,
+kuid see pole tingimus.
+
+Filmimiseks piisab telefonist ja ülejäänu, sealhulgas selgitused,
+teeme meie. Teie nime ja kliinikut mainiksime video juures ning enne
+avaldamist küsiksime alati Teie nõusoleku.
+
+Tagasiside andmiseks ja failide edastamiseks palun täitke haavaravi
+akadeemia vorm:
+https://www.nanordica.com/lv/akademija?utm_source=email&utm_medium=warm&utm_content=k7-{{utm_id}}
+
+Heade soovidega,
+Meelis
+Nanordica Medical
+```
+
+**Läti tekst (language-checker läbinud 2026-07-29):**
+
+```
+Cienījamais/ā Dr. {{uzvārds}} / {{vārds}},
+
+Vēršos pie Jums atkārtoti ar lūgumu sniegt ieguldījumu Brūču aprūpes
+akadēmijā. Ja Jums ir bijusi iespēja uzņemt īsu video par kādu
+noderīgu brūču aprūpes metodi, mēs varam to parādīt akadēmijā citiem
+veterinārārstiem. Vislabāk būtu video ar RavimusVET pārsēju, taču tas
+nav obligāti.
+
+Filmēšanai pietiek ar tālruni, un pārējo, tostarp skaidrojumus,
+veiksim mēs. Jūsu vārdu un klīniku minētu pie video, un pirms
+publicēšanas vienmēr lūgtu Jūsu piekrišanu.
+
+Lai sniegtu atsauksmi un nosūtītu failus, lūdzu, aizpildiet Brūču
+aprūpes akadēmijas veidlapu:
+https://www.nanordica.com/lv/akademija?utm_source=email&utm_medium=warm&utm_content=k7-{{utm_id}}
+
+Ar labiem vēlējumiem,
+Meelis
+Nanordica Medical
+```
+
+**Märkused:**
+- Tervitus: kui vet vastas eelnevalt eesnimega → `{{vārds}}`; muidu
+  `Cienījamais/ā Dr. {{uzvārds}}` (rikastamine valib soo järgi)
+- **Roll:** meeldetuletus + akadeemia-panuse kutse. Video = põhieesmärk
+  (akadeemia), ükskõik milline kasulik haavaravi meetod; RavimusVET-iga
+  video eelistatud, aga pole tingimus
+- **Efort maha:** "telefonist piisab, ülejäänu teeme meie" (õppevideo
+  tootmine, nagu K2-s) + nõusolek enne avaldamist
+- **CTA:** üks kindel üleskutse — Wixi vorm (tagasiside + failide üleslaadimine).
+  UTM `utm_content=k7-{{utm_id}}` (sama `utm_id` mis K1/K2/K6), `utm_medium=warm`
+  (mitte cold — kontakt on Engaged). Wix clickEvents → sales-detector seob kliki
+- **Baas-URL `/lv/akademija` on kohatäide** — asenda päris Wixi vormi aadressiga
+- Ajastus: kas K6-vastuses nimetatud ajal või **+1 nädal pärast K6-t** vaikuse korral
+- Opt-out puudub (Engaged), allkiri "Heade soovidega" / "Ar labiem vēlējumiem"
+- QA parandused: `uzņemt īsu video par... metodi` (kaheti mõistetavus),
+  `parādīt` (mitte `dalīties` — väldib topelt-"ar", kooskõla K6-ga),
+  `minētu pie video` (mitte `norādītu` — "mainida" vastab "mainiksime"-le)
+
+---
+
 ## Vana näidiskiri 1: esmane pöördumine, kassiarst (lv mustand, asendatud)
 
 > **Pealkiri:** {{eesnimi}}, atraumatiska pārsiešana kaķiem?
