@@ -107,6 +107,238 @@ nevēlaties saņemt vairāk vēstuļu, atbildiet uz šo e-pastu.
 
 ---
 
+## K2 — järelkiri: kutse akadeemiasse panustada (kinnitatud mall, 2026-07-28)
+
+**Pealkiri:** Uzaicinājums dalīties ar savu pieredzi Brūču aprūpes akadēmijā
+
+**Saatja:** Meelis, Nanordica Medical
+
+**Avarea variandid (rikastamine valib):**
+
+| Stsenaarium | Tekst |
+|---|---|
+| Kirurgia | {{klīnika}} ķirurģijas prakse nozīmē, ka Jums ir pēcoperācijas brūču aprūpes pieredze, kas varētu būt noderīga citiem ārstiem. |
+| Pikaajaline kogemus | Kā ilggadējs praktizējošs ārsts Jums, visticamāk, ir brūču aprūpes metodes, kas ir vērtas uzmanības. |
+| Kliinikuomanik | Kā klīnikas īpašnieks Jums, visticamāk, ir praktiski risinājumi, kas gadu gaitā ir izveidojušies un ko citi ārsti varētu arī zināt. |
+| Kassid / hobused (mitte koerad) | {{klīnika}} nodarbojas ar {{dzīvnieku sugu}}, kuriem brūču aprūpe bieži ir sarežģītāka — tieši šāda pieredze akadēmijā ir maz pārstāvēta. |
+
+**Kirja tekst:**
+
+```
+Cienījamais/ā Dr. {{uzvārds}},
+
+{{personalizēta rinda}}
+
+Brūču aprūpes akadēmijas videomateriāli ir veidoti no praktizējošu
+veterinārārstu pieredzes. Ja Jums ir brūču aprūpes metode, ko varētu
+izmantot arī citi ārsti, labprāt palīdzēsim to padarīt pieejamu citiem
+veterinārārstiem.
+
+Jūs filmējat ārstniecisko paņēmienu ar tālruni — mēs no tā izveidosim
+aptuveni vienu minūti garu mācību video ar skaidrojumiem. Jūsu vārds un
+klīnika tiks norādīti, pēc vēlēšanās pievienosim arī Jūsu fotoattēlu.
+Pirms publicēšanas lūgsim Jūsu galīgo apstiprinājumu.
+
+Šāda video piemērs: https://www.nanordica.com/lv/ravimus?utm_source=email&utm_medium=cold&utm_content=k2-{{utm_id}}
+
+Ja vēlaties video izmantot RavimusVET brūču pārsējus, nosūtīsim tos bez
+maksas. Ja Jums ir jautājumi, esmu gatavs arī īsai videokonferencei.
+
+Ko Jūs domājat?
+
+Ar labiem vēlējumiem,
+Meelis
+Nanordica Medical
+
+Jūsu kontaktinformāciju atradām publiskajā veterinārārstu reģistrā. Ja
+nevēlaties saņemt vairāk vēstuļu, atbildiet uz šo e-pastu.
+```
+
+**Märkused:**
+- `Cienījamais` (mees) / `Cienījamā` (naine) — rikastamine valib soo järgi
+- UTM `utm_content=k2-{{utm_id}}` — sama `utm_id` mis K1-s, nurk erineb
+- Käivitub +7 päeva pärast K1-t kui vastust pole
+- CTA: vastus kirjale → inbox-triage märgib Engaged → outreach-writer saadab K4 (aadressi küsimine)
+- Kassid/hobused avarea: mitte kasutada koerte puhul
+
+---
+
+## K3 — breakup-kiri: akadeemia küsib arvamust (kinnitatud mall, 2026-07-28)
+
+**Pealkiri:** Brūču aprūpes akadēmija ir ieinteresēta Jūsu viedoklī
+
+**Saatja:** Meelis, Nanordica Medical
+
+**Kirja tekst:**
+
+```
+Cienījamais/ā Dr. {{uzvārds}},
+
+Rakstīju Jums divas reizes par Brūču aprūpes akadēmiju un iespēju tajā
+iesaistīties. Jūs neatbildējāt, kas ir pilnīgi saprotami. Varbūt mans
+pieejas veids nebija pareizs.
+
+Tomēr, ja Jums kādreiz rodas interese par RavimusVET vai vēlaties
+iesaistīties akadēmijā — esmu pieejams. Tāpat varat man laipni paziņot,
+kas būtu padarījis šo vēstuļu tēmu Jums interesantu?
+
+Ar labiem vēlējumiem,
+Meelis
+Nanordica Medical
+
+Jūsu kontaktinformāciju atradām publiskajā veterinārārstu reģistrā. Ja
+nevēlaties saņemt vairāk vēstuļu, atbildiet uz šo e-pastu.
+```
+
+**Märkused:**
+- `Cienījamais` (mees) / `Cienījamā` (naine) — rikastamine valib soo järgi
+- Käivitub +14 päeva pärast K1-t (+7p pärast K2-t) kui vastust pole
+- Ei ole personaalset avarea ega UTM-linki — tahtlik, hoiab ausa tooni
+- Vastus → inbox-triage märgib Engaged → outreach-writer saadab K4
+- Vaikus → Lost (no-reply)
+
+---
+
+## K6 — tagasiside-küsimus: näidis kohal (kinnitatud mall, 2026-07-29)
+
+**Pealkiri:** RavimusVet tagasiside
+
+**Saatja:** Meelis, Nanordica Medical
+
+**Kirja tekst (eesti algtekst):**
+
+```
+Lugupeetud Dr. {{perekonnanimi}} / {{eesnimi}},
+
+Tasuta RavimusVET haavasidemed on nüüdseks Teieni jõudnud.
+
+Olge hea ja andke mulle teada, millal võiksime oodata esimesi
+tulemusi. Eelistatult ootame lühikesi videoklippe haavaravi
+metoodikatest, mida saaksime haavaravi akadeemia kaudu teiste
+veterinaaridega jagada.
+
+Teie hinnang aitab meil muuta haavasidumise veterinaarias sama
+tavapäraseks, kui see on inimmeditsiinis.
+
+Heade soovidega,
+Meelis
+Nanordica Medical
+```
+
+**Läti tekst (language-checker läbinud 2026-07-29):**
+
+```
+Cienījamais/ā Dr. {{uzvārds}} / {{vārds}},
+
+Bezmaksas RavimusVET brūču pārsēji tagad ir nonākuši līdz Jums.
+
+Lūdzu, dodiet man ziņu, kad mēs varētu gaidīt pirmos rezultātus.
+Vislabāk gaidītu īsus videoklipus par brūču aprūpes metodēm, kurus
+varētu rādīt citiem veterinārārstiem Brūču aprūpes akadēmijā.
+
+Jūsu vērtējums palīdzēs mums padarīt brūču pārsiešanu veterinārijā
+tikpat ierastu, kā tā ir cilvēku medicīnā.
+
+Ar labiem vēlējumiem,
+Meelis
+Nanordica Medical
+```
+
+**Märkused:**
+- Tervitus: kui vet arst vastas eelnevalt eesnimega → `{{vārds}}`; muidu
+  `Cienījamais/ā Dr. {{uzvārds}}` (rikastamine valib soo järgi mees/naine)
+- **Eesmärk 1:** kinnitab, et tasuta näidis on kohal → tekitab pehme
+  vastastikkuse kohustuse (kingitus, mitte arve)
+- **Eesmärk 2:** kogub ajastuse signaali ("millal esimesed tulemused") →
+  outreach-writer saadab K7 (päris tagasisideküsimus) õigel hetkel
+- **Eesmärk 3:** ütleb ette eelistatud tagasisidevormi — lühikesed
+  videoklipid haavaravi metoodikatest akadeemia jaoks. Vet peab seda ette
+  teadma; nõusolek + nime/kliiniku külgejäämine täpsustatakse K7-s
+- Videoklipi-lause: eesti "jagada" (dalīties) annaks kohmaka topelt-"ar",
+  seepärast läti tekstis `rādīt` (näidata) — akadeemia kontekstis sama mõte
+- Opt-out rida puudub (kontakt on Engaged, suhe aktiivne)
+- Käivitub **+1 päev** pärast S5 (Näidis kohal) kinnitust
+- Tootenimi kirjades: alati `RavimusVET` (läti kasutusjuhendis on
+  `RAVIMUS VET`, aga turunduses hoiame ühtset `RavimusVET`)
+- QA: `nu`→`tagad`, `pie Jums`→`līdz Jums` (language-checker); allkiri
+  `Ar labiem vēlējumiem` ja `dodiet ziņu` hoitud K2/K3 kooskõla + soe toon
+
+---
+
+## K7 — tagasiside-meeldetuletus: kutse akadeemiasse video + vorm (kinnitatud mall, 2026-07-29)
+
+**Pealkiri:** Kuidas RavimusVET Teie patsientidel toimis?
+
+**Saatja:** Meelis, Nanordica Medical
+
+**Kirja tekst (eesti algtekst):**
+
+```
+Lugupeetud Dr. {{perekonnanimi}} / {{eesnimi}},
+
+Pöördun Teie poole uuesti palvega panustada haavaravi akadeemiasse.
+Kui Teil on olnud võimalust jäädvustada mõnda kasulikku haavaravi
+meetodit lühikese videona, saame seda jagada akadeemias teiste
+veterinaaridega. Kõige parem oleks video RavimusVET haavasidemega,
+kuid see pole tingimus.
+
+Filmimiseks piisab telefonist ja ülejäänu, sealhulgas selgitused,
+teeme meie. Teie nime ja kliinikut mainiksime video juures ning enne
+avaldamist küsiksime alati Teie nõusoleku.
+
+Tagasiside andmiseks ja failide edastamiseks palun täitke haavaravi
+akadeemia vorm:
+https://www.nanordica.com/lv/akademija?utm_source=email&utm_medium=warm&utm_content=k7-{{utm_id}}
+
+Heade soovidega,
+Meelis
+Nanordica Medical
+```
+
+**Läti tekst (language-checker läbinud 2026-07-29):**
+
+```
+Cienījamais/ā Dr. {{uzvārds}} / {{vārds}},
+
+Vēršos pie Jums atkārtoti ar lūgumu sniegt ieguldījumu Brūču aprūpes
+akadēmijā. Ja Jums ir bijusi iespēja uzņemt īsu video par kādu
+noderīgu brūču aprūpes metodi, mēs varam to parādīt akadēmijā citiem
+veterinārārstiem. Vislabāk būtu video ar RavimusVET pārsēju, taču tas
+nav obligāti.
+
+Filmēšanai pietiek ar tālruni, un pārējo, tostarp skaidrojumus,
+veiksim mēs. Jūsu vārdu un klīniku minētu pie video, un pirms
+publicēšanas vienmēr lūgtu Jūsu piekrišanu.
+
+Lai sniegtu atsauksmi un nosūtītu failus, lūdzu, aizpildiet Brūču
+aprūpes akadēmijas veidlapu:
+https://www.nanordica.com/lv/akademija?utm_source=email&utm_medium=warm&utm_content=k7-{{utm_id}}
+
+Ar labiem vēlējumiem,
+Meelis
+Nanordica Medical
+```
+
+**Märkused:**
+- Tervitus: kui vet vastas eelnevalt eesnimega → `{{vārds}}`; muidu
+  `Cienījamais/ā Dr. {{uzvārds}}` (rikastamine valib soo järgi)
+- **Roll:** meeldetuletus + akadeemia-panuse kutse. Video = põhieesmärk
+  (akadeemia), ükskõik milline kasulik haavaravi meetod; RavimusVET-iga
+  video eelistatud, aga pole tingimus
+- **Efort maha:** "telefonist piisab, ülejäänu teeme meie" (õppevideo
+  tootmine, nagu K2-s) + nõusolek enne avaldamist
+- **CTA:** üks kindel üleskutse — Wixi vorm (tagasiside + failide üleslaadimine).
+  UTM `utm_content=k7-{{utm_id}}` (sama `utm_id` mis K1/K2/K6), `utm_medium=warm`
+  (mitte cold — kontakt on Engaged). Wix clickEvents → sales-detector seob kliki
+- **Baas-URL `/lv/akademija` on kohatäide** — asenda päris Wixi vormi aadressiga
+- Ajastus: kas K6-vastuses nimetatud ajal või **+1 nädal pärast K6-t** vaikuse korral
+- Opt-out puudub (Engaged), allkiri "Heade soovidega" / "Ar labiem vēlējumiem"
+- QA parandused: `uzņemt īsu video par... metodi` (kaheti mõistetavus),
+  `parādīt` (mitte `dalīties` — väldib topelt-"ar", kooskõla K6-ga),
+  `minētu pie video` (mitte `norādītu` — "mainida" vastab "mainiksime"-le)
+
+---
+
 ## Vana näidiskiri 1: esmane pöördumine, kassiarst (lv mustand, asendatud)
 
 > **Pealkiri:** {{eesnimi}}, atraumatiska pārsiešana kaķiem?
