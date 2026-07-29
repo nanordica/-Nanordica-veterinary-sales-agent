@@ -199,6 +199,72 @@ nevēlaties saņemt vairāk vēstuļu, atbildiet uz šo e-pastu.
 
 ---
 
+## K6 — tagasiside-küsimus: näidis kohal (kinnitatud mall, 2026-07-29)
+
+**Pealkiri:** RavimusVet tagasiside
+
+**Saatja:** Meelis, Nanordica Medical
+
+**Kirja tekst (eesti algtekst):**
+
+```
+Lugupeetud Dr. {{perekonnanimi}} / {{eesnimi}},
+
+Tasuta RavimusVET haavasidemed on nüüdseks Teieni jõudnud.
+
+Olge hea ja andke mulle teada, millal võiksime oodata esimesi
+tulemusi. Eelistatult ootame lühikesi videoklippe haavaravi
+metoodikatest, mida saaksime haavaravi akadeemia kaudu teiste
+veterinaaridega jagada.
+
+Teie hinnang aitab meil muuta haavasidumise veterinaarias sama
+tavapäraseks, kui see on inimmeditsiinis.
+
+Heade soovidega,
+Meelis
+Nanordica Medical
+```
+
+**Läti tekst (language-checker läbinud 2026-07-29):**
+
+```
+Cienījamais/ā Dr. {{uzvārds}} / {{vārds}},
+
+Bezmaksas RavimusVET brūču pārsēji tagad ir nonākuši līdz Jums.
+
+Lūdzu, dodiet man ziņu, kad mēs varētu gaidīt pirmos rezultātus.
+Vislabāk gaidītu īsus videoklipus par brūču aprūpes metodēm, kurus
+varētu rādīt citiem veterinārārstiem Brūču aprūpes akadēmijā.
+
+Jūsu vērtējums palīdzēs mums padarīt brūču pārsiešanu veterinārijā
+tikpat ierastu, kā tā ir cilvēku medicīnā.
+
+Ar labiem vēlējumiem,
+Meelis
+Nanordica Medical
+```
+
+**Märkused:**
+- Tervitus: kui vet arst vastas eelnevalt eesnimega → `{{vārds}}`; muidu
+  `Cienījamais/ā Dr. {{uzvārds}}` (rikastamine valib soo järgi mees/naine)
+- **Eesmärk 1:** kinnitab, et tasuta näidis on kohal → tekitab pehme
+  vastastikkuse kohustuse (kingitus, mitte arve)
+- **Eesmärk 2:** kogub ajastuse signaali ("millal esimesed tulemused") →
+  outreach-writer saadab K7 (päris tagasisideküsimus) õigel hetkel
+- **Eesmärk 3:** ütleb ette eelistatud tagasisidevormi — lühikesed
+  videoklipid haavaravi metoodikatest akadeemia jaoks. Vet peab seda ette
+  teadma; nõusolek + nime/kliiniku külgejäämine täpsustatakse K7-s
+- Videoklipi-lause: eesti "jagada" (dalīties) annaks kohmaka topelt-"ar",
+  seepärast läti tekstis `rādīt` (näidata) — akadeemia kontekstis sama mõte
+- Opt-out rida puudub (kontakt on Engaged, suhe aktiivne)
+- Käivitub **+1 päev** pärast S5 (Näidis kohal) kinnitust
+- Tootenimi kirjades: alati `RavimusVET` (läti kasutusjuhendis on
+  `RAVIMUS VET`, aga turunduses hoiame ühtset `RavimusVET`)
+- QA: `nu`→`tagad`, `pie Jums`→`līdz Jums` (language-checker); allkiri
+  `Ar labiem vēlējumiem` ja `dodiet ziņu` hoitud K2/K3 kooskõla + soe toon
+
+---
+
 ## Vana näidiskiri 1: esmane pöördumine, kassiarst (lv mustand, asendatud)
 
 > **Pealkiri:** {{eesnimi}}, atraumatiska pārsiešana kaķiem?
