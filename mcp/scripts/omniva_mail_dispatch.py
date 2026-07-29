@@ -219,12 +219,19 @@ def _internal(addr: str) -> bool:
     return (addr or "").lower().endswith(INTERNAL_DOMAIN)
 
 
+ROOM_KEYWORDS = ("ruum", "bronee", "seminar", "lounge", "koosolek")
+
+
 def _is_dispatch_candidate(sender: str, own_address: str, *texts) -> bool:
-    """Internal sender (not the mailbox itself) + shipping keyword anywhere."""
+    """Internal sender (not the mailbox itself) + shipping keyword anywhere.
+    Room-booking requests (handled by room_booking_watch) often contain
+    'saada'/'paki' too — they are never shipment candidates."""
     s = (sender or "").lower()
     if not _internal(s) or s == (own_address or "").lower():
         return False
     blob = " ".join(t or "" for t in texts).lower()
+    if any(k in blob for k in ROOM_KEYWORDS):
+        return False
     return any(k in blob for k in KEYWORDS)
 
 

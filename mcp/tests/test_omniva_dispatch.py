@@ -405,3 +405,13 @@ def test_process_message_live_registers(monkeypatch):
     assert created["pickup_point_id"] == "9114"
     assert created["weight_kg"] == 0.5
     assert created["receiver_email"] == "anna@klinika.lv"
+
+
+def test_room_requests_are_not_shipment_candidates():
+    own = "ravimus@nanordica.com"
+    assert not od._is_dispatch_candidate(
+        "vera@nanordica.com", own,
+        "Ruumi broneerimine", "Palun broneeri seminariruum ja saada kinnitus")
+    # tavaline pakikiri jääb kandidaadiks
+    assert od._is_dispatch_candidate("vera@nanordica.com", own,
+                                     "soovin saata paki", "")
