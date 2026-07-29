@@ -1,0 +1,80 @@
+---
+name: room-booking
+description: Broneeri Tehnopoli seminariruum (vaikimisi Investor Lounge, Mäealuse 2/1) sisemise e-kirja soovi peale, koodiga KVincubator ja AINULT 0-eurose summaga. Käivitatakse headless'ina room_booking_watch.py poolt argumendiga = spool-faili tee. Kasuta, kui kasutaja palub broneerida seminariruumi või käivitab /room-booking <spool.json>.
+---
+
+# room-booking — Tehnopoli seminariruumi broneerija
+
+Sisend: argument on JSON spool-fail kujul
+`{"id": <graph msg id>, "from": <saatja>, "subject": ..., "received": ..., "body_text": <puhas tekst>}`.
+Loe see fail; selles on ühe @nanordica.com saatja ruumibroneerimise soov.
+
+## RAUDSED REEGLID (enne kõike)
+
+1. **AINULT tasuta broneering.** Broneeringu kokkuvõttes PEAB olema `Kokku: 0,00 €`
+   JA nupp PEAB olema **"Broneeri"**. Kui näed nuppu "Suundu maksma" või mistahes
+   summat > 0,00 € — KATKESTA kohe, ära kliki midagi, vasta saatjale veateatega.
+   Mitte kunagi ära sisesta makseandmeid ega jätka makselehele.
+2. **Alati aktiveeri kood `KVincubator`** enne aja valimist — ilma koodita on
+   kalender lukus ja hinnad tasulised.
+3. Saatja peab olema `@nanordica.com` (watcher juba filtreerib; kontrolli üle).
+4. Ainult Mäealuse 2/1 ruumid. Vaikimisi **Investor Lounge**
+   (https://www.tehnopol.ee/ruum/investorlounge/); muu ruum ainult siis, kui
+   kirjas on selgelt soovitud (leia link https://tehnopol.ee/arilinnak/seminariruumid/ kaudu).
+5. Kui kirjast puudub kuupäev või kellaaeg → ÄRA broneeri; vasta täpsustava
+   küsimusega (millal, kui pikalt, mitu inimest).
+6. Kui soovitud aeg on kalendris hõivatud ("Kinni") → ÄRA vali teist aega
+   omavoliliselt; vasta saatjale vabade aegadega, mida kalendris näed.
+
+## Broneerimisvoog (Steel guided-browser; retsept verifitseeritud 29.07.2026)
+
+Tööriist: `python3 ~/.hermes/scripts/browserless-guided.py` (alias BG). Pordiks
+vali 9232. Iga `act` vastus on JSON; `ok:false` korral vaata
+`/tmp/bl-guided/port-9232.log` ja tee snapshot. Lõpus ALATI `stop --port 9232`
+(mitte kunagi pkill).
+
+1. `BG start --port 9232 --minutes 25 https://www.tehnopol.ee/ruum/investorlounge/`
+2. `BG act --port 9232 accept-cookies` (või `click "Nõustun"`)
+3. `BG act --port 9232 fill "#coupon_code" "KVincubator"` → `click "Aktiveeri"`
+   → snapshot: lukuteade "Sisesta kehtiv broneerimiskood" peab olema KADUNUD.
+4. Kalender on FullCalendar nädalavaade (E–R, data-date atribuudid).
+   Vajadusel liigu õigele nädalale (next-nool: otsi `.fc-next-button` ja kliki).
+   Aja valik käib koordinaadi-klikiga, mis PEAB olema viewport'is:
+   a. Keri: `eval "(()=>{const l=[...document.querySelectorAll('td.fc-timegrid-slot-lane')].find(t=>t.dataset.time==='<HH-1>:00:00'); l&&l.scrollIntoView({block:'center'}); return 'ok';})()"`
+   b. Koordinaadid: `eval "JSON.stringify((()=>{const c=document.querySelector('.fc-timegrid-col[data-date=\"YYYY-MM-DD\"] .fc-timegrid-col-frame').getBoundingClientRect(); const l=[...document.querySelectorAll('td.fc-timegrid-slot-lane')].find(t=>t.dataset.time==='HH:MM:00').getBoundingClientRect(); return {x:Math.round(c.x+c.width/2), y:Math.round(l.y+2)};})())"`
+   c. `click-at <x> <y>` — üks klikk valib 30-min sloti algusega sel ajal.
+      Pikema aja jaoks kliki järjest ka järgmisi 30-min slotte ja kontrolli
+      snapshot'iga, kuidas kokkuvõtte ajavahemik muutub (kui teine klikk
+      hoopis tühistab/asendab valiku, vali pikkus nii nagu vidin võimaldab ja
+      kirjuta vastusesse tegelik broneeritud vahemik).
+5. Snapshot → kontrolli kokkuvõtet: õige kuupäev, ajavahemik, ruum, ja
+   REEGLI 1 tingimused (Kokku: 0,00 € + nupp "Broneeri").
+6. `click "Broneeri"` → snapshot. Kui avaneb kontaktivorm (Gravity Forms:
+   nimeväli `#input_1_4`, e-post `#input_1_1`, tingimuste checkbox
+   `#input_1_3_1`): nimi = saatja nimi või "Nanordica Medical OÜ", e-post =
+   **saatja enda aadress** (siis jõuab Tehnopoli kinnitus/muutmislink temani),
+   checkbox linnukesse, submit. Snapshot → veendu kinnituses.
+7. Tõend: viimane snapshot'i screenshot (snap.png) — kopeeri
+   `~/.hermes/logs/room-booking-<msgid8>.png`.
+8. `BG stop --port 9232`
+
+## Vastus saatjale
+
+Saada vastus SAMA lõime sisse Graph'iga (repo juurest):
+`cd mcp && set -a; . ./.env; set +a` ja python one-liner:
+`from lib import graph_client as gc; gc.reply_mail("<spool id>", "<html>")`
+(fallback `gc.send_mail(saatja, teema, html)`).
+
+- Õnnestus: kinnita ruum + kuupäev + kellavahemik + "kood KVincubator, summa
+  0,00 €" + märgi, et Tehnopoli kinnitusmeil (muutmis/tühistuslingiga) tuleb
+  tema aadressile.
+- Aeg kinni: loetle kalendrist nähtud vabad ajad samal päeval.
+- Andmed puudu: küsi kuupäev + kellaaeg + kestus.
+- Viga (sh mistahes summa ≠ 0,00 €): kirjelda ausalt, mida nägid; ära broneeri.
+
+## Lõpetamine
+
+Kirjuta spool-faili kõrvale `<spool>.result.json`:
+`{"status": "booked|clarification|busy|error", "room": ..., "start": ..., "end": ..., "reply_sent": true/false, "detail": ...}`.
+See on watcheri jaoks — tema märgib kirja registrisse. Kui sa result-faili ei
+kirjuta, loeb watcher katse ebaõnnestunuks ja proovib järgmisel tsüklil uuesti.
