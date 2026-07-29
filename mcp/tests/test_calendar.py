@@ -329,3 +329,26 @@ def test_book_tool_live_includes_deal_id(monkeypatch):
     out = calendar_book_slot.fn(42, f"{DAY}T09:00:00Z", f"{DAY}T09:20:00Z",
                                 "lead@clinic.ee", "Ravimus demo")
     assert out["booked"] is True and out["deal_id"] == 42
+
+
+def test_create_event_builds_attendee_list(monkeypatch):
+    import lib.graph_client as gc
+    captured = {}
+
+    def fake_call(method, path, body=None):
+        captured.update(method=method, path=path, body=body)
+        return {"id": "EV1"}
+
+    monkeypatch.setattr(gc, "_call", fake_call)
+    monkeypatch.setattr(gc, "_auth_headers", lambda: {"Authorization": "x"})
+    monkeypatch.setenv("GRAPH_SENDER", "ravimus@nanordica.com")
+    r = gc.create_event("2026-07-31T12:00:00Z", "2026-07-31T13:00:00Z",
+                        "Koosolek", ["a@nanordica.com", "b@ext.ee"],
+                        location="Swedbank, Mäealuse 2/1, Tehnopol")
+    assert r["created"] and r["event_id"] == "EV1"
+    body = captured["body"]
+    assert captured["method"] == "POST" and "/events" in captured["path"]
+    assert [a["emailAddress"]["address"] for a in body["attendees"]] == [
+        "a@nanordica.com", "b@ext.ee"]
+    assert body["location"]["displayName"].startswith("Swedbank")
+    assert "isOnlineMeeting" not in body  # physical room: no Teams by default

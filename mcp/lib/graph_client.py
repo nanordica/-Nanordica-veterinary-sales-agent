@@ -348,6 +348,37 @@ def _window_is_free(sender: str, calendar_user: str,
     return {"free": not busy}
 
 
+def create_event(start: str, end: str, subject: str, attendees: list,
+                 body_text: str = "", location: str = "",
+                 online_meeting: bool = False) -> dict:
+    """Create an event on GRAPH_SENDER's calendar inviting `attendees`
+    (list of e-mail addresses); Graph sends the invitations. Unlike
+    book_slot this has no GRAPH_CALENDAR_USER coupling and no free/busy
+    re-check — meant for meetings whose time was agreed elsewhere (e.g. a
+    physical room booked at Tehnopol). Returns {'created': True,
+    'event_id': ...} or {'error': ...}."""
+    sender = _env("GRAPH_SENDER")
+    headers = _auth_headers()
+    if headers is None:
+        return get_token()
+    event = {"subject": subject,
+             "body": {"contentType": "Text", "content": body_text},
+             "start": {"dateTime": start, "timeZone": "UTC"},
+             "end": {"dateTime": end, "timeZone": "UTC"},
+             "attendees": [{"emailAddress": {"address": a}, "type": "required"}
+                           for a in attendees]}
+    if location:
+        event["location"] = {"displayName": location}
+    if online_meeting:
+        event["isOnlineMeeting"] = True
+        event["onlineMeetingProvider"] = "teamsForBusiness"
+    res = _call("POST", f"/users/{urllib.parse.quote(sender)}/events", event)
+    if "error" in res:
+        return res
+    return {"created": True, "event_id": res.get("id"),
+            "start": start, "end": end, "attendees": attendees}
+
+
 def book_slot(start: str, end: str, attendee_email: str, subject: str,
               body_text: str = "") -> dict:
     """Create a Teams meeting on the ORGANIZER's calendar (GRAPH_SENDER) and
