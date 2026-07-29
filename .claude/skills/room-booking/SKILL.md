@@ -45,12 +45,18 @@ Kirjast võib tulla kolme tüüpi soove — käsitle vastavalt:
 seda ruumi.
 
 **B. Inimeste arv, ruumi pole** ("vaja ruumi 6 inimesele neljapäeval 14–15")
-→ vali **väikseim ruum, kuhu seltskond mahub** (jäta suuremad teistele
-vabaks): ≤4 → Kosmos/Prototron/Ruutu6 (võta neist esimene, mis sel ajal
-vaba); 5–7 → Swedbank; 8–10 → Investor Lounge; 11–30 → UK Lounge. Kui
-inimeste arvu EI ole ja ruumi EI ole nimetatud → vaikimisi Investor Lounge.
-Kui valitud klassi ruum on kinni, liigu järgmise suurema vaba peale ja
-ütle vastuses, miks.
+→ valikureegel:
+- **≥3 inimest → eelista ALATI Swedbanki (7) või Investor Lounge'i (10)**:
+  3–7 → Swedbank, kui vaba, muidu Investor Lounge; 8–10 → Investor Lounge;
+  11–30 → UK Lounge. Väiksemaid (Kosmos/Prototron/Ruutu6) sel juhul ise ÄRA
+  broneeri — võid neid vastuses ALTERNATIIVINA mainida ("kui eelistate
+  väiksemat, on kell X vaba ka Kosmos — vasta 'broneeri Kosmos'").
+- 1–2 inimest → väikseim vaba ruum (Kosmos/Prototron/Ruutu6); kui kõik
+  kinni, siis Swedbank/Investor Lounge.
+- Inimeste arvu EI ole ja ruumi EI ole nimetatud → vaikimisi Investor
+  Lounge.
+- Kui eelistatud ruumid on soovitud ajal kinni, ütle vastuses ausalt, mis
+  oli kinni ja mille asemel valisid/pakud.
 
 **C. Vabaduse päring** ("mis ruum on homme kell 14 vaba?") → ava
 kandidaatruumide lehed (mahutavuse-vihje olemasolul ainult sobivad, muidu
