@@ -18,13 +18,48 @@ Loe see fail; selles on ühe @nanordica.com saatja ruumibroneerimise soov.
 2. **Alati aktiveeri kood `KVincubator`** enne aja valimist — ilma koodita on
    kalender lukus ja hinnad tasulised.
 3. Saatja peab olema `@nanordica.com` (watcher juba filtreerib; kontrolli üle).
-4. Ainult Mäealuse 2/1 ruumid. Vaikimisi **Investor Lounge**
-   (https://www.tehnopol.ee/ruum/investorlounge/); muu ruum ainult siis, kui
-   kirjas on selgelt soovitud (leia link https://tehnopol.ee/arilinnak/seminariruumid/ kaudu).
+4. Ainult Mäealuse 2/1 ruumid (kataloog allpool). Kood KVincubator kehtib
+   nende peal; teisi maju ÄRA broneeri.
 5. Kui kirjast puudub kuupäev või kellaaeg → ÄRA broneeri; vasta täpsustava
    küsimusega (millal, kui pikalt, mitu inimest).
-6. Kui soovitud aeg on kalendris hõivatud ("Kinni") → ÄRA vali teist aega
-   omavoliliselt; vasta saatjale vabade aegadega, mida kalendris näed.
+6. Kui soovitud aeg on valitud ruumis hõivatud ("Kinni") → ÄRA vali teist
+   aega omavoliliselt; kontrolli sama aja peale teisi sobivaid ruume
+   (kataloog) ja vasta saatjale valikutega, mida päriselt nägid.
+
+## Mäealuse 2/1 ruumide kataloog (kontrollitud 29.07.2026)
+
+| Ruum | Mahutavus | URL |
+|---|---|---|
+| Kosmos | 4 | https://www.tehnopol.ee/ruum/kosmos/ |
+| Prototron | 4 | https://www.tehnopol.ee/ruum/prototron/ |
+| Ruutu6 | 4 | https://www.tehnopol.ee/ruum/ruutu6/ |
+| Swedbank | 7 | https://www.tehnopol.ee/ruum/swedbank/ |
+| Investor Lounge | 10 | https://www.tehnopol.ee/ruum/investorlounge/ |
+| UK Lounge | 30 | https://www.tehnopol.ee/ruum/uk-lounge/ |
+
+## Soovitüübi tuvastus ja ruumivalik
+
+Kirjast võib tulla kolme tüüpi soove — käsitle vastavalt:
+
+**A. Ruum nimetatud** ("broneeri Investor Lounge reedeks 15–16") → kasuta
+seda ruumi.
+
+**B. Inimeste arv, ruumi pole** ("vaja ruumi 6 inimesele neljapäeval 14–15")
+→ vali **väikseim ruum, kuhu seltskond mahub** (jäta suuremad teistele
+vabaks): ≤4 → Kosmos/Prototron/Ruutu6 (võta neist esimene, mis sel ajal
+vaba); 5–7 → Swedbank; 8–10 → Investor Lounge; 11–30 → UK Lounge. Kui
+inimeste arvu EI ole ja ruumi EI ole nimetatud → vaikimisi Investor Lounge.
+Kui valitud klassi ruum on kinni, liigu järgmise suurema vaba peale ja
+ütle vastuses, miks.
+
+**C. Vabaduse päring** ("mis ruum on homme kell 14 vaba?") → ava
+kandidaatruumide lehed (mahutavuse-vihje olemasolul ainult sobivad, muidu
+kõik), aktiveeri igal kood, loe kalendrist soovitud aja seis. Seejärel:
+- kui kirjas on selge korraldus stiilis "broneeri (see) ära" / "lase üle
+  broneerida" → broneeri parim vaba (väikseim-sobiv reegel) ja kinnita;
+- muidu ÄRA broneeri — vasta nimekirjaga "kell X on vabad: …" ja paku, et
+  vastusega "broneeri <ruum>" teed broneeringu ära (see vastus jõuab
+  watcheri kaudu uue soovina tagasi).
 
 ## Broneerimisvoog (Steel guided-browser; retsept verifitseeritud 29.07.2026)
 
@@ -33,7 +68,8 @@ vali 9232. Iga `act` vastus on JSON; `ok:false` korral vaata
 `/tmp/bl-guided/port-9232.log` ja tee snapshot. Lõpus ALATI `stop --port 9232`
 (mitte kunagi pkill).
 
-1. `BG start --port 9232 --minutes 25 https://www.tehnopol.ee/ruum/investorlounge/`
+1. `BG start --port 9232 --minutes 25 <valitud ruumi URL kataloogist>`
+   (mitme ruumi kontrolliks kasuta sama sessiooni: `act --port 9232 goto <järgmise ruumi URL>` — kood tuleb igal lehel uuesti aktiveerida)
 2. `BG act --port 9232 accept-cookies` (või `click "Nõustun"`)
 3. `BG act --port 9232 fill "#coupon_code" "KVincubator"` → `click "Aktiveeri"`
    → snapshot: lukuteade "Sisesta kehtiv broneerimiskood" peab olema KADUNUD.
@@ -75,6 +111,7 @@ Saada vastus SAMA lõime sisse Graph'iga (repo juurest):
 ## Lõpetamine
 
 Kirjuta spool-faili kõrvale `<spool>.result.json`:
-`{"status": "booked|clarification|busy|error", "room": ..., "start": ..., "end": ..., "reply_sent": true/false, "detail": ...}`.
+`{"status": "booked|options|clarification|busy|error", "room": ..., "start": ..., "end": ..., "reply_sent": true/false, "detail": ...}`
+("options" = vabaduse-päringule saadeti valikute nimekiri ilma broneerimata).
 See on watcheri jaoks — tema märgib kirja registrisse. Kui sa result-faili ei
 kirjuta, loeb watcher katse ebaõnnestunuks ja proovib järgmisel tsüklil uuesti.
