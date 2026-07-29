@@ -179,8 +179,10 @@ iesaistīties. Jūs neatbildējāt, kas ir pilnīgi saprotami. Varbūt mans
 pieejas veids nebija pareizs.
 
 Tomēr, ja Jums kādreiz rodas interese par RavimusVET vai vēlaties
-iesaistīties akadēmijā — esmu pieejams. Tāpat varat man laipni paziņot,
-kas būtu padarījis šo vēstuļu tēmu Jums interesantu?
+iesaistīties akadēmijā — esmu pieejams. Ja pazīstat kolēģi, kuram
+jaunais brūču pārsējs varētu būt noderīgs, droši pārsūtiet šo vēstuli
+tālāk. Tāpat varat man laipni paziņot, kas būtu padarījis šo vēstuļu
+tēmu Jums interesantu?
 
 Ar labiem vēlējumiem,
 Meelis
@@ -194,6 +196,10 @@ nevēlaties saņemt vairāk vēstuļu, atbildiet uz šo e-pastu.
 - `Cienījamais` (mees) / `Cienījamā` (naine) — rikastamine valib soo järgi
 - Käivitub +14 päeva pärast K1-t (+7p pärast K2-t) kui vastust pole
 - Ei ole personaalset avarea ega UTM-linki — tahtlik, hoiab ausa tooni
+- Soovitusnurk (2026-07-29, language-checker läbinud): palve saata kiri
+  kolleegile, kellele uudne haavaside kasulik oleks. Fookus kolleegi kasul
+  (mitte saatja tänulikkusel); sooneutraalne `tālāk`, mitte `viņam`. Koodi
+  ega linki teadlikult ei lisatud, et hoida aus toon
 - Vastus → inbox-triage märgib Engaged → outreach-writer saadab K4
 - Vaikus → Lost (no-reply)
 
