@@ -51,12 +51,26 @@ seda ruumi.
   11–30 → UK Lounge. Väiksemaid (Kosmos/Prototron/Ruutu6) sel juhul ise ÄRA
   broneeri — võid neid vastuses ALTERNATIIVINA mainida ("kui eelistate
   väiksemat, on kell X vaba ka Kosmos — vasta 'broneeri Kosmos'").
-- 1–2 inimest → väikseim vaba ruum (Kosmos/Prototron/Ruutu6); kui kõik
-  kinni, siis Swedbank/Investor Lounge.
+- 1–2 inimest → KA siis eelista Swedbanki/Investor Lounge'i, kui need on
+  sel ajal vabad (väikesed ruumid maini alternatiivina); väike ruum
+  (Kosmos/Prototron/Ruutu6) vali ainult siis, kui mõlemad eelistatud on
+  kinni.
 - Inimeste arvu EI ole ja ruumi EI ole nimetatud → vaikimisi Investor
   Lounge.
 - Kui eelistatud ruumid on soovitud ajal kinni, ütle vastuses ausalt, mis
   oli kinni ja mille asemel valisid/pakud.
+
+**D. Broneering + kutsed** ("pane koosolekuruum kinni ja saada kutsed
+mart@…, vera@…, külaline@partner.ee") → inimeste arv = kutsutavate arv + 1
+(saatja ise). Vali ruum B-reegli järgi, broneeri Tehnopolis (sama 0,00 €
+värav), ja SEEJÄREL saada kalendrikutsed repo juurest:
+`cd mcp && set -a; . ./.env; set +a` ning python:
+`from lib import graph_client as gc; gc.create_event("<start UTC ISO>", "<end UTC ISO>", "<teema kirjast või 'Koosolek'>", ["<saatja>", "<kutsutav1>", ...], body_text="Ruum: <ruum>, Mäealuse 2/1 (Tehnopol). Broneeritud koodiga KVincubator, 0,00 EUR.", location="<Ruum>, Mäealuse 2/1, Tehnopol")`
+— korraldaja on ravimus@, kutse läheb KA saatjale endale. NB kellaajad
+UTC-s (EEST − 3h). Kutsed saada AINULT pärast õnnestunud 0-eurost
+broneeringut; kui broneering ebaõnnestus, kutseid ei lähe. Kutsutavad
+võivad olla ka välised aadressid (tavaline koosolekukutse). Vastuses
+kinnita mõlemad: ruum broneeritud + kutsed saadetud (kellele).
 
 **C. Vabaduse päring** ("mis ruum on homme kell 14 vaba?") → ava
 kandidaatruumide lehed (mahutavuse-vihje olemasolul ainult sobivad, muidu
