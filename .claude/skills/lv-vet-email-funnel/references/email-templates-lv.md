@@ -339,6 +339,84 @@ Nanordica Medical
 
 ---
 
+## K8 — tagasiside-breakup: viimane kiri + sooduskood (kinnitatud mall, 2026-07-29)
+
+**Pealkiri:** Kas RavimusVET sobis Teie patsientidele?
+
+**Saatja:** Meelis, Nanordica Medical
+
+**Kirja tekst (eesti algtekst):**
+
+```
+Lugupeetud Dr. {{perekonnanimi}} / {{eesnimi}},
+
+Küsisin paar korda, kuidas RavimusVET haavasidemed Teie patsientidel
+on toiminud, kuid pole Teilt vastust saanud. On täiesti mõistetav, kui
+uudsete toodete testimine jääb igapäevatöös tahaplaanile.
+
+See on minu viimane kiri sellel teemal. Kui soovite jagada tähelepanekut
+või panustada akadeemiasse, saate seda teha siin:
+https://www.nanordica.com/lv/akademija?utm_source=email&utm_medium=warm&utm_content=k8-vorm-{{utm_id}}
+
+Lisan ka ühekordse sooduskoodi {{sooduskood}}, mis kehtib 30 päeva.
+Kasutage seda ise RavimusVET tellimuseks või andke edasi kolleegile,
+kellel seda rohkem vaja läheb:
+https://www.nanordica.com/lv/ravimus?utm_source=email&utm_medium=warm&utm_content=k8-pood-{{utm_id}}
+
+Heade soovidega,
+Meelis
+Nanordica Medical
+```
+
+**Läti tekst (language-checker läbinud 2026-07-29):**
+
+```
+Cienījamais/ā Dr. {{uzvārds}} / {{vārds}},
+
+Pāris reizes jautāju, kā RavimusVET brūču pārsēji darbojās Jūsu
+pacientiem, taču no Jums atbildi nesaņēmu. Ir pilnīgi saprotami, ja
+jaunu produktu izmēģināšana ikdienas darbā paliek otrajā plānā.
+
+Šī ir mana pēdējā vēstule par šo tēmu. Ja vēlaties dalīties ar savu
+novērojumu vai sniegt ieguldījumu akadēmijā, to varat izdarīt šeit:
+https://www.nanordica.com/lv/akademija?utm_source=email&utm_medium=warm&utm_content=k8-vorm-{{utm_id}}
+
+Pievienoju arī vienreizēju atlaides kodu {{sooduskood}}, kas ir derīgs
+30 dienas. Izmantojiet to pats/pati RavimusVET pasūtījumam vai nododiet
+kolēģim, kuram tas varētu būt vairāk vajadzīgs:
+https://www.nanordica.com/lv/ravimus?utm_source=email&utm_medium=warm&utm_content=k8-pood-{{utm_id}}
+
+Ar labiem vēlējumiem,
+Meelis
+Nanordica Medical
+```
+
+**Märkused:**
+- Tervitus: kui vet vastas eelnevalt eesnimega → `{{vārds}}`; muidu
+  `Cienījamais/ā Dr. {{uzvārds}}` (rikastamine valib soo järgi)
+- **`pats` (mees) / `pati` (naine)** — rikastamine valib soo järgi, sama
+  lipp mis `Cienījamais/ā`
+- **Roll:** tagasiside-haru breakup, viimane kiri. Aus, tagasihoidlik,
+  ilma surveta ega süütundeta tasuta toote pärast
+- **Kaks rada, mõlemad madala surve:**
+  1. Akadeemia vorm (tagasiside/panus) — `utm_content=k8-vorm-{{utm_id}}`
+  2. Ühekordne sooduskood `{{sooduskood}}` (kehtib 30 päeva) + poe link
+     `utm_content=k8-pood-{{utm_id}}`. Referral-nurk: kasuta ise või anna
+     kolleegile
+- **Jälgimine:** koodi lunastus → sales-detector `_state.discount_code`
+  järgi → Naidis tellitud/Won; lingiklikid → mõlemad `-{{utm_id}}`
+  lõpuga, sales-detector seob deal'iga, prefiks eristab vorm/pood
+- **Kood loob outreach-writer** (wix_create_coupon), 30 p kehtivus,
+  `_state.discount_code` = kood
+- Ajastus: **+1 nädal pärast K7-t** vaikuse korral. Vastus → S6; vaikus → Lost
+- Opt-out puudub (Engaged), allkiri "Heade soovidega" / "Ar labiem vēlējumiem"
+- QA parandused: `pats/pati` (taastab "ise" vastanduse), `dalīties ar savu
+  novērojumu` (loomulikum), sõnajärg `no Jums atbildi nesaņēmu`
+- **NB lehter:** K8 annab nüüd sooduskoodi (varem oli see ainult K9-s).
+  K8 → Naidis tellitud/Won on nüüd otse võimalik. Skeem vajab täpsustust
+
+---
+
 ## Vana näidiskiri 1: esmane pöördumine, kassiarst (lv mustand, asendatud)
 
 > **Pealkiri:** {{eesnimi}}, atraumatiska pārsiešana kaķiem?
