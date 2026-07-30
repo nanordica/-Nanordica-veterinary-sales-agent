@@ -56,7 +56,7 @@ STATE_PATH = Path(__file__).resolve().parents[2] / "cache" / "omniva-dispatch.js
 FIELD_ALIASES = {
     "saaja": "name", "nimi": "name",
     "telefon": "phone", "tel": "phone", "mobiil": "phone",
-    "pakiautomaat": "machine", "automaat": "machine",
+    "pakiautomaat": "machine", "automaat": "machine", "sihtkoht": "machine",
     "aadress": "address", "linn": "address",
     "riik": "country",
     "kaal": "weight",
@@ -197,6 +197,18 @@ def resolve_pickup_point(fields: dict, lookup=oc.list_pickup_points) -> dict:
         return res
     machines = [p for p in res.get("points", [])
                 if p.get("type") == "parcel_machine"]
+    if not machines and query:
+        # 'Tartu Rebase Rimi Omniva pakiautomaat' fails exact substring match
+        # against the feed's 'Tartu Rebase Rimi pakiautomaat' — retry with
+        # generic filler words dropped.
+        generic = {"omniva", "pakiautomaat", "pakiautomaati", "pakomāts",
+                   "automaat", "automaati", "parcel", "machine"}
+        toks = [t for t in query.split() if t.lower() not in generic]
+        cleaned = " ".join(toks)
+        if cleaned and cleaned.lower() != query.lower():
+            res = lookup(country=country, query=cleaned, limit=10)
+            machines = [p for p in res.get("points", [])
+                        if p.get("type") == "parcel_machine"]
     if not machines:
         if by == "machine":
             return {"error": f"Pakiautomaati '{query}' ei leitud riigis "
@@ -322,10 +334,18 @@ def build_shipped_notice(res: dict) -> tuple:
     body = ("Tere!<br><br>Omniva saadetis on registreeritud.<br><ul>"
             f"<li>Saaja: {f.get('name', '?')} ({f.get('phone', '?')})</li>"
             f"<li>Pakiautomaat: {machine}</li>"
-            f"<li>Jälgimisnumber: <b>{barcode}</b></li></ul>"
-            "Pakisilt on kirjaga kaasas — prindi ja kleebi pakile. "
-            "Jälgimine: https://www.omniva.ee/abi/jalgimine<br><br>"
-            "— Ravimus'e saatmisagent (automaatne kiri)")
+            f"<li>Jälgimisnumber: <b>{barcode}</b></li></ul>")
+    texts = [t for t in (res.get("request_texts") or []) if t]
+    if texts:
+        # What to actually pack lives in the requester's own words — quote
+        # the thread so the office isn't left guessing the contents.
+        body += ("Soovi sisu (tellija sõnadega):<br><blockquote>"
+                 + "<br>—<br>".join(t.replace("\n", " ").strip()[:300]
+                                    for t in texts[-3:])
+                 + "</blockquote>")
+    body += ("Pakisilt on kirjaga kaasas — prindi ja kleebi pakile. "
+             "Jälgimine: https://www.omniva.ee/abi/jalgimine<br><br>"
+             "— Ravimus'e saatmisagent (automaatne kiri)")
     return subj, body
 
 
@@ -373,12 +393,14 @@ def inherit_context(registry: dict, conversation_id: str | None,
               or (sender and e.get("from") == sender and base
                   and _base_subject(e.get("subject")) == base)]
     rounds.sort(key=lambda e: e.get("ts", 0))
-    fields, options = {}, []
+    fields, options, excerpts = {}, [], []
     for e in rounds:
         fields.update(e.get("fields") or {})
         if e.get("options"):
             options = e["options"]
-    return fields, options
+        if e.get("excerpt"):
+            excerpts.append(e["excerpt"])
+    return fields, options, excerpts
 
 
 def match_option(text: str, options: list) -> str | None:
@@ -503,16 +525,31 @@ def main() -> int:
             continue
         if msg["id"] in registry:
             continue
-        inh_fields, inh_options = inherit_context(
+        inh_fields, inh_options, inh_excerpts = inherit_context(
             registry, msg.get("conversationId"), sender, msg.get("subject"))
         res = process_message(msg, inherited=inh_fields,
                               inherited_options=inh_options)
+        raw = (msg.get("body") or {}).get("content", "") or msg.get("bodyPreview", "")
+        excerpt = strip_quoted(strip_html(raw) if "<" in raw else raw).strip()[:300]
         res.update({"id": msg["id"], "from": sender,
                     "subject": msg.get("subject"),
                     "received": msg.get("receivedDateTime")})
         if res["status"] == "registered":
             # K5: notify the office (label + tracking number), deterministic.
+            res["request_texts"] = inh_excerpts + [excerpt]
             res["notification"] = send_shipped_notice(res)
+            # The internal requester gets an in-thread confirmation too
+            # (the vet-facing funnel never mails the receiver here — the
+            # requester is always @nanordica.com by the candidate filter).
+            f = res.get("fields", {})
+            confirm = ("Tere!<br><br>Pakk on registreeritud.<br><ul>"
+                       f"<li>Saaja: {f.get('name', '?')} ({f.get('phone', '?')})</li>"
+                       f"<li>Pakiautomaat: {(res.get('machine') or {}).get('name', '?')}</li>"
+                       f"<li>Jälgimisnumber: <b>{res.get('barcode', '?')}</b></li></ul>"
+                       "Kontor sai pakisildi ja soovi sisu; pakk läheb teele "
+                       "pärast automaati viimist.<br><br>"
+                       "— Ravimus'e saatmisagent (automaatne kiri)")
+            res["confirmation"] = gc.reply_mail(msg["id"], confirm)
         if res["status"] in ("error", "ambiguous"):
             subj, html_body = build_clarification(res, msg.get("subject"))
             if not _internal(sender):
@@ -537,6 +574,7 @@ def main() -> int:
                                ("status", "missing", "options", "barcode",
                                 "subject", "from", "received", "fields")} | {
             "conversationId": msg.get("conversationId"),
+            "excerpt": excerpt,
             "ts": int(time.time())}
         save_registry(registry)
         results.append(res)

@@ -290,14 +290,14 @@ REG = {"m1": {"conversationId": "c1", "ts": 1, "from": "vera@nanordica.com",
 
 
 def test_inherit_context_by_conversation():
-    f, opts = od.inherit_context(REG, "c1", None, None)
+    f, opts, exc = od.inherit_context(REG, "c1", None, None)
     assert f["name"] == "Mari Maasikas" and len(opts) == 2
-    assert od.inherit_context(REG, "puudub", None, None) == ({}, [])
+    assert od.inherit_context(REG, "puudub", None, None) == ({}, [], [])
 
 
 def test_inherit_context_by_base_subject():
     # our clarification forked the thread: new conversationId, Re:-chained subject
-    f, opts = od.inherit_context(
+    f, opts, exc = od.inherit_context(
         REG, "UUS-CONV", "vera@nanordica.com",
         "Re: Täpsustus vajalik: soovin saata paki")
     assert f["phone"] == "51234567" and len(opts) == 2
@@ -326,7 +326,7 @@ def test_reply_completes_request_via_option_match(monkeypatch):
         created.update(kw)
         return {"barcode": "CC9", "saved": [{"barcode": "CC9"}]}
 
-    f, opts = od.inherit_context(
+    f, opts, _ = od.inherit_context(
         REG, None, "vera@nanordica.com", "Re: Täpsustus vajalik: soovin saata paki")
     res = od.process_message(_msg("Palun Selveri automaati ssata.\n"),
                              lookup=fake_lookup(AMBIG_MACHINES),
@@ -415,3 +415,38 @@ def test_room_requests_are_not_shipment_candidates():
     # tavaline pakikiri jääb kandidaadiks
     assert od._is_dispatch_candidate("vera@nanordica.com", own,
                                      "soovin saata paki", "")
+
+
+# --- sihtkoht alias + token-fallback resolve --------------------------------
+
+TARTU_MACHINES = [
+    {"zip": "96087", "name": "Tartu Rebase Rimi pakiautomaat",
+     "address": "Rebase 10, Tartu", "type": "parcel_machine"},
+]
+
+
+def test_sihtkoht_label_maps_to_machine():
+    f = od.parse_dispatch_email("Saaja: Meelis Kadaja\n"
+                                "Sihtkoht: Tartu Rebase Rimi Omniva pakiautomaat\n")
+    assert f["machine"] == "Tartu Rebase Rimi Omniva pakiautomaat"
+
+
+def test_resolve_token_fallback_drops_generic_words():
+    r = od.resolve_pickup_point(
+        {"machine": "Tartu Rebase Rimi Omniva pakiautomaat", "country": "EE"},
+        lookup=fake_lookup(TARTU_MACHINES))
+    assert r["zip"] == "96087"
+
+
+def test_shipped_notice_includes_request_texts(monkeypatch):
+    monkeypatch.setenv("DISPATCH_NOTIFY_EMAIL", "vera@nanordica.com")
+    sent = {}
+
+    def fake_send(to, subj, body, attachments=None):
+        sent["body"] = body
+        return {"sent": True}
+    monkeypatch.setattr(od.gc, "send_mail", fake_send)
+    od.send_shipped_notice({"fields": {"name": "M"}, "machine": {},
+                            "barcode": "X",
+                            "request_texts": ["Palun saada 2 karpi 10x10"]})
+    assert "2 karpi 10x10" in sent["body"]
