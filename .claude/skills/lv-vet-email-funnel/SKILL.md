@@ -80,6 +80,22 @@ Kui kasutaja palub koostada kirja või jada-sammu, järgi seda:
    valmis-märkimist)                → references/latvian-qa.md
 ```
 
+## Kinnitusvärav (G1 → H1, v3)
+
+Esimene saatmine EI toimu ilma inimese kinnituseta:
+1. **G1** — genereeri kirjad KÕIGILE saajatele korraga (sh läti QA).
+2. **H1** — anna komplekt inimesele üle vaatamiseks; oota selget kinnitust.
+3. Kinnituse järel jätkub jada automaatselt (K2, K3, … taimerite järgi).
+Kinnitamata kirju ei saadeta kunagi; paranduse korral genereeri uuesti.
+
+## Sooduskood (v3)
+
+25% · **ühekordne** · **1 toode** · tähtajaline (vaikimisi 30 p) ·
+`wix_create_coupon` → deal'i `_state.discount_code`.
+Väljastatakse **maksimaalselt üks kord kontakti kohta**: kas K8-s VÕI K9-s.
+K3 on teadlikult **koodita** — tagasihoidlik toon, mitte müügikiri.
+Sooduskoodiga ost → `sales-detector` → **S7 Won**.
+
 ## Raudreeglid
 
 - **Ära mõtle välja** kontakti andmeid ega teadusviiteid. Leidmata andmed →
@@ -96,6 +112,8 @@ Kui kasutaja palub koostada kirja või jada-sammu, järgi seda:
   alati ja käib selle skilliga koos.
 
 ## Viitefailid
+
+Inimloetav ülevaade kirjade loogikast: **`README.md`** (samas kaustas).
 
 | Fail | Sisu |
 |------|------|
