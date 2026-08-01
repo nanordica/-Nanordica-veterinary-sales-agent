@@ -46,6 +46,7 @@ from pathlib import Path
 from lib import graph_client as gc
 from lib import omniva_client as oc
 from lib.dryrun import is_dry_run, dry_log
+from scripts import parcel_triage
 
 _GRAPH = "https://graph.microsoft.com/v1.0"
 INTERNAL_DOMAIN = "@nanordica.com"
@@ -277,12 +278,17 @@ def _internal(addr: str) -> bool:
 ROOM_KEYWORDS = ("ruum", "bronee", "seminar", "lounge", "koosolek")
 
 
+def _is_internal_sender(sender: str, own_address: str) -> bool:
+    """Cheap gate before any model call: internal, not the mailbox itself."""
+    s = (sender or "").lower()
+    return _internal(s) and s != (own_address or "").lower()
+
+
 def _is_dispatch_candidate(sender: str, own_address: str, *texts) -> bool:
-    """Internal sender (not the mailbox itself) + shipping keyword anywhere.
+    """Keyword fallback, used only when the triage model is unavailable.
     Room-booking requests (handled by room_booking_watch) often contain
     'saada'/'paki' too — they are never shipment candidates."""
-    s = (sender or "").lower()
-    if not _internal(s) or s == (own_address or "").lower():
+    if not _is_internal_sender(sender, own_address):
         return False
     blob = " ".join(t or "" for t in texts).lower()
     if any(k in blob for k in ROOM_KEYWORDS):
@@ -378,6 +384,8 @@ def build_shipped_notice(res: dict) -> tuple:
             f"<li>Saaja: {f.get('name', '?')} ({f.get('phone', '?')})</li>"
             f"<li>Pakiautomaat: {machine}</li>"
             f"<li>Jälgimisnumber: <b>{barcode}</b></li></ul>")
+    if res.get("contents"):
+        body += f"Sisu (mudeli kokkuvõte): <b>{res['contents']}</b><br><br>"
     texts = [t for t in (res.get("request_texts") or []) if t]
     if texts:
         # What to actually pack lives in the requester's own words — quote
@@ -499,7 +507,8 @@ def save_registry(reg: dict) -> None:
 def process_message(msg: dict, lookup=oc.list_pickup_points,
                     create=oc.create_shipment, label=oc.get_label,
                     inherited: dict | None = None,
-                    inherited_options: list | None = None) -> dict:
+                    inherited_options: list | None = None,
+                    model_fields: dict | None = None) -> dict:
     """Parse -> validate -> resolve machine -> (DRY_RUN?) register + label.
     Returns a result dict with status: error | dry_run | registered."""
     body = (msg.get("body") or {}).get("content", "") or msg.get("bodyPreview", "")
@@ -510,7 +519,10 @@ def process_message(msg: dict, lookup=oc.list_pickup_points,
     labeled = parse_dispatch_email(body)
     # Precedence: this email's labeled lines > this email's free text >
     # fields inherited from earlier rounds of the same thread.
-    fields = {**(inherited or {}), **fallback_parse(body), **labeled}
+    # Precedence: explicit labels > model extraction > regex heuristics >
+    # earlier rounds of the same thread. Labels are unambiguous, so they win.
+    fields = {**(inherited or {}), **fallback_parse(body),
+              **(model_fields or {}), **labeled}
     if not labeled.get("machine") and inherited_options:
         # Earlier round offered concrete machines — see whether this email's
         # fresh text picks one of them by name fragment.
@@ -564,6 +576,8 @@ def main() -> int:
                                             "shipping-request emails")
     p.add_argument("--top", type=int, default=25,
                    help="how many newest inbox messages to scan")
+    p.add_argument("--no-model", action="store_true",
+                   help="skip model triage, use the keyword fallback")
     p.add_argument("--send-asks", action="store_true",
                    help="really send clarification replies even in DRY_RUN "
                         "(registration itself stays dry)")
@@ -579,12 +593,36 @@ def main() -> int:
     results = []
     for msg in inbox["messages"]:
         sender = ((msg.get("from") or {}).get("emailAddress") or {}).get("address", "")
-        if not _is_dispatch_candidate(
-                sender, own, msg.get("subject"), msg.get("bodyPreview"),
-                (msg.get("body") or {}).get("content")):
+        if not _is_internal_sender(sender, own):
             continue
         if msg["id"] in registry:
             continue
+        raw_body = (msg.get("body") or {}).get("content", "") or msg.get("bodyPreview", "")
+        clean_body = strip_html(raw_body) if "<" in raw_body else raw_body
+        triaged = parcel_triage.triage(sender, msg.get("subject"), clean_body) \
+            if not args.no_model else {"ok": False, "error": "model disabled"}
+        if triaged.get("ok"):
+            if not triaged["is_shipping_request"]:
+                # Not a parcel request (room booking, chatter, invoice...).
+                # Recorded so the model is not asked about it again; NO reply.
+                registry[msg["id"]] = {
+                    "status": "not_shipping", "from": sender,
+                    "subject": msg.get("subject"),
+                    "received": msg.get("receivedDateTime"),
+                    "conversationId": msg.get("conversationId"),
+                    "reason": triaged.get("reason"), "ts": int(time.time())}
+                save_registry(registry)
+                results.append({"id": msg["id"], "status": "not_shipping",
+                                "subject": msg.get("subject"),
+                                "reason": triaged.get("reason")})
+                continue
+            model_fields = triaged.get("fields") or {}
+        else:
+            # Model unavailable -> keyword fallback keeps the cron working.
+            model_fields = {}
+            if not _is_dispatch_candidate(sender, own, msg.get("subject"),
+                                          msg.get("bodyPreview"), raw_body):
+                continue
         dup = already_registered(registry, msg.get("conversationId"),
                                  sender, msg.get("subject"))
         if dup:
@@ -602,7 +640,10 @@ def main() -> int:
         inh_fields, inh_options, inh_excerpts = inherit_context(
             registry, msg.get("conversationId"), sender, msg.get("subject"))
         res = process_message(msg, inherited=inh_fields,
-                              inherited_options=inh_options)
+                              inherited_options=inh_options,
+                              model_fields=model_fields)
+        if triaged.get("ok") and triaged.get("contents"):
+            res.setdefault("contents", triaged["contents"])
         raw = (msg.get("body") or {}).get("content", "") or msg.get("bodyPreview", "")
         excerpt = strip_quoted(strip_html(raw) if "<" in raw else raw).strip()[:300]
         res.update({"id": msg["id"], "from": sender,
