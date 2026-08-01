@@ -145,8 +145,9 @@ Saada vastus SAMA lõime sisse Graph'iga (repo juurest):
 (fallback `gc.send_mail(saatja, teema, html)`).
 
 - Õnnestus: kinnita ruum + kuupäev + kellavahemik + "kood KVincubator, summa
-  0,00 €" + märgi, et Tehnopoli kinnitusmeil (muutmis/tühistuslingiga) tuleb
-  tema aadressile.
+  0,00 €" + tellimuse number. NB **ära luba muutmis/tühistuslinki** —
+  Tehnopoli kinnituskiri seda ei sisalda (kontrollitud 01.08.2026); ütle, et
+  muudatuseks/tühistuseks tuleb kirjutada info@tehnopol.ee.
 - Aeg kinni: loetle kalendrist nähtud vabad ajad samal päeval.
 - Andmed puudu: küsi kuupäev + kellaaeg + kestus.
 - Viga (sh mistahes summa ≠ 0,00 €): kirjelda ausalt, mida nägid; ära broneeri.
