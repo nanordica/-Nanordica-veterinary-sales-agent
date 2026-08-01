@@ -515,3 +515,12 @@ def test_already_registered_by_sender_and_base_subject():
 def test_already_registered_ignores_other_threads():
     assert od.already_registered(REG_REGISTERED, "c1", "keegi@nanordica.com",
                                  "Muu teema") is None
+
+
+def test_dry_run_status_is_not_recorded():
+    """Preview must be repeatable — see feedback_always_dry_run_when_testing."""
+    import inspect
+    src = inspect.getsource(od.main)
+    idx_guard = src.index('res["status"] == "dry_run"')
+    idx_write = src.index('registry[msg["id"]] = {k: res.get(k)')
+    assert idx_guard < idx_write   # guard precedes the registry write

@@ -644,6 +644,12 @@ def main() -> int:
             res["status"] = "clarification_sent"
         graph_mark = mark_processed_graph(msg["id"], res["status"])
         res["graph_marked"] = graph_mark.get("marked", False)
+        if res["status"] == "dry_run":
+            # A preview must stay repeatable: never record it, otherwise the
+            # following real run skips the message as "already processed"
+            # (that trap is why the 2026-08-01 duplicate slipped through).
+            results.append(res)
+            continue
         registry[msg["id"]] = {k: res.get(k) for k in
                                ("status", "missing", "options", "barcode",
                                 "subject", "from", "received", "fields")} | {
