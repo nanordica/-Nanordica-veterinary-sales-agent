@@ -450,3 +450,43 @@ def test_shipped_notice_includes_request_texts(monkeypatch):
                             "barcode": "X",
                             "request_texts": ["Palun saada 2 karpi 10x10"]})
     assert "2 karpi 10x10" in sent["body"]
+
+
+# --- leebem parser: eraldajad, sildid, vabateksti automaadivihje ------------
+
+KARLA_MACHINES = [
+    {"zip": "96276", "name": "Kärla pakiautomaat", "address": "Kärla, Saaremaa",
+     "type": "parcel_machine"},
+    {"zip": "96199", "name": "Saaremaa Kaubamaja pakiautomaat",
+     "address": "Tallinna 5, Kuressaare", "type": "parcel_machine"},
+]
+
+
+def test_dash_separators_and_hyphenated_labels():
+    f = od.parse_dispatch_email(
+        "Saaja — Karl Heinla\nTelefon — 56281454\n"
+        "Pakiautomaat - Kärla omniva, Saaremaa.\nE-post: karl@example.ee\n")
+    assert f["name"] == "Karl Heinla"
+    assert f["phone"] == "56281454"
+    assert f["machine"].startswith("Kärla")
+    assert f["email"] == "karl@example.ee"   # hyphenated label survives
+
+
+def test_freetext_machine_hint_from_sentence():
+    f = od.fallback_parse(
+        "Tere! Paki võib saata Kärla omniva pakiautomaati, Saaremaa.\n"
+        "Karl Heinla\n56281454")
+    assert f["machine"] == "Kärla"           # verb stops the capitalised run
+    assert f["name"] == "Karl Heinla" and f["country"] == "EE"
+
+
+def test_freetext_name_ignores_title_suffix():
+    f = od.fallback_parse("Meelis Kadaja, PhD, MBA\n+372 5184872")
+    assert f["name"] == "Meelis Kadaja"
+
+
+def test_resolve_prefers_first_place_word_not_the_county():
+    r = od.resolve_pickup_point({"machine": "Kärla omniva, Saaremaa",
+                                 "country": "EE"},
+                                lookup=fake_lookup(KARLA_MACHINES))
+    assert r["zip"] == "96276"                # Kärla, mitte Saaremaa Kaubamaja

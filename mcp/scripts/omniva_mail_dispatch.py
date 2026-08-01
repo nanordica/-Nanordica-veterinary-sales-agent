@@ -52,16 +52,20 @@ INTERNAL_DOMAIN = "@nanordica.com"
 KEYWORDS = ("pakk", "paki", "omniva", "saatmi", "saata", "saada")
 STATE_PATH = Path(__file__).resolve().parents[2] / "cache" / "omniva-dispatch.json"
 
-# Body-line labels -> canonical field names (case-insensitive, ':' or '=').
+# Body-line labels -> canonical field names. Matching is deliberately
+# lenient: any of ':', '=', '-', '\u2013', '\u2014' separates label from value,
+# because people write "Saaja \u2014 Karl" as readily as "Saaja: Karl".
 FIELD_ALIASES = {
-    "saaja": "name", "nimi": "name",
-    "telefon": "phone", "tel": "phone", "mobiil": "phone",
+    "saaja": "name", "nimi": "name", "kellele": "name", "kontakt": "name",
+    "telefon": "phone", "tel": "phone", "mobiil": "phone", "number": "phone",
+    "gsm": "phone", "phone": "phone",
     "pakiautomaat": "machine", "automaat": "machine", "sihtkoht": "machine",
-    "aadress": "address", "linn": "address",
-    "riik": "country",
-    "kaal": "weight",
-    "e-post": "email", "epost": "email", "email": "email",
+    "pakipunkt": "machine", "pakiautomaati": "machine", "pakomaat": "machine",
+    "aadress": "address", "linn": "address", "asukoht": "address",
+    "riik": "country", "kaal": "weight",
+    "e-post": "email", "epost": "email", "email": "email", "meil": "email",
 }
+_SEP = r"[:=\u2013\u2014-]"
 
 
 # --- parsing ---------------------------------------------------------------
@@ -95,17 +99,25 @@ def strip_quoted(text: str) -> str:
 
 
 def parse_dispatch_email(text: str) -> dict:
-    """Extract labeled fields from plain-text body. First value per field wins.
-    Placeholder values like '<nimi>' are ignored."""
+    """Extract labeled fields from a plain-text body. Any of ':', '=', '-',
+    en/em dash separates label from value; the split is chosen so the left
+    side is a KNOWN label, which keeps hyphenated labels intact
+    ('E-post: x' splits at ':', 'Saaja - x' at '-'). First value per field
+    wins; '<placeholder>' values are ignored."""
     fields = {}
     for line in text.splitlines():
-        m = re.match(r"^\s*([A-Za-zÕÄÖÜõäöü\-]+)\s*[:=]\s*(.+?)\s*$", line)
-        if not m:
+        line = line.strip()
+        if not line:
             continue
-        key = FIELD_ALIASES.get(m.group(1).lower())
-        value = m.group(2).strip()
-        if key and key not in fields and "<" not in value and ">" not in value:
-            fields[key] = value
+        for m in re.finditer(_SEP, line):
+            label = line[:m.start()].strip().lower()
+            key = FIELD_ALIASES.get(label)
+            if not key:
+                continue
+            value = line[m.end():].strip()
+            if value and key not in fields and "<" not in value and ">" not in value:
+                fields[key] = value
+            break
     return fields
 
 
@@ -141,11 +153,29 @@ def fallback_parse(text: str) -> dict:
             elif phone.startswith("+372") or digits.startswith("5"):
                 fields["country"] = "EE"
     for line in text.splitlines():
-        words = line.strip().rstrip(",.").split()
+        # 'Meelis Kadaja, PhD, MBA' -> take the part before the first comma
+        head = line.split(",")[0].strip().rstrip(".")
+        words = head.split()
         if (2 <= len(words) <= 3 and words[0].lower() not in _GREETINGS
                 and all(_NAME_RE.match(w) for w in words)):
-            fields.setdefault("name", " ".join(words))
+            fields.setdefault("name", head)
             break
+    # "... Kärla omniva pakiautomaati", "Tartusse Rebase Rimi pakiautomaati":
+    # walk left from the keyword and keep the contiguous run of capitalised
+    # tokens (Estonian place names) — lowercase verbs end the run.
+    mm = re.search(r"(.{0,80}?)(?:omniva\s+)?pakiautomaa\w*", text, re.I)
+    if mm:
+        toks, run = mm.group(1).split(), []
+        for t in reversed(toks):
+            t = t.strip(" ,.:;")
+            if t.lower() == "omniva":
+                continue
+            if t[:1].isupper():
+                run.append(_stem_place(t))
+            else:
+                break
+        if run:
+            fields["machine"] = " ".join(reversed(run))
     if m:
         phone_line = next((ln for ln in text.splitlines()
                            if m.group(1) in ln), "")
@@ -209,6 +239,19 @@ def resolve_pickup_point(fields: dict, lookup=oc.list_pickup_points) -> dict:
             res = lookup(country=country, query=cleaned, limit=10)
             machines = [p for p in res.get("points", [])
                         if p.get("type") == "parcel_machine"]
+        if not machines:
+            # last resort: single place words, in the order written — the
+            # first is the most specific ('Kärla omniva, Saaremaa' -> Kärla,
+            # not the county).
+            for tok in (t.strip(" ,.") for t in toks):
+                if len(tok) < 4 or not tok[:1].isupper():
+                    continue
+                res = lookup(country=country, query=tok, limit=10)
+                cand = [p for p in res.get("points", [])
+                        if p.get("type") == "parcel_machine"]
+                if cand:
+                    machines = cand
+                    break
     if not machines:
         if by == "machine":
             return {"error": f"Pakiautomaati '{query}' ei leitud riigis "
