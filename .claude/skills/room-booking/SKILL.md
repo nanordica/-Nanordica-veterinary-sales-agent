@@ -153,6 +153,16 @@ Saada vastus SAMA lõime sisse Graph'iga (repo juurest):
 
 ## Lõpetamine
 
+## Tühistamine / muutmine
+
+Klient EI saa broneeringut ise API kaudu tühistada: `cancel_booking` nõuab
+haldus-hash'i, mida tellimuse kinnituskiri ("Sinu tellimus … saadi kätte")
+ei sisalda (kontrollitud 01.08.2026). Tühistamiseks kirjuta
+**info@tehnopol.ee**, lisa tellimuse number, ruum ja aeg.
+
+Praktiline järeldus: **broneeri ainult siis, kui soov on selge** — kahtluse
+korral küsi täpsustust, ära broneeri "igaks juhuks".
+
 Tõend on `order_id` (Tehnopoli tellimusenumber) — pane see nii vastuskirja
 kui result-faili. Kirjuta spool-faili kõrvale `<spool>.result.json`:
 `{"status": "booked|options|clarification|busy|error", "room": ..., "start": ..., "end": ..., "reply_sent": true/false, "detail": ...}`
