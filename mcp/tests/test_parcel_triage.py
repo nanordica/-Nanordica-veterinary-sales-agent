@@ -76,3 +76,15 @@ def test_prompt_carries_sender_subject_body():
               runner=capture)
     assert "vera@nanordica.com" in seen["p"]
     assert "Paki saatmine" in seen["p"] and "Kärla automaati" in seen["p"]
+
+
+def test_cron_uses_the_cheapest_evaluated_model():
+    """Eval (scripts/triage_eval.py) scored haiku 17/17 — keep it default."""
+    import inspect
+    assert pt.MODEL == "haiku"
+    assert "--model" in inspect.getsource(pt._run_claude)
+
+
+def test_prompt_covers_clarification_replies():
+    """The eval's real find: a reply supplying missing details is a request."""
+    assert "Vastus varasemale saatmissoovile" in pt.PROMPT

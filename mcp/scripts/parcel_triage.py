@@ -18,6 +18,11 @@ import re
 import subprocess
 
 CLAUDE_TIMEOUT_S = 180
+# Haiku is the cron default: with the clarification-reply rule in the prompt
+# all of haiku/sonnet/opus scored 17/17 on the mailbox corpus
+# (scripts/triage_eval.py), so the cheapest tier is the right one. Override
+# per call site if a future corpus shows a gap.
+MODEL = "haiku"
 
 PROMPT = """Sa oled Nanordica sisemise postkasti (ravimus@nanordica.com) \
 saatmiskorralduste triaaž. Sisend on ÜKS firmasisene e-kiri. Vasta AINULT \
@@ -46,6 +51,11 @@ JSON-skeem (kõik võtmed kohustuslikud, tundmatu = null):
 }
 
 Reeglid:
+- **Vastus varasemale saatmissoovile on ISE KA saatmissoov.** Kui kiri lisab
+  puuduvaid andmeid (nt ainult "Pakiautomaat: X" või "Palun Selveri
+  automaati"), on is_shipping_request = true ja korja välja see, mille see
+  kiri lisab. Ülejäänud väljad jäävad null — need on lõime varasemas kirjas.
+- Kui keegi palub endale näidist/toodet saata, on see samuti saatmissoov.
 - Ära leiuta andmeid. Kui telefoni pole kirjas, siis null.
 - Saaja on see, KELLELE pakk läheb — mitte kirja saatja, kui need erinevad.
 - Allkirjaplokist võta telefon ainult siis, kui saaja on kirja saatja ise.
@@ -64,7 +74,7 @@ __BODY__
 
 def _run_claude(prompt: str) -> str:
     """Headless Claude call. Separated for test injection."""
-    res = subprocess.run(["claude", "-p", prompt,
+    res = subprocess.run(["claude", "-p", prompt, "--model", MODEL,
                           "--dangerously-skip-permissions"],
                          capture_output=True, text=True,
                          timeout=CLAUDE_TIMEOUT_S)
