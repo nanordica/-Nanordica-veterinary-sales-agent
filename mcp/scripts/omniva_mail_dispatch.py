@@ -465,6 +465,23 @@ def match_option(text: str, options: list) -> str | None:
     return hits[0] if len(hits) == 1 else None
 
 
+def already_registered(registry: dict, conversation_id: str | None,
+                       sender: str | None, subject: str | None) -> dict | None:
+    """An earlier round of the SAME request that already produced a barcode.
+    One thread = one parcel: a follow-up reply must never register a second
+    shipment (seen live 2026-08-01, two barcodes for one request)."""
+    base = _base_subject(subject)
+    for e in registry.values():
+        if not e.get("barcode"):
+            continue
+        if conversation_id and e.get("conversationId") == conversation_id:
+            return e
+        if (sender and e.get("from") == sender and base
+                and _base_subject(e.get("subject")) == base):
+            return e
+    return None
+
+
 def load_registry() -> dict:
     try:
         return json.loads(STATE_PATH.read_text())
@@ -567,6 +584,20 @@ def main() -> int:
                 (msg.get("body") or {}).get("content")):
             continue
         if msg["id"] in registry:
+            continue
+        dup = already_registered(registry, msg.get("conversationId"),
+                                 sender, msg.get("subject"))
+        if dup:
+            registry[msg["id"]] = {
+                "status": "duplicate_skipped", "from": sender,
+                "subject": msg.get("subject"),
+                "received": msg.get("receivedDateTime"),
+                "conversationId": msg.get("conversationId"),
+                "duplicate_of": dup.get("barcode"), "ts": int(time.time())}
+            save_registry(registry)
+            results.append({"id": msg["id"], "status": "duplicate_skipped",
+                            "from": sender, "subject": msg.get("subject"),
+                            "duplicate_of": dup.get("barcode")})
             continue
         inh_fields, inh_options, inh_excerpts = inherit_context(
             registry, msg.get("conversationId"), sender, msg.get("subject"))

@@ -490,3 +490,28 @@ def test_resolve_prefers_first_place_word_not_the_county():
                                  "country": "EE"},
                                 lookup=fake_lookup(KARLA_MACHINES))
     assert r["zip"] == "96276"                # Kärla, mitte Saaremaa Kaubamaja
+
+
+# --- üks lõim = üks pakk ----------------------------------------------------
+
+REG_REGISTERED = {
+    "m1": {"conversationId": "c9", "from": "vera@nanordica.com",
+           "subject": "Paki saatmine", "barcode": "CC1EE", "ts": 1,
+           "status": "registered"},
+}
+
+
+def test_already_registered_by_conversation():
+    dup = od.already_registered(REG_REGISTERED, "c9", None, None)
+    assert dup and dup["barcode"] == "CC1EE"
+
+
+def test_already_registered_by_sender_and_base_subject():
+    dup = od.already_registered(REG_REGISTERED, "UUS", "vera@nanordica.com",
+                                "Re: Paki saatmine")
+    assert dup and dup["barcode"] == "CC1EE"
+
+
+def test_already_registered_ignores_other_threads():
+    assert od.already_registered(REG_REGISTERED, "c1", "keegi@nanordica.com",
+                                 "Muu teema") is None
